@@ -35,7 +35,7 @@ export default function Home() {
                 key={img}
                 className="absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ease-in-out"
                 style={{
-                  backgroundImage: `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.6)), url("${img}")`,
+                  backgroundImage: `linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.85)), url("${img}")`,
                   opacity: index === currentImageIndex ? 1 : 0,
                   zIndex: index === currentImageIndex ? 1 : 0,
                 }}
@@ -84,9 +84,9 @@ export default function Home() {
               <h2 className="text-slate-900 mb-1">Browse by Category</h2>
               <p className="text-slate-500 text-sm">Hand-picked spaces for every occasion</p>
             </div>
-            <Link href="/categories" className="text-[#1d1aff] font-semibold flex items-center gap-1 hover:underline transition-all text-xs">
+            <Link href="/categories" className="text-[#1d1aff] font-bold flex items-center gap-1.5 hover:underline transition-all whitespace-nowrap text-sm">
               View all
-              <svg className="w-3.4 h-3.4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
               </svg>
             </Link>
