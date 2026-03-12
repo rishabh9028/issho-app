@@ -52,16 +52,16 @@ export default function Home() {
                 <p className="text-white text-lg md:text-xl font-medium opacity-90 max-w-2xl mx-auto leading-relaxed">
                   List or Book beautiful homes and venues by the hour for birthdays, celebrations, meetups, events, experiences and special moments.
                 </p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center mt-4">
+                <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
                   <Link 
                     href="/search" 
-                    className="px-8 py-4 bg-[#1d1aff] text-white font-bold rounded-2xl hover:bg-[#1614cc] transition-all shadow-xl shadow-blue-500/20 active:scale-95 text-base"
+                    className="px-8 py-4 bg-white text-slate-900 font-bold rounded-2xl hover:bg-slate-50 transition-all shadow-lg active:scale-95 text-base"
                   >
                     Find/Book your Space
                   </Link>
                   <Link 
                     href="/auth/signup" 
-                    className="px-8 py-4 bg-white/10 backdrop-blur-md text-white font-bold rounded-2xl border border-white/20 hover:bg-white/20 transition-all active:scale-95 text-base"
+                    className="px-8 py-4 bg-white/10 backdrop-blur-xl text-white font-bold rounded-2xl border border-white/20 hover:bg-white/20 transition-all active:scale-95 text-base"
                   >
                     List your Spaces
                   </Link>
