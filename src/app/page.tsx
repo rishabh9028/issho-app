@@ -71,9 +71,7 @@ export default function Home() {
 
           {/* Search Widget - Positioned 'Between' both sections */}
           <div className="relative z-30 -mt-20 px-4 md:px-0 flex justify-center animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-300">
-            <div className="w-full max-w-5xl bg-white rounded-[32px] p-2 shadow-[0_32px_64px_-12px_rgba(0,0,0,0.14)] border border-slate-100/50">
-              <HeroSearch />
-            </div>
+            <HeroSearch />
           </div>
         </div>
       </section>

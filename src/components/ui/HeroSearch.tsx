@@ -54,7 +54,7 @@ export function HeroSearch() {
 
     return (
         <div ref={containerRef} className="relative w-full max-w-4xl mx-auto z-[60]">
-            <div className="flex flex-col md:flex-row items-center bg-white rounded-2xl md:rounded-full shadow-2xl border border-slate-100 p-1.5 gap-0">
+            <div className="flex flex-col md:flex-row items-center bg-white rounded-2xl md:rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-slate-50 p-1.5 gap-0">
                 {/* Where */}
                 <div className="flex-1 w-full flex items-center gap-2.5 px-6 py-2.5 md:border-r border-slate-100 hover:bg-slate-50 transition-all rounded-t-2xl md:rounded-l-full md:rounded-tr-none cursor-pointer group outline-none">
                     <MapPin className="w-4 h-4 text-[#1d1aff]" />
