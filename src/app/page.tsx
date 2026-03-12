@@ -95,7 +95,8 @@ export default function Home() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
                 </svg>
               </div>
-              <h3 className="text-2xl font-bold mb-6 text-slate-900">For Guests</h3>
+              <h3 className="text-2xl font-bold mb-2 text-slate-900">For Guests</h3>
+              <p className="text-slate-500 text-sm mb-6">Find perfect spaces for every occasion or just a simple meetup and games dates etc</p>
               <ul className="space-y-6">
                 {[
                   { num: "1", title: "Discover", desc: "Browse vetted spaces by location, style, and amenities." },
@@ -123,7 +124,8 @@ export default function Home() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                 </svg>
               </div>
-              <h3 className="text-2xl font-bold mb-6 text-slate-900">For Hosts</h3>
+              <h3 className="text-2xl font-bold mb-2 text-slate-900">For Hosts</h3>
+              <p className="text-slate-500 text-sm mb-6">Turn your Space into a place for memories. List your home villa or terrace, cafes event spaces and earn from curated gathering</p>
               <ul className="space-y-6">
                 {[
                   { num: "1", title: "List for Free", desc: "Upload photos and set your hourly rate in minutes." },
