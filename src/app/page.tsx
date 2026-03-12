@@ -69,8 +69,8 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Search Widget - Positioned 'Between' both sections */}
-          <div className="relative z-30 -mt-20 px-4 md:px-0 flex justify-center animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-300">
+          {/* Search Widget - Below and Separated */}
+          <div className="relative z-30 mt-12 px-4 md:px-0 flex justify-center animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-300">
             <HeroSearch />
           </div>
         </div>
