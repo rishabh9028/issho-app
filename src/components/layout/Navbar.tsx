@@ -1,0 +1,101 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
+import { Menu, X } from "lucide-react";
+import { useState } from "react";
+import { cn } from "@/lib/utils";
+
+export function Navbar() {
+    const { user, logout } = useAuth();
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const pathname = usePathname();
+
+    return (
+        <header className="sticky top-0 z-50 w-full border-b border-[#1d1aff]/10 bg-[#f8f6f6]/80 backdrop-blur-md">
+            <div className="container-custom flex items-center justify-between py-4">
+
+                {/* Left: Brand */}
+                <Link href="/" className="flex items-center gap-2">
+                    <img src="/logo2.png" alt="Isshō Logo" className="h-9 w-auto object-contain" />
+                </Link>
+
+                {/* Center: Nav Links */}
+                <nav className="hidden md:flex flex-1 justify-center gap-10">
+                    <Link href="/search" className={cn("text-sm font-semibold hover:text-[#1d1aff] transition-colors", pathname === "/search" ? "text-[#1d1aff]" : "text-slate-700")}>
+                        Find Space
+                    </Link>
+                    <Link href="/#how-it-works" className={cn("text-sm font-semibold hover:text-[#1d1aff] transition-colors", pathname === "/about" ? "text-[#1d1aff]" : "text-slate-700")}>
+                        How it Works
+                    </Link>
+                    <Link href="/contact" className={cn("text-sm font-semibold hover:text-[#1d1aff] transition-colors", pathname === "/contact" ? "text-[#1d1aff]" : "text-slate-700")}>
+                        Contact
+                    </Link>
+                </nav>
+
+                {/* Right: Actions */}
+                <div className="flex items-center gap-3">
+                    {user ? (
+                        <div className="flex items-center gap-2">
+                            <Link
+                                href={user.role === "host" ? "/host/dashboard" : "/guest/dashboard"}
+                                className="hidden sm:flex btn-airbnb-primary"
+                            >
+                                Dashboard
+                            </Link>
+                            <button
+                                onClick={logout}
+                                className="btn-airbnb-outline"
+                            >
+                                Log out
+                            </button>
+                        </div>
+                    ) : (
+                        <>
+                            <Link
+                                href="/auth/signup"
+                                className="hidden sm:flex btn-airbnb-primary"
+                            >
+                                List your space
+                            </Link>
+                            <Link
+                                href="/auth/login"
+                                className="btn-airbnb-outline"
+                            >
+                                Login
+                            </Link>
+                        </>
+                    )}
+
+                    <button
+                        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                        className="md:hidden p-2 text-slate-700"
+                    >
+                        {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                    </button>
+                </div>
+            </div>
+
+            {/* Mobile Menu */}
+            {mobileMenuOpen && (
+                <div className="md:hidden bg-white border-t border-slate-100 px-6 py-4 space-y-1">
+                    <Link href="/search" className="block px-3 py-2 text-sm font-semibold text-slate-700 hover:text-[#1d1aff] hover:bg-slate-50 rounded-lg">Find Space</Link>
+                    <Link href="/about" className="block px-3 py-2 text-sm font-semibold text-slate-700 hover:text-[#1d1aff] hover:bg-slate-50 rounded-lg">How it Works</Link>
+                    <Link href="/contact" className="block px-3 py-2 text-sm font-semibold text-slate-700 hover:text-[#1d1aff] hover:bg-slate-50 rounded-lg">Contact</Link>
+                    {!user ? (
+                        <>
+                            <Link href="/auth/login" className="block px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 rounded-lg">Login</Link>
+                            <Link href="/auth/signup" className="block px-3 py-2 text-sm font-semibold text-[#1d1aff] hover:bg-slate-50 rounded-lg">List your space</Link>
+                        </>
+                    ) : (
+                        <>
+                            <Link href={user.role === "host" ? "/host/dashboard" : "/guest/dashboard"} className="block px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 rounded-lg">Dashboard</Link>
+                            <button onClick={logout} className="block w-full text-left px-3 py-2 text-sm font-semibold text-red-600 hover:bg-red-50 rounded-lg">Log out</button>
+                        </>
+                    )}
+                </div>
+            )}
+        </header>
+    );
+}

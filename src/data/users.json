@@ -1,0 +1,34 @@
+[
+    {
+        "id": "user-1",
+        "name": "Alex Guest",
+        "email": "alex@example.com",
+        "role": "guest",
+        "avatar": "https://i.pravatar.cc/150?u=user-1",
+        "bio": "Event enthusiast always looking for unique spaces."
+    },
+    {
+        "id": "user-2",
+        "name": "Sarah Host",
+        "email": "sarah@example.com",
+        "role": "host",
+        "avatar": "https://i.pravatar.cc/150?u=user-2",
+        "bio": "Owning and managing beautiful boutique spaces since 2018."
+    },
+    {
+        "id": "user-3",
+        "name": "Michael Skydeck",
+        "email": "michael@example.com",
+        "role": "host",
+        "avatar": "https://i.pravatar.cc/150?u=user-3",
+        "bio": "Rooftop owner who loves hosting memorable sunny events."
+    },
+    {
+        "id": "user-4",
+        "name": "Emma Estates",
+        "email": "emma@example.com",
+        "role": "host",
+        "avatar": "https://i.pravatar.cc/150?u=user-4",
+        "bio": "Luxury property manager providing premium experiences."
+    }
+]

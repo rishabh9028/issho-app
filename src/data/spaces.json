@@ -1,0 +1,74 @@
+[
+  {
+    "id": "space-1",
+    "title": "Minimalist Downtown Loft",
+    "description": "A beautifully lit, open-plan loft in the heart of downtown. Perfect for photoshoots, small workshops, and intimate gatherings.",
+    "location": "Downtown Metropolis",
+    "price_per_hour": 150,
+    "capacity": 25,
+    "type": "Studio",
+    "amenities": ["WiFi", "Kitchenette", "Natural Light", "Restroom", "Whiteboard"],
+    "images": [
+      "https://images.unsplash.com/photo-1554995207-c18c203602cb?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
+      "https://images.unsplash.com/photo-1497366216548-37526070297c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
+    ],
+    "host_id": "user-2",
+    "availability": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    "rating": 4.9,
+    "reviews_count": 42
+  },
+  {
+    "id": "space-2",
+    "title": "Sunlit Rooftop Oasis",
+    "description": "Expansive outdoor rooftop with city views, comfortable seating, and a fire pit. Ideal for evening networking events and birthday parties.",
+    "location": "Westside Skydeck",
+    "price_per_hour": 300,
+    "capacity": 50,
+    "type": "Rooftop",
+    "amenities": ["Outdoor Seating", "Fire Pit", "City View", "Ambient Lighting", "Bluetooth Speakers"],
+    "images": [
+      "https://images.unsplash.com/photo-1533090161767-e6ffed986c88?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
+      "https://images.unsplash.com/photo-1511895426328-dc8714191300?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
+    ],
+    "host_id": "user-3",
+    "availability": ["Fri", "Sat", "Sun"],
+    "rating": 4.8,
+    "reviews_count": 18
+  },
+  {
+    "id": "space-3",
+    "title": "Cozy Neighborhood Cafe",
+    "description": "Charming cafe space available after hours. Includes espresso machine use (with barista fee) and cozy nooks. Great for book clubs and private dinners.",
+    "location": "Northside Village",
+    "price_per_hour": 120,
+    "capacity": 30,
+    "type": "Cafe",
+    "amenities": ["WiFi", "Coffee Machine", "Tables & Chairs", "Restroom", "Music System"],
+    "images": [
+      "https://images.unsplash.com/photo-1554118811-1e0d58224f24?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
+      "https://images.unsplash.com/photo-1497935586351-b67a49e012bf?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
+    ],
+    "host_id": "user-2",
+    "availability": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    "rating": 4.6,
+    "reviews_count": 8
+  },
+  {
+    "id": "space-4",
+    "title": "Modern Suburban Villa",
+    "description": "Luxurious villa with a private pool, large kitchen, and spacious living room. The ultimate setting for exclusive parties and family gatherings.",
+    "location": "Sunny Hills Estate",
+    "price_per_hour": 500,
+    "capacity": 80,
+    "type": "Villa",
+    "amenities": ["Pool", "High-end Kitchen", "Grill", "Parking", "Sound System"],
+    "images": [
+      "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
+      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
+    ],
+    "host_id": "user-4",
+    "availability": ["Sat", "Sun"],
+    "rating": 5.0,
+    "reviews_count": 12
+  }
+]

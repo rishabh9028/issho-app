@@ -1,0 +1,18 @@
+[
+    {
+        "id": "rev-1",
+        "space_id": "space-1",
+        "user_id": "user-1",
+        "rating": 5,
+        "comment": "Absolutely perfect space for our product launch! The host was super accommodating and the natural light was incredible.",
+        "date": "2025-10-15"
+    },
+    {
+        "id": "rev-2",
+        "space_id": "space-2",
+        "user_id": "user-1",
+        "rating": 4,
+        "comment": "Great rooftop. A little chilly at night but the fire pit helped. Would book again for a summer event.",
+        "date": "2025-11-02"
+    }
+]
