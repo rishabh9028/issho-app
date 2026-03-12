@@ -89,58 +89,62 @@ export default function Home() {
           <div className="grid md:grid-cols-2 gap-12">
 
             {/* For Guests */}
-            <div className="bg-white p-10 rounded-2xl shadow-xl border border-[#1d1aff]/5">
-              <div className="w-14 h-14 bg-[#1d1aff] rounded-2xl flex items-center justify-center text-white mb-6">
-                <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-                </svg>
+            <div className="bg-white p-10 rounded-2xl shadow-xl border border-[#1d1aff]/5 flex flex-col h-full">
+              <div className="flex-1">
+                <div className="w-14 h-14 bg-[#1d1aff] rounded-2xl flex items-center justify-center text-white mb-6">
+                  <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                  </svg>
+                </div>
+                <h3 className="text-2xl font-bold mb-2 text-slate-900">For Guests</h3>
+                <p className="text-slate-500 text-sm mb-6 min-h-[40px]">Find perfect spaces for every occasion or just a simple meetup and games dates etc</p>
+                <ul className="space-y-6">
+                  {[
+                    { num: "1", title: "Discover", desc: "Browse vetted spaces by location, style, and amenities." },
+                    { num: "2", title: "Book Instantly", desc: "Select your hours and book immediately with secure payments." },
+                    { num: "3", title: "Enjoy", desc: "Check-in easily and enjoy your curated environment." },
+                  ].map((step) => (
+                    <li key={step.num} className="flex gap-4">
+                      <span className="flex-shrink-0 w-8 h-8 rounded-full bg-[#1d1aff]/10 text-[#1d1aff] flex items-center justify-center font-bold text-sm">{step.num}</span>
+                      <div>
+                        <p className="font-bold text-slate-800">{step.title}</p>
+                        <p className="text-slate-500 text-sm">{step.desc}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
               </div>
-              <h3 className="text-2xl font-bold mb-2 text-slate-900">For Guests</h3>
-              <p className="text-slate-500 text-sm mb-6">Find perfect spaces for every occasion or just a simple meetup and games dates etc</p>
-              <ul className="space-y-6">
-                {[
-                  { num: "1", title: "Discover", desc: "Browse vetted spaces by location, style, and amenities." },
-                  { num: "2", title: "Book Instantly", desc: "Select your hours and book immediately with secure payments." },
-                  { num: "3", title: "Enjoy", desc: "Check-in easily and enjoy your curated environment." },
-                ].map((step) => (
-                  <li key={step.num} className="flex gap-4">
-                    <span className="flex-shrink-0 w-8 h-8 rounded-full bg-[#1d1aff]/10 text-[#1d1aff] flex items-center justify-center font-bold text-sm">{step.num}</span>
-                    <div>
-                      <p className="font-bold text-slate-800">{step.title}</p>
-                      <p className="text-slate-500 text-sm">{step.desc}</p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
               <Link href="/search" className="mt-10 w-full py-4 rounded-xl border-2 border-[#1d1aff] text-[#1d1aff] font-bold hover:bg-[#1d1aff] hover:text-white transition-all text-center block">
                 Start Exploring
               </Link>
             </div>
 
             {/* For Hosts */}
-            <div className="bg-white p-10 rounded-2xl shadow-xl border border-[#1d1aff]/5">
-              <div className="w-14 h-14 bg-slate-900 rounded-2xl flex items-center justify-center text-white mb-6">
-                <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                </svg>
+            <div className="bg-white p-10 rounded-2xl shadow-xl border border-[#1d1aff]/5 flex flex-col h-full">
+              <div className="flex-1">
+                <div className="w-14 h-14 bg-slate-900 rounded-2xl flex items-center justify-center text-white mb-6">
+                  <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                  </svg>
+                </div>
+                <h3 className="text-2xl font-bold mb-2 text-slate-900">For Hosts</h3>
+                <p className="text-slate-500 text-sm mb-6 min-h-[40px]">Turn your Space into a place for memories. List your home villa or terrace, cafes event spaces and earn from curated gathering</p>
+                <ul className="space-y-6">
+                  {[
+                    { num: "1", title: "List for Free", desc: "Upload photos and set your hourly rate in minutes." },
+                    { num: "2", title: "Manage Easily", desc: "Control availability through our intuitive host dashboard." },
+                    { num: "3", title: "Earn Daily", desc: "Get paid directly for each booking with complete transparency." },
+                  ].map((step) => (
+                    <li key={step.num} className="flex gap-4">
+                      <span className="flex-shrink-0 w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center font-bold text-sm">{step.num}</span>
+                      <div>
+                        <p className="font-bold text-slate-800">{step.title}</p>
+                        <p className="text-slate-500 text-sm">{step.desc}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
               </div>
-              <h3 className="text-2xl font-bold mb-2 text-slate-900">For Hosts</h3>
-              <p className="text-slate-500 text-sm mb-6">Turn your Space into a place for memories. List your home villa or terrace, cafes event spaces and earn from curated gathering</p>
-              <ul className="space-y-6">
-                {[
-                  { num: "1", title: "List for Free", desc: "Upload photos and set your hourly rate in minutes." },
-                  { num: "2", title: "Manage Easily", desc: "Control availability through our intuitive host dashboard." },
-                  { num: "3", title: "Earn Daily", desc: "Get paid directly for each booking with complete transparency." },
-                ].map((step) => (
-                  <li key={step.num} className="flex gap-4">
-                    <span className="flex-shrink-0 w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center font-bold text-sm">{step.num}</span>
-                    <div>
-                      <p className="font-bold text-slate-800">{step.title}</p>
-                      <p className="text-slate-500 text-sm">{step.desc}</p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
               <Link href="/auth/signup" className="mt-10 w-full py-4 rounded-xl bg-slate-900 text-white font-bold hover:bg-slate-800 transition-all text-center block">
                 List Your Space
               </Link>
