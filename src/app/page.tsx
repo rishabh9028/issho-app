@@ -1,34 +1,77 @@
+"use client";
+
 import Link from "next/link";
 import { HeroSearch } from "@/components/ui/HeroSearch";
+import { useState, useEffect } from "react";
+
+const HERO_IMAGES = [
+  "https://images.unsplash.com/photo-1513151233558-d860c5398176?q=80&w=2670&auto=format&fit=crop", // Birthdays
+  "https://images.unsplash.com/photo-1527192491265-7e15c55b1ed2?q=80&w=2670&auto=format&fit=crop", // Meetups
+  "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?q=80&w=2669&auto=format&fit=crop", // Celebrations
+  "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?q=80&w=2670&auto=format&fit=crop", // Villas/Escapes
+  "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?q=80&w=2670&auto=format&fit=crop", // Creative Studios
+];
 
 export default function Home() {
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % HERO_IMAGES.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, []);
+
   return (
     <main className="flex-1 bg-[#f8f6f6]">
 
       {/* ─── Hero Section ─── */}
       <section className="relative py-12">
         <div className="container-custom">
-          <div
-            className="relative flex min-h-[520px] flex-col items-center justify-center gap-10 rounded-2xl px-6 py-16 text-center"
-            style={{
-              backgroundImage: `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.7)), url("https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2670&auto=format&fit=crop")`,
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-            }}
-          >
-            {/* Headline */}
-            <div className="max-w-[720px] flex flex-col gap-3 mb-2 text-center">
-              <h1 className="text-white text-4xl md:text-5xl font-bold tracking-tighter">
-                Find the perfect space,{" "}
-                <span className="text-white">by the hour.</span>
-              </h1>
-              <p className="text-white text-base md:text-lg font-medium opacity-90 max-w-xl mx-auto">
-                Instant access to unique villas, production studios, and curated cafes for your next creative project or event.
-              </p>
+          <div className="relative min-h-[580px] rounded-[40px] overflow-hidden group shadow-2xl">
+            {/* Background Carousel */}
+            {HERO_IMAGES.map((img, index) => (
+              <div
+                key={img}
+                className="absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ease-in-out"
+                style={{
+                  backgroundImage: `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.6)), url("${img}")`,
+                  opacity: index === currentImageIndex ? 1 : 0,
+                  zIndex: index === currentImageIndex ? 1 : 0,
+                }}
+              />
+            ))}
+            
+            {/* Content Overlay */}
+            <div className="relative z-10 flex flex-col items-center justify-center gap-10 px-6 py-16 text-center min-h-[580px]">
+              <div className="max-w-[800px] flex flex-col gap-6 mb-2 text-center animate-in fade-in slide-in-from-bottom-8 duration-1000">
+                <h1 className="text-white text-5xl md:text-7xl font-black tracking-tight leading-[1.1]">
+                  Private Spaces <br />
+                  <span className="text-white/90">for every gathering</span>
+                </h1>
+                <p className="text-white text-lg md:text-xl font-medium opacity-90 max-w-2xl mx-auto leading-relaxed">
+                  List or Book beautiful homes and venues by the hour for birthdays, celebrations, meetups, events, experiences and special moments.
+                </p>
+              </div>
+
+              {/* Search Widget */}
+              <div className="w-full max-w-4xl animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-300">
+                <HeroSearch />
+              </div>
             </div>
 
-            {/* Search Widget */}
-            <HeroSearch />
+            {/* Carousel Indicators */}
+            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+              {HERO_IMAGES.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setCurrentImageIndex(i)}
+                  className={`h-1 rounded-full transition-all duration-500 ${
+                    i === currentImageIndex ? "w-8 bg-white" : "w-2 bg-white/40 hover:bg-white/60"
+                  }`}
+                />
+              ))}
+            </div>
           </div>
         </div>
       </section>
