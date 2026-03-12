@@ -79,42 +79,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ─── Browse by Category ─── */}
-      <section className="section-spacing">
-        <div className="container-custom">
-          <div className="flex justify-between items-end mb-6">
-            <div>
-              <h2 className="text-slate-900 mb-1">Browse by Category</h2>
-              <p className="text-slate-500 text-sm">Hand-picked spaces for every occasion</p>
-            </div>
-            <Link href="/categories" className="text-[#1d1aff] font-bold flex items-center gap-1.5 hover:underline transition-all whitespace-nowrap text-sm">
-              View all
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-              </svg>
-            </Link>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              { label: "Villas", desc: "Perfect for off-sites and shoots", img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=2670&auto=format&fit=crop", slug: "villa" },
-              { label: "Studios", desc: "Creative hubs for creators", img: "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?q=80&w=2670&auto=format&fit=crop", slug: "studio" },
-              { label: "Cafes", desc: "Unique venues for small events", img: "https://images.unsplash.com/photo-1556912173-3bb406ef7e77?q=80&w=2670&auto=format&fit=crop", slug: "cafe" },
-            ].map((cat) => (
-              <Link href={`/categories/${cat.slug}`} key={cat.label} className="group relative overflow-hidden rounded-2xl aspect-[4/5] cursor-pointer block">
-                <div
-                  className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110"
-                  style={{ backgroundImage: `linear-gradient(to top, rgba(0,0,0,0.8), transparent), url("${cat.img}")` }}
-                />
-                <div className="absolute bottom-0 p-6">
-                  <h3 className="text-white text-2xl font-bold mb-1">{cat.label}</h3>
-                  <p className="text-slate-300 text-sm">{cat.desc}</p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* ─── How It Works ─── */}
       <section id="how-it-works" className="section-spacing bg-[#1d1aff]/0 border-t border-slate-100 scroll-mt-20">
         <div className="container-custom">
@@ -179,6 +143,42 @@ export default function Home() {
                 List Your Space
               </Link>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── Browse by Category ─── */}
+      <section className="section-spacing bg-white/50">
+        <div className="container-custom">
+          <div className="flex justify-between items-end mb-6">
+            <div>
+              <h2 className="text-slate-900 mb-1">Browse by Category</h2>
+              <p className="text-slate-500 text-sm">Hand-picked spaces for every occasion</p>
+            </div>
+            <Link href="/categories" className="text-[#1d1aff] font-bold flex items-center gap-1.5 hover:underline transition-all whitespace-nowrap text-sm">
+              View all
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              { label: "Villas", desc: "Perfect for off-sites and shoots", img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=2670&auto=format&fit=crop", slug: "villa" },
+              { label: "Studios", desc: "Creative hubs for creators", img: "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?q=80&w=2670&auto=format&fit=crop", slug: "studio" },
+              { label: "Cafes", desc: "Unique venues for small events", img: "https://images.unsplash.com/photo-1556912173-3bb406ef7e77?q=80&w=2670&auto=format&fit=crop", slug: "cafe" },
+            ].map((cat) => (
+              <Link href={`/categories/${cat.slug}`} key={cat.label} className="group relative overflow-hidden rounded-2xl aspect-[4/5] cursor-pointer block">
+                <div
+                  className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110"
+                  style={{ backgroundImage: `linear-gradient(to top, rgba(0,0,0,0.8), transparent), url("${cat.img}")` }}
+                />
+                <div className="absolute bottom-0 p-6">
+                  <h3 className="text-white text-2xl font-bold mb-1">{cat.label}</h3>
+                  <p className="text-slate-300 text-sm">{cat.desc}</p>
+                </div>
+              </Link>
+            ))}
           </div>
         </div>
       </section>
