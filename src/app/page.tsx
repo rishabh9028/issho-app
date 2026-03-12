@@ -43,7 +43,7 @@ export default function Home() {
             ))}
             
             {/* Content Overlay */}
-            <div className="relative z-10 flex flex-col items-center justify-center gap-8 px-6 py-12 text-center min-h-[420px]">
+            <div className="relative z-10 flex flex-col items-center justify-center gap-6 px-6 py-8 text-center min-h-[380px]">
               <div className="max-w-[800px] flex flex-col gap-6 mb-2 text-center animate-in fade-in slide-in-from-bottom-8 duration-1000">
                 <h1 className="text-white text-5xl md:text-7xl font-black tracking-tight leading-[1.1]">
                   Private Spaces <br />
