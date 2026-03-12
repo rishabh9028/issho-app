@@ -28,7 +28,7 @@ export default function Home() {
       {/* ─── Hero Section ─── */}
       <section className="relative py-12">
         <div className="container-custom">
-          <div className="relative min-h-[580px] rounded-[40px] overflow-hidden group shadow-2xl">
+          <div className="relative min-h-[400px] rounded-[40px] overflow-hidden group shadow-2xl">
             {/* Background Carousel */}
             {HERO_IMAGES.map((img, index) => (
               <div
@@ -69,22 +69,11 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Carousel Indicators */}
-            <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-20 flex gap-2">
-              {HERO_IMAGES.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setCurrentImageIndex(i)}
-                  className={`h-1.5 rounded-full transition-all duration-500 ${
-                    i === currentImageIndex ? "w-10 bg-white" : "w-3 bg-white/40 hover:bg-white/60"
-                  }`}
-                />
-              ))}
-            </div>
+
           </div>
 
           {/* Search Widget - Below and Separated */}
-          <div className="relative z-30 mt-12 px-4 md:px-0 flex justify-center animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-300">
+          <div className="relative z-30 mt-4 px-4 md:px-0 flex justify-center animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-300">
             <HeroSearch />
           </div>
         </div>
