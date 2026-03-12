@@ -43,7 +43,7 @@ export default function Home() {
             ))}
             
             {/* Content Overlay */}
-            <div className="relative z-10 flex flex-col items-center justify-center gap-10 px-6 py-16 text-center min-h-[580px]">
+            <div className="relative z-10 flex flex-col items-center justify-center gap-10 px-6 py-16 text-center min-h-[500px]">
               <div className="max-w-[800px] flex flex-col gap-6 mb-2 text-center animate-in fade-in slide-in-from-bottom-8 duration-1000">
                 <h1 className="text-white text-5xl md:text-7xl font-black tracking-tight leading-[1.1]">
                   Private Spaces <br />
@@ -53,24 +53,26 @@ export default function Home() {
                   List or Book beautiful homes and venues by the hour for birthdays, celebrations, meetups, events, experiences and special moments.
                 </p>
               </div>
-
-              {/* Search Widget */}
-              <div className="w-full max-w-4xl animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-300">
-                <HeroSearch />
-              </div>
             </div>
 
             {/* Carousel Indicators */}
-            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+            <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-20 flex gap-2">
               {HERO_IMAGES.map((_, i) => (
                 <button
                   key={i}
                   onClick={() => setCurrentImageIndex(i)}
-                  className={`h-1 rounded-full transition-all duration-500 ${
-                    i === currentImageIndex ? "w-8 bg-white" : "w-2 bg-white/40 hover:bg-white/60"
+                  className={`h-1.5 rounded-full transition-all duration-500 ${
+                    i === currentImageIndex ? "w-10 bg-white" : "w-3 bg-white/40 hover:bg-white/60"
                   }`}
                 />
               ))}
+            </div>
+          </div>
+
+          {/* Search Widget - Outside and Below */}
+          <div className="relative z-30 -mt-16 px-4 md:px-0 flex justify-center animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-300">
+            <div className="w-full max-w-5xl bg-white rounded-[32px] p-2 shadow-2xl border border-slate-100">
+              <HeroSearch />
             </div>
           </div>
         </div>
