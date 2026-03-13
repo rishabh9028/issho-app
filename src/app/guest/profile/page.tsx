@@ -51,11 +51,11 @@ export default function GuestProfile() {
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="text-sm font-semibold text-foreground mb-1 block">First Name</label>
-                                    <input type="text" defaultValue={user.name.split(" ")[0]} className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition" />
+                                    <input type="text" defaultValue={(user.name || "").split(" ")[0]} className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition" />
                                 </div>
                                 <div>
                                     <label className="text-sm font-semibold text-foreground mb-1 block">Last Name</label>
-                                    <input type="text" defaultValue={user.name.split(" ")[1] || ""} className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition" />
+                                    <input type="text" defaultValue={(user.name || "").split(" ")[1] || ""} className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition" />
                                 </div>
                             </div>
 

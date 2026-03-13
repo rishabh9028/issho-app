@@ -103,8 +103,17 @@ export default function HostBookingDetails() {
         switch (status) {
             case "confirmed": return "bg-emerald-50 text-emerald-500 shadow-emerald-500/10";
             case "pending": return "bg-rose-50 text-rose-500 shadow-rose-500/10";
+            case "cancelled": return "bg-slate-100 text-slate-400";
             default: return "bg-slate-50 text-slate-400";
         }
+    };
+
+    const formatTime = (isoString: string) => {
+        return new Date(isoString).toLocaleTimeString("en-US", {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true
+        });
     };
 
     return (
@@ -145,13 +154,13 @@ export default function HostBookingDetails() {
                                 <div className="flex flex-wrap justify-center lg:justify-start gap-4">
                                     <div className="px-6 py-4 bg-slate-50 rounded-[20px] border border-slate-100 min-w-[140px]">
                                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Check In</p>
-                                        <p className="font-black text-slate-900">{new Date(booking.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</p>
-                                        <p className="text-xs font-bold text-slate-500">{booking.start_time}</p>
+                                        <p className="font-black text-slate-900">{new Date(booking.start_time).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</p>
+                                        <p className="text-xs font-bold text-slate-500">{formatTime(booking.start_time)}</p>
                                     </div>
                                     <div className="px-6 py-4 bg-slate-50 rounded-[20px] border border-slate-100 min-w-[140px]">
                                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Check Out</p>
-                                        <p className="font-black text-slate-900">{new Date(booking.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</p>
-                                        <p className="text-xs font-bold text-slate-500">{booking.end_time}</p>
+                                        <p className="font-black text-slate-900">{new Date(booking.end_time).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</p>
+                                        <p className="text-xs font-bold text-slate-500">{formatTime(booking.end_time)}</p>
                                     </div>
                                 </div>
                             </div>

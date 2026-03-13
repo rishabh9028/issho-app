@@ -44,32 +44,63 @@ export default function HostBookings() {
         if (!user) {
             router.push("/auth/login");
         } else if (user.role !== "host" && user.role !== "admin") {
-            router.push("/guest/dashboard");
+            router.push("/become-a-host");
         }
     }, [user, router]);
 
+    const fetchBookings = async () => {
+        if (!user) return;
+        setLoading(true);
+        const { data, error } = await supabase
+            .from("bookings")
+            .select(`
+                *,
+                spaces!inner (*),
+                profiles:user_id (*)
+            `)
+            .eq("spaces.host_id", user.id)
+            .order("created_at", { ascending: false });
+
+        if (!error && data) {
+            setBookings(data as any);
+        }
+        setLoading(false);
+    };
+
     useEffect(() => {
-        const fetchBookings = async () => {
-            if (!user) return;
-            setLoading(true);
-            const { data, error } = await supabase
-                .from("bookings")
-                .select(`
-                    *,
-                    spaces!inner (*),
-                    profiles:user_id (*)
-                `)
-                .eq("spaces.host_id", user.id)
-                .order("created_at", { ascending: false });
-
-            if (!error && data) {
-                setBookings(data as any);
-            }
-            setLoading(false);
-        };
-
         fetchBookings();
+
+        // Real-time bookings
+        const channel = supabase
+            .channel(`host_bookings_${user?.id}`)
+            .on(
+                'postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'bookings'
+                },
+                () => {
+                    fetchBookings();
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
     }, [user]);
+
+    const updateBookingStatus = async (id: string, newStatus: string) => {
+        const { error } = await supabase
+            .from("bookings")
+            .update({ status: newStatus })
+            .eq("id", id);
+        
+        if (!error) {
+            setBookings(prev => prev.map(b => b.id === id ? { ...b, status: newStatus } : b));
+        }
+    };
 
     if (!user) return null;
 
@@ -89,6 +120,14 @@ export default function HostBookings() {
             case "cancelled": return "bg-slate-100 text-slate-400 border-slate-200";
             default: return "bg-slate-50 text-slate-500 border-slate-100";
         }
+    };
+
+    const formatTime = (isoString: string) => {
+        return new Date(isoString).toLocaleTimeString("en-US", {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true
+        });
     };
 
     return (
@@ -175,15 +214,15 @@ export default function HostBookings() {
                                             <div className="flex-1 lg:border-l lg:border-slate-50 lg:pl-8 text-left">
                                                 <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Staying On</h5>
                                                 <div className="flex flex-col gap-1">
-                                                    <p className="font-black text-slate-900 text-base">{new Date(b.date).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</p>
-                                                    <p className="text-sm font-bold text-slate-500 flex items-center gap-1.5"><span className="material-symbols-outlined text-[16px]">schedule</span> {b.start_time} - {b.end_time}</p>
+                                                    <p className="font-black text-slate-900 text-base">{new Date(b.start_time).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</p>
+                                                    <p className="text-sm font-bold text-slate-500 flex items-center gap-1.5"><span className="material-symbols-outlined text-[16px]">schedule</span> {formatTime(b.start_time)} - {formatTime(b.end_time)}</p>
                                                 </div>
                                             </div>
 
                                             {/* Revenue Info */}
                                             <div className="flex-1 lg:border-l lg:border-slate-50 lg:pl-8 text-left">
                                                 <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Expected Payout</h5>
-                                                <p className="font-black text-2xl text-slate-900">₹{b.total_price.toLocaleString()}</p>
+                                                <p className="font-black text-2xl text-slate-900">₹{Number(b.total_price).toLocaleString()}</p>
                                                 <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Ready for release</p>
                                             </div>
 
@@ -191,8 +230,18 @@ export default function HostBookings() {
                                             <div className="flex lg:flex-col gap-2 shrink-0 lg:pl-8">
                                                 {b.status === "pending" ? (
                                                     <>
-                                                        <button className="h-12 px-8 rounded-xl bg-[#1d1aff] text-white text-xs font-black shadow-lg shadow-blue-500/20 active:scale-95 transition-all">Approve</button>
-                                                        <button className="h-12 px-8 rounded-xl bg-slate-50 text-slate-400 text-xs font-black border border-slate-100 hover:bg-rose-50 hover:text-rose-500 hover:border-rose-100 transition-all">Decline</button>
+                                                        <button 
+                                                            onClick={() => updateBookingStatus(b.id, "confirmed")}
+                                                            className="h-12 px-8 rounded-xl bg-[#1d1aff] text-white text-xs font-black shadow-lg shadow-blue-500/20 active:scale-95 transition-all"
+                                                        >
+                                                            Approve
+                                                        </button>
+                                                        <button 
+                                                            onClick={() => updateBookingStatus(b.id, "cancelled")}
+                                                            className="h-12 px-8 rounded-xl bg-slate-50 text-slate-400 text-xs font-black border border-slate-100 hover:bg-rose-50 hover:text-rose-500 hover:border-rose-100 transition-all"
+                                                        >
+                                                            Decline
+                                                        </button>
                                                     </>
                                                 ) : (
                                                     <>

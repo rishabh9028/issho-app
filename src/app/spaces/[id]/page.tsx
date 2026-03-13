@@ -37,6 +37,29 @@ export default function SpaceDetail() {
     const [checkInDate, setCheckInDate] = useState(new Date().toISOString().split('T')[0]);
     const [duration, setDuration] = useState(4);
 
+    const [reviews, setReviews] = useState<any[]>([]);
+    const [reviewRating, setReviewRating] = useState(5);
+    const [reviewComment, setReviewComment] = useState("");
+    const [submittingReview, setSubmittingReview] = useState(false);
+
+    const fetchReviews = async () => {
+        const { data, error } = await supabase
+            .from("reviews")
+            .select(`
+                *,
+                profiles:user_id (
+                    full_name,
+                    avatar_url
+                )
+            `)
+            .eq("space_id", spaceId)
+            .order("created_at", { ascending: false });
+
+        if (!error && data) {
+            setReviews(data);
+        }
+    };
+
     useEffect(() => {
         const fetchSpace = async () => {
             const { data, error } = await supabase
@@ -59,7 +82,30 @@ export default function SpaceDetail() {
 
         if (spaceId) {
             fetchSpace();
+            fetchReviews();
         }
+
+        // Real-time reviews
+        const channel = supabase
+            .channel(`public:reviews:space_id=eq.${spaceId}`)
+            .on(
+                'postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'reviews',
+                    filter: `space_id=eq.${spaceId}`
+                },
+                () => {
+                    fetchReviews();
+                    fetchSpace(); // Refresh space rating too
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
     }, [spaceId]);
 
     const handleBooking = async () => {
@@ -91,6 +137,32 @@ export default function SpaceDetail() {
             setBookingSuccess(true);
         }
         setBookingLoading(false);
+    };
+
+    const handleReviewSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!user) {
+            router.push("/auth/login");
+            return;
+        }
+
+        setSubmittingReview(true);
+        const { error } = await supabase
+            .from("reviews")
+            .insert([
+                {
+                    space_id: spaceId,
+                    user_id: user.id,
+                    rating: reviewRating,
+                    comment: reviewComment
+                }
+            ]);
+
+        if (!error) {
+            setReviewComment("");
+            setReviewRating(5);
+        }
+        setSubmittingReview(false);
     };
 
     if (loading) {
@@ -135,7 +207,6 @@ export default function SpaceDetail() {
                             />
                         </div>
                     ))}
-                    {/* Placeholder for missing small images if less than 5 */}
                     {Array.from({ length: Math.max(0, 4 - space.images.length + 1) }).map((_, idx) => (
                         <div key={`placeholder-${idx}`} className="hidden md:block overflow-hidden rounded-xl bg-slate-100 border border-slate-200" />
                     ))}
@@ -153,7 +224,7 @@ export default function SpaceDetail() {
                             </div>
                             <div className="flex flex-wrap items-center gap-4 text-sm font-medium text-slate-600">
                                 <span className="flex items-center gap-1">
-                                    <span className="material-symbols-outlined text-[#1d1aff] text-lg fill-1">star</span> {space.rating} · {space.reviews_count} reviews
+                                    <span className="material-symbols-outlined text-[#1d1aff] text-lg fill-1">star</span> {Number(space.rating).toFixed(1)} · {space.reviews_count} reviews
                                 </span>
                                 <span>·</span>
                                 <span className="flex items-center gap-1">
@@ -205,39 +276,76 @@ export default function SpaceDetail() {
                         <div className="mb-10">
                             <div className="flex items-center gap-2 mb-8">
                                 <span className="material-symbols-outlined text-[#1d1aff] text-2xl fill-1">star</span>
-                                <h3 className="text-2xl font-black text-slate-900 tracking-tight">4.9 · 124 reviews</h3>
+                                <h3 className="text-2xl font-black text-slate-900 tracking-tight">{Number(space.rating).toFixed(1)} · {space.reviews_count} reviews</h3>
                             </div>
+
+                            {/* Review Form */}
+                            {user && (
+                                <div className="mb-12 bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+                                    <h4 className="text-lg font-bold mb-4">Leave a review</h4>
+                                    <form onSubmit={handleReviewSubmit}>
+                                        <div className="mb-4">
+                                            <div className="flex gap-2 mb-2">
+                                                {[1, 2, 3, 4, 5].map((star) => (
+                                                    <button
+                                                        key={star}
+                                                        type="button"
+                                                        onClick={() => setReviewRating(star)}
+                                                        className={`material-symbols-outlined text-2xl transition-colors ${reviewRating >= star ? "text-amber-500 fill-1" : "text-slate-300"}`}
+                                                    >
+                                                        star
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <textarea
+                                            value={reviewComment}
+                                            onChange={(e) => setReviewComment(e.target.value)}
+                                            placeholder="Tell us about your experience..."
+                                            className="w-full rounded-xl border-slate-200 focus:ring-[#1d1aff] focus:border-[#1d1aff] min-h-[100px] mb-4 text-sm font-medium"
+                                            required
+                                        ></textarea>
+                                        <button
+                                            type="submit"
+                                            disabled={submittingReview}
+                                            className="bg-slate-900 text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-[#1d1aff] transition-colors disabled:opacity-50"
+                                        >
+                                            {submittingReview ? "Submitting..." : "Submit Review"}
+                                        </button>
+                                    </form>
+                                </div>
+                            )}
+
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                <div className="flex flex-col gap-3">
-                                    <div className="flex items-center gap-3">
-                                        <div
-                                            className="h-10 w-10 rounded-full bg-slate-200 bg-cover bg-center border border-slate-100"
-                                            style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuASWt8frwknyiWzE33PB3FJC5TxpduLqQ9P1SNoOc3Qsavjf3Ye6_h_MAuFrph_-ezLPUi3jasZZOckT2F4syXyXVYwx8PH0sQk2dz1gZH0VztHQi5mWYrVmNkf6Pix6jPz1hDUcpNV7NmsiNJScLivg3SnWOyZsK3Kf8qCYu2KBAxWiO0-rQVP1QeHnxtYaRE3xvac2N0yDjNwA-U3PvKJBHKt82nyHvOdKUSC5Te1-e63p-bmGVtyZMkRt-M2UR9YpEDo14RVtg')" }}
-                                        ></div>
-                                        <div>
-                                            <p className="font-bold text-slate-900">Kenji Tanaka</p>
-                                            <p className="text-xs text-slate-500 font-medium">October 2023</p>
+                                {reviews.length > 0 ? (
+                                    reviews.map((review) => (
+                                        <div key={review.id} className="flex flex-col gap-3">
+                                            <div className="flex items-center gap-3">
+                                                <div
+                                                    className="h-10 w-10 rounded-full bg-slate-200 bg-cover bg-center border border-slate-100"
+                                                    style={{ backgroundImage: `url('${review.profiles?.avatar_url || `https://i.pravatar.cc/150?u=${review.user_id}`}')` }}
+                                                ></div>
+                                                <div>
+                                                    <p className="font-bold text-slate-900">{review.profiles?.full_name || 'Guest'}</p>
+                                                    <p className="text-xs text-slate-500 font-medium">
+                                                        {new Date(review.created_at).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="flex gap-0.5 mb-1">
+                                                {Array.from({ length: 5 }).map((_, i) => (
+                                                    <span key={i} className={`material-symbols-outlined text-xs ${i < review.rating ? "text-amber-500 fill-1" : "text-slate-200"}`}>star</span>
+                                                ))}
+                                            </div>
+                                            <p className="text-slate-600 leading-relaxed font-medium">"{review.comment}"</p>
                                         </div>
+                                    ))
+                                ) : (
+                                    <div className="col-span-2 py-10 text-center border-2 border-dashed border-slate-200 rounded-2xl">
+                                        <p className="text-slate-400 font-bold">No reviews yet. Be the first to review!</p>
                                     </div>
-                                    <p className="text-slate-600 leading-relaxed font-medium">"The lighting in this space is incredible. We used it for a brand photoshoot and didn't need half our lighting rig. Yuki was a fantastic host."</p>
-                                </div>
-                                <div className="flex flex-col gap-3">
-                                    <div className="flex items-center gap-3">
-                                        <div
-                                            className="h-10 w-10 rounded-full bg-slate-200 bg-cover bg-center border border-slate-100"
-                                            style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuBOIS0xmIhUr6qRMFPcbj_9q3clinHqOunSuk08WDDxJqJSiq7dSdBPn1NNQVbSYR7O8d2yfahfMxI6sUac5W0oTmdQ-R2rVNOQLxeTmjPDM1ZzXMfhPp2OONRpx_Akna6UjhMjQHmamKMRY7cNC8V8caE9UUMAAdESPMnYBkqhT-9NuQzE5jHE0VnlnnTNmaAIhL7h8OH7LDGjH9cfGdpDPBvzMBu4TquXh2QoVJZ3bVGDFZk6Tjy27qg_fCP-ERsQ_Jnj_qBTPg')" }}
-                                        ></div>
-                                        <div>
-                                            <p className="font-bold text-slate-900">Sarah Williams</p>
-                                            <p className="text-xs text-slate-500 font-medium">September 2023</p>
-                                        </div>
-                                    </div>
-                                    <p className="text-slate-600 leading-relaxed font-medium">"Perfect for our team workshop. The pool area is great for breaks, and the minimalist aesthetic really helped our team stay focused."</p>
-                                </div>
+                                )}
                             </div>
-                            <button className="mt-8 rounded-xl border border-slate-900 px-6 py-3 font-bold hover:bg-slate-900 hover:text-white transition-all transform active:scale-95">
-                                Show all reviews
-                            </button>
                         </div>
                     </div>
 

@@ -4,6 +4,7 @@ import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useState } from "react";
+import { signup } from "@/app/actions/auth";
 
 export default function SignupPage() {
     const router = useRouter();
@@ -23,45 +24,25 @@ export default function SignupPage() {
         setLoading(true);
         setError(null);
 
-        // 1. Sign up the user with Supabase Auth
-        const { data, error: signUpError } = await supabase.auth.signUp({
-            email,
-            password,
-            options: {
-                data: {
-                    full_name: name,
-                }
-            }
-        });
+        const formData = new FormData();
+        formData.append('email', email);
+        formData.append('password', password);
+        formData.append('name', name);
+        formData.append('role', role);
 
-        if (signUpError) {
-            setError(signUpError.message);
+        const result = await signup(formData);
+
+        if (result?.error) {
+            setError(result.error);
             setLoading(false);
             return;
         }
 
-        if (data.user) {
-            // 2. Create the associated profile record
-            const { error: profileError } = await supabase
-                .from("profiles")
-                .insert([
-                    {
-                        id: data.user.id,
-                        full_name: name,
-                        role: role,
-                    }
-                ]);
-
-            if (profileError) {
-                setError(profileError.message);
-                setLoading(false);
-                return;
-            }
-
+        if (result?.success) {
             setSuccess(true);
             setLoading(false);
             
-            // Optional: Redirect after a delay or ask to verify email
+            // Redirect after a delay
             setTimeout(() => router.push("/auth/login"), 3000);
         }
     };

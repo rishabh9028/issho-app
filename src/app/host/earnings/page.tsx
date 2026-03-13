@@ -33,7 +33,7 @@ export default function HostEarnings() {
         if (!user) {
             router.push("/auth/login");
         } else if (user.role !== "host" && user.role !== "admin") {
-            router.push("/guest/dashboard");
+            router.push("/become-a-host");
         }
     }, [user, router]);
 

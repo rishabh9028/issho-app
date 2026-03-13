@@ -1,12 +1,10 @@
 "use client";
 
 import { supabase } from "@/lib/supabase";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useState } from "react";
 
 export default function LoginPage() {
-    const router = useRouter();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
@@ -17,6 +15,7 @@ export default function LoginPage() {
         setLoading(true);
         setError(null);
 
+        // Sign in directly via client-side Supabase
         const { data, error: signInError } = await supabase.auth.signInWithPassword({
             email,
             password,
@@ -28,19 +27,19 @@ export default function LoginPage() {
             return;
         }
 
-        // Fetch user role for intelligent redirect
+        // Fetch the user's role to redirect appropriately
         const { data: profile } = await supabase
             .from("profiles")
             .select("role")
-            .eq("id", data.user?.id)
+            .eq("id", data.user.id)
             .single();
 
         if (profile?.role === "host") {
-            router.push("/host/dashboard");
+            window.location.href = "/host/dashboard";
         } else if (profile?.role === "guest") {
-            router.push("/guest/dashboard");
+            window.location.href = "/guest/dashboard";
         } else {
-            router.push("/");
+            window.location.href = "/";
         }
     };
 

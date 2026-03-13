@@ -45,6 +45,11 @@ export default function HostDashboard() {
             return;
         }
 
+        if (user.role !== "host" && user.role !== "admin") {
+            router.push("/become-a-host");
+            return;
+        }
+
         const fetchData = async () => {
             // Fetch Host's Spaces
             const { data: spacesData, error: spacesError } = await supabase
@@ -128,23 +133,7 @@ export default function HostDashboard() {
                         </header>
 
                         {/* Quick Stats Grid */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-                            <div className="bg-white rounded-[24px] p-8 border border-slate-100 shadow-sm relative overflow-hidden group">
-                                <div className="absolute -right-6 -bottom-6 h-28 w-28 rounded-full bg-[#1d1aff]/5 group-hover:scale-125 transition-transform duration-700"></div>
-                                <div className="flex flex-col gap-4 relative z-10">
-                                    <div className="h-12 w-12 rounded-2xl bg-[#1d1aff]/10 flex items-center justify-center text-[#1d1aff]">
-                                        <span className="material-symbols-outlined font-black filled-icon">payments</span>
-                                    </div>
-                                    <div>
-                                        <p className="text-xs font-black uppercase tracking-widest text-[#1d1aff]">Total Earnings</p>
-                                        <h3 className="text-3xl font-black text-slate-900 mt-1">₹{totalEarnings.toLocaleString()}</h3>
-                                    </div>
-                                    <p className="text-xs font-bold text-green-500 flex items-center gap-1 bg-green-50 w-fit px-2 py-1 rounded-full border border-green-100">
-                                        <span className="material-symbols-outlined text-[14px]">trending_up</span> +14% this month
-                                    </p>
-                                </div>
-                            </div>
-
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
                             <div className="bg-white rounded-[24px] p-8 border border-slate-100 shadow-sm relative overflow-hidden group">
                                 <div className="absolute -right-6 -bottom-6 h-28 w-28 rounded-full bg-rose-500/5 group-hover:scale-125 transition-transform duration-700"></div>
                                 <div className="flex flex-col gap-4 relative z-10">
@@ -306,14 +295,6 @@ export default function HostDashboard() {
                                         </div>
                                     )}
                                 </section>
-
-                                {/* Performance Prompt */}
-                                <div className="rounded-[32px] bg-white border border-slate-100 p-8 shadow-sm relative overflow-hidden group">
-                                    <div className="absolute right-0 top-0 h-32 w-32 bg-[#1d1aff]/5 rounded-bl-full transform translate-x-1/2 -translate-y-1/2 group-hover:scale-150 transition-transform duration-700"></div>
-                                    <h4 className="text-lg font-black text-slate-900 leading-tight mb-3">Maximize Your Bookings</h4>
-                                    <p className="text-xs font-medium text-slate-500 leading-relaxed mb-6">Hosts who respond within 1 hour get up to 3x more bookings. Enable push notifications to stay on top.</p>
-                                    <button className="w-full py-4 rounded-2xl bg-slate-900 text-white text-xs font-black hover:bg-[#1d1aff] shadow-xl shadow-slate-900/10 transition-all active:scale-95 relative z-10">Enable Notifications</button>
-                                </div>
                             </div>
                         </div>
                     </div>

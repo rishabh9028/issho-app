@@ -42,8 +42,9 @@ export default function GuestBookings() {
     }, [user, router]);
 
     useEffect(() => {
+        if (!user) return;
+        
         const fetchBookings = async () => {
-            if (!user) return;
             setLoading(true);
             const { data, error } = await supabase
                 .from("bookings")
@@ -66,6 +67,27 @@ export default function GuestBookings() {
         };
 
         fetchBookings();
+
+        // Real-time subscription
+        const channel = supabase
+            .channel(`public:bookings:bookings_realtime`)
+            .on(
+                'postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'bookings',
+                    filter: `user_id=eq.${user.id}`
+                },
+                () => {
+                    fetchBookings();
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
     }, [user]);
 
     if (!user) return null;
@@ -153,11 +175,11 @@ export default function GuestBookings() {
                                                 <div className="flex flex-wrap gap-x-8 gap-y-2 items-center text-sm font-bold text-slate-600">
                                                     <div className="flex items-center gap-2">
                                                         <span className="material-symbols-outlined text-[#1d1aff] font-bold">calendar_today</span>
-                                                        {new Date(booking.date).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+                                                        {new Date(booking.start_time).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
                                                     </div>
                                                     <div className="flex items-center gap-2 font-bold text-slate-400">
                                                         <span className="material-symbols-outlined text-slate-400 text-[20px]">schedule</span>
-                                                        {booking.start_time} - {booking.end_time}
+                                                        {new Date(booking.start_time).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })} - {new Date(booking.end_time).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}
                                                     </div>
                                                 </div>
 

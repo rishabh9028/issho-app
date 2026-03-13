@@ -38,26 +38,39 @@ export function Navbar() {
                 <div className="flex items-center gap-3">
                     {user ? (
                         <div className="flex items-center gap-2">
-                            {pathname.startsWith("/host") ? (
-                                <Link
-                                    href="/guest/bookings"
-                                    className="hidden sm:flex px-4 py-2 text-xs font-black uppercase tracking-widest text-slate-600 hover:text-[#1d1aff] transition-all"
-                                >
-                                    Switch to Traveling
-                                </Link>
+                            {user.role === "host" ? (
+                                pathname.startsWith("/host") ? (
+                                    <Link
+                                        href="/start-traveling"
+                                        className="hidden sm:flex px-4 py-2 text-xs font-black uppercase tracking-widest text-[#1d1aff] hover:bg-[#1d1aff]/5 rounded-xl transition-all"
+                                    >
+                                        Switch to Traveling
+                                    </Link>
+                                ) : (
+                                    <Link
+                                        href="/host/dashboard"
+                                        className="hidden sm:flex px-4 py-2 text-xs font-black uppercase tracking-widest text-[#1d1aff] hover:bg-[#1d1aff]/5 rounded-xl transition-all"
+                                    >
+                                        Switch to Hosting
+                                    </Link>
+                                )
                             ) : (
                                 <Link
-                                    href="/host/dashboard"
+                                    href="/become-a-host"
                                     className="hidden sm:flex px-4 py-2 text-xs font-black uppercase tracking-widest text-[#1d1aff] hover:bg-[#1d1aff]/5 rounded-xl transition-all"
                                 >
-                                    Switch to Hosting
+                                    Become a Host
                                 </Link>
                             )}
                             <Link
-                                href={pathname.startsWith("/host") ? "/host/dashboard" : "/guest/dashboard"}
-                                className="hidden sm:flex btn-airbnb-primary"
+                                href={user.role === "host" && pathname.startsWith("/host") ? "/host/dashboard" : user.role === "host" ? "/host/dashboard" : "/guest/dashboard"}
+                                className="h-10 w-10 overflow-hidden rounded-full border-2 border-[#1d1aff]/10 hover:border-[#1d1aff] transition-all"
                             >
-                                Dashboard
+                                <img 
+                                    src={user.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`} 
+                                    className="w-full h-full object-cover" 
+                                    alt="Profile" 
+                                />
                             </Link>
                             <button
                                 onClick={signOut}

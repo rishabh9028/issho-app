@@ -21,7 +21,8 @@ export default function HostSpaces() {
     const { user } = useAuth();
     const router = useRouter();
     const [activeTab, setActiveTab] = useState("all");
-    const [spaces, setSpaces] = useState<Space[]>([]);
+    const [spaces, setSpaces] = useState<any[]>([]);
+    const [bookings, setBookings] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -30,19 +31,36 @@ export default function HostSpaces() {
             return;
         }
 
-        const fetchSpaces = async () => {
-            const { data, error } = await supabase
+        if (user.role !== "host" && user.role !== "admin") {
+            router.push("/become-a-host");
+            return;
+        }
+
+        const fetchData = async () => {
+            // Fetch Host's Spaces
+            const { data: spacesData, error: spacesError } = await supabase
                 .from("spaces")
                 .select("*")
                 .eq("host_id", user.id);
 
-            if (!error && data) {
-                setSpaces(data as Space[]);
+            if (!spacesError && spacesData) {
+                setSpaces(spacesData);
+                
+                if (spacesData.length > 0) {
+                    const spaceIds = spacesData.map(s => s.id);
+                    // Fetch Bookings for these spaces
+                    const { data: bookingsData } = await supabase
+                        .from("bookings")
+                        .select("*")
+                        .in("space_id", spaceIds);
+                    
+                    if (bookingsData) setBookings(bookingsData);
+                }
             }
             setLoading(false);
         };
 
-        fetchSpaces();
+        fetchData();
     }, [user, router]);
 
     if (!user || loading) {
@@ -59,6 +77,15 @@ export default function HostSpaces() {
         if (activeTab === "paused") return false;
         return true;
     });
+
+    const totalRevenue = bookings
+        .filter(b => b.status === "confirmed" || b.status === "completed")
+        .reduce((sum, b) => sum + Number(b.total_price), 0);
+
+    const totalReviews = spaces.reduce((sum, s) => sum + (s.reviews_count || 0), 0);
+    const avgRating = spaces.length > 0 
+        ? (spaces.reduce((sum, s) => sum + (Number(s.rating) || 0), 0) / spaces.length).toFixed(2)
+        : "0.00";
 
     return (
         <div className="w-full bg-[#f8f6f6] min-h-screen">
@@ -169,21 +196,7 @@ export default function HostSpaces() {
                         </div>
 
                         {/* Insights Cards */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div className="bg-white rounded-[24px] p-8 border border-slate-100 shadow-sm relative overflow-hidden group">
-                                <div className="absolute -right-6 -bottom-6 h-28 w-28 rounded-full bg-[#1d1aff]/5 group-hover:scale-125 transition-transform duration-700"></div>
-                                <div className="flex flex-col gap-4 relative z-10 text-left">
-                                    <div className="h-12 w-12 rounded-2xl bg-[#1d1aff]/10 flex items-center justify-center text-[#1d1aff]">
-                                        <span className="material-symbols-outlined font-black filled-icon text-xl">insights</span>
-                                    </div>
-                                    <h4 className="text-base font-black text-slate-900 tracking-tight">Performance</h4>
-                                    <div>
-                                        <h3 className="text-3xl font-black text-slate-900 leading-none mb-2">84%</h3>
-                                        <p className="text-xs font-bold text-slate-400">Occupancy rate this month</p>
-                                    </div>
-                                </div>
-                            </div>
-
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="bg-white rounded-[24px] p-8 border border-slate-100 shadow-sm relative overflow-hidden group">
                                 <div className="absolute -right-6 -bottom-6 h-28 w-28 rounded-full bg-emerald-500/5 group-hover:scale-125 transition-transform duration-700"></div>
                                 <div className="flex flex-col gap-4 relative z-10 text-left">
@@ -192,8 +205,8 @@ export default function HostSpaces() {
                                     </div>
                                     <h4 className="text-base font-black text-slate-900 tracking-tight">Revenue</h4>
                                     <div>
-                                        <h3 className="text-3xl font-black text-slate-900 leading-none mb-2">₹4,280</h3>
-                                        <p className="text-xs font-bold text-slate-400">Est. earnings for next 30 days</p>
+                                        <h3 className="text-3xl font-black text-slate-900 leading-none mb-2">₹{totalRevenue.toLocaleString()}</h3>
+                                        <p className="text-xs font-bold text-slate-400">Total earnings from all spaces</p>
                                     </div>
                                 </div>
                             </div>
@@ -206,8 +219,8 @@ export default function HostSpaces() {
                                     </div>
                                     <h4 className="text-base font-black text-slate-900 tracking-tight">Avg. Rating</h4>
                                     <div>
-                                        <h3 className="text-3xl font-black text-slate-900 leading-none mb-2">4.92 <span className="text-amber-500 text-2xl">★</span></h3>
-                                        <p className="text-xs font-bold text-slate-400">Based on 124 reviews</p>
+                                        <h3 className="text-3xl font-black text-slate-900 leading-none mb-2">{avgRating} <span className="text-amber-500 text-2xl">★</span></h3>
+                                        <p className="text-xs font-bold text-slate-400">Based on {totalReviews} reviews</p>
                                     </div>
                                 </div>
                             </div>
