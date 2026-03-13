@@ -80,18 +80,62 @@ export function Navbar() {
             {/* Mobile Menu */}
             {mobileMenuOpen && (
                 <div className="md:hidden bg-white border-t border-slate-100 px-6 py-4 space-y-1">
-                    <Link href="/search" className="block px-3 py-2 text-sm font-semibold text-slate-700 hover:text-[#1d1aff] hover:bg-slate-50 rounded-lg">Find Space</Link>
-                    <Link href="/about" className="block px-3 py-2 text-sm font-semibold text-slate-700 hover:text-[#1d1aff] hover:bg-slate-50 rounded-lg">How it Works</Link>
-                    <Link href="/contact" className="block px-3 py-2 text-sm font-semibold text-slate-700 hover:text-[#1d1aff] hover:bg-slate-50 rounded-lg">Contact</Link>
+                    <Link 
+                        href="/search" 
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="block px-3 py-2 text-sm font-semibold text-slate-700 hover:text-[#1d1aff] hover:bg-slate-50 rounded-lg"
+                    >
+                        Find Space
+                    </Link>
+                    <Link 
+                        href="/#how-it-works" 
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="block px-3 py-2 text-sm font-semibold text-slate-700 hover:text-[#1d1aff] hover:bg-slate-50 rounded-lg"
+                    >
+                        How it Works
+                    </Link>
+                    <Link 
+                        href="/contact" 
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="block px-3 py-2 text-sm font-semibold text-slate-700 hover:text-[#1d1aff] hover:bg-slate-50 rounded-lg"
+                    >
+                        Contact
+                    </Link>
                     {!user ? (
                         <>
-                            <Link href="/auth/login" className="block px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 rounded-lg">Login</Link>
-                            <Link href="/auth/signup" className="block px-3 py-2 text-sm font-semibold text-[#1d1aff] hover:bg-slate-50 rounded-lg">List your space</Link>
+                            <Link 
+                                href="/auth/login" 
+                                onClick={() => setMobileMenuOpen(false)}
+                                className="block px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 rounded-lg"
+                            >
+                                Login
+                            </Link>
+                            <Link 
+                                href="/auth/signup" 
+                                onClick={() => setMobileMenuOpen(false)}
+                                className="block px-3 py-2 text-sm font-semibold text-[#1d1aff] hover:bg-slate-50 rounded-lg"
+                            >
+                                List your space
+                            </Link>
                         </>
                     ) : (
                         <>
-                            <Link href={user.role === "host" ? "/host/dashboard" : "/guest/dashboard"} className="block px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 rounded-lg">Dashboard</Link>
-                            <button onClick={logout} className="block w-full text-left px-3 py-2 text-sm font-semibold text-red-600 hover:bg-red-50 rounded-lg">Log out</button>
+                            <Link 
+                                href={user.role === "host" ? "/host/dashboard" : "/guest/dashboard"} 
+                                onClick={() => setMobileMenuOpen(false)}
+                                className="block px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 rounded-lg"
+                            >
+                                Dashboard
+                            </Link>
+                            <button 
+                                onClick={() => {
+                                    logout();
+                                    setMobileMenuOpen(false);
+                                }} 
+                                className="block w-full text-left px-3 py-2 text-sm font-semibold text-red-600 hover:bg-red-50 rounded-lg"
+                            >
+                                Log out
+                            </button>
                         </>
                     )}
                 </div>
