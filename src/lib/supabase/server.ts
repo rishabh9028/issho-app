@@ -3,10 +3,21 @@ import { cookies } from 'next/headers'
 
 export async function createClient() {
   const cookieStore = await cookies()
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.warn("Supabase server environment variables are missing. Deployment will fail at runtime if not set in Vercel.");
+    return createServerClient(
+      supabaseUrl || 'https://placeholder.supabase.co',
+      supabaseAnonKey || 'placeholder-key',
+      { cookies: { getAll() { return [] } } }
+    );
+  }
 
   return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseUrl,
+    supabaseAnonKey,
     {
       cookies: {
         getAll() {
