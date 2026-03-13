@@ -16,39 +16,63 @@ export default function HostSidebar({ user, currentPage }: HostSidebarProps) {
     ];
 
     return (
-        <aside className="w-full md:w-64 flex-shrink-0">
-            <div className="flex flex-col gap-6">
-                <div className="rounded-[24px] border border-[#1d1aff]/5 bg-white p-5 shadow-sm">
-                    <div className="flex items-center gap-3 border-b border-[#1d1aff]/5 pb-5">
-                        <div className="h-12 w-12 overflow-hidden rounded-full bg-[#1d1aff]/10 border border-[#1d1aff]/10 shadow-inner">
-                            <img
-                                className="h-full w-full object-cover"
-                                alt="Host avatar"
-                                src={user?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.name || 'Host'}`}
-                            />
+        <>
+            {/* Desktop Sidebar */}
+            <aside className="hidden md:block w-64 flex-shrink-0">
+                <div className="flex flex-col gap-6 sticky top-24">
+                    <div className="rounded-[32px] border border-[#1d1aff]/5 bg-white p-6 shadow-sm">
+                        <div className="flex items-center gap-3 border-b border-[#1d1aff]/5 pb-6">
+                            <div className="h-12 w-12 overflow-hidden rounded-full bg-[#1d1aff]/10 border border-[#1d1aff]/10 shadow-inner">
+                                <img
+                                    className="h-full w-full object-cover"
+                                    alt="Host avatar"
+                                    src={user?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.name || 'Host'}`}
+                                />
+                            </div>
+                            <div>
+                                <p className="text-sm font-black text-slate-900 leading-tight">{user?.name || "Host"}</p>
+                                <p className="text-[10px] font-black uppercase tracking-wider text-[#1d1aff] bg-[#1d1aff]/5 px-2 py-0.5 rounded-full w-fit mt-1">{user?.role || "Host"}</p>
+                            </div>
                         </div>
-                        <div>
-                            <p className="text-sm font-black text-slate-900 leading-tight">{user?.name || "Yuki"}</p>
-                            <p className="text-[10px] font-black uppercase tracking-wider text-[#1d1aff] bg-[#1d1aff]/5 px-2 py-0.5 rounded-full w-fit mt-1 capitalize">{user?.role || "Host"}</p>
-                        </div>
+                        <nav className="mt-6 flex flex-col gap-1.5">
+                            {menuItems.map((item) => (
+                                <Link
+                                    key={item.id}
+                                    className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-bold transition-all ${currentPage === item.id
+                                        ? "bg-[#1d1aff] text-white shadow-lg shadow-blue-500/20"
+                                        : "text-slate-500 hover:bg-slate-50 hover:text-[#1d1aff]"
+                                        }`}
+                                    href={item.href}
+                                >
+                                    <span className={`material-symbols-outlined text-lg ${currentPage === item.id ? "filled-icon font-black" : ""}`}>{item.icon}</span>
+                                    {item.label}
+                                </Link>
+                            ))}
+                        </nav>
                     </div>
-                    <nav className="mt-5 flex flex-col gap-1.5">
-                        {menuItems.map((item) => (
-                            <Link
-                                key={item.id}
-                                className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-bold transition-all ${currentPage === item.id
-                                    ? "bg-[#1d1aff] text-white shadow-lg shadow-blue-500/20"
-                                    : "text-slate-500 hover:bg-slate-50 hover:text-[#1d1aff]"
-                                    }`}
-                                href={item.href}
-                            >
-                                <span className={`material-symbols-outlined text-lg ${currentPage === item.id ? "filled-icon font-black" : ""}`}>{item.icon}</span>
-                                {item.label}
-                            </Link>
-                        ))}
-                    </nav>
                 </div>
+            </aside>
+
+            {/* Mobile Bottom Navigation */}
+            <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 px-6 py-3 z-50 shadow-[0_-4px_20px_rgba(0,0,0,0,05)]">
+                <nav className="flex items-center justify-around">
+                    {menuItems.map((item) => (
+                        <Link
+                            key={item.id}
+                            href={item.href}
+                            className={`flex flex-col items-center gap-1 transition-all ${currentPage === item.id ? "text-[#1d1aff]" : "text-slate-400"
+                                }`}
+                        >
+                            <div className={`p-2 rounded-xl transition-all ${currentPage === item.id ? "bg-[#1d1aff]/10" : ""}`}>
+                                <span className={`material-symbols-outlined text-2xl ${currentPage === item.id ? "filled-icon font-black" : ""}`}>
+                                    {item.icon}
+                                </span>
+                            </div>
+                            <span className="text-[10px] font-black uppercase tracking-tighter">{item.label}</span>
+                        </Link>
+                    ))}
+                </nav>
             </div>
-        </aside>
+        </>
     );
 }
