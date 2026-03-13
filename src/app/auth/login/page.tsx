@@ -1,26 +1,36 @@
 "use client";
 
-import { useAuth, Role } from "@/context/AuthContext";
+import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useState } from "react";
 
 export default function LoginPage() {
-    const { loginAs } = useAuth();
     const router = useRouter();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
-    const [selectedRole, setSelectedRole] = useState<Role>("guest");
+    const [error, setError] = useState<string | null>(null);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
-        // Simulate a short loading delay for realism
-        await new Promise((r) => setTimeout(r, 800));
+        setError(null);
 
-        loginAs(selectedRole);
-        router.push(selectedRole === "host" ? "/host/dashboard" : "/guest/dashboard");
+        const { data, error: signInError } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+        });
+
+        if (signInError) {
+            setError(signInError.message);
+            setLoading(false);
+            return;
+        }
+
+        // The AuthContext will handle the user state and profile fetching
+        // We just need to wait a moment or redirect
+        router.push("/");
     };
 
     return (
@@ -35,33 +45,13 @@ export default function LoginPage() {
                     </p>
                 </div>
 
-                {/* Role Selector */}
-                <div className="flex bg-slate-50 p-1.5 rounded-2xl mb-8 relative">
-                    <button
-                        onClick={() => setSelectedRole("guest")}
-                        className={`flex-1 py-3 text-xs font-black uppercase tracking-widest rounded-xl transition-all relative z-10 ${selectedRole === "guest" ? "text-[#1d1aff]" : "text-slate-400"
-                            }`}
-                    >
-                        Guest Login
-                    </button>
-                    <button
-                        onClick={() => setSelectedRole("host")}
-                        className={`flex-1 py-3 text-xs font-black uppercase tracking-widest rounded-xl transition-all relative z-10 ${selectedRole === "host" ? "text-[#1d1aff]" : "text-slate-400"
-                            }`}
-                    >
-                        Host Login
-                    </button>
-                    <div
-                        className="absolute h-[calc(100%-12px)] top-1.5 bg-white rounded-xl shadow-sm transition-all duration-300 ease-out z-0"
-                        style={{
-                            width: "calc(50% - 6px)",
-                            left: selectedRole === "guest" ? "6px" : "calc(50%)"
-                        }}
-                    ></div>
-                </div>
-
                 {/* Form */}
                 <form onSubmit={handleSubmit} className="space-y-4">
+                    {error && (
+                        <div className="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-2xl text-xs font-bold animate-in fade-in slide-in-from-top-2">
+                            {error}
+                        </div>
+                    )}
                     <div className="space-y-2">
                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Email Address</label>
                         <div className="flex items-center gap-3 px-6 py-4 rounded-2xl border border-slate-200 bg-white focus-within:border-[#1d1aff] focus-within:ring-4 focus-within:ring-[#1d1aff]/5 transition-all">
@@ -107,7 +97,7 @@ export default function LoginPage() {
                             <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                         ) : (
                             <>
-                                <span className="text-sm font-black uppercase tracking-widest">Sign In as {selectedRole}</span>
+                                <span className="text-sm font-black uppercase tracking-widest">Sign In</span>
                                 <span className="material-symbols-outlined font-black text-lg">arrow_forward</span>
                             </>
                         )}

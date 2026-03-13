@@ -1,44 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { use, useState } from "react";
-import spacesData from "@/data/spaces.json";
+import { supabase } from "@/lib/supabase";
+import { useEffect, useState, use } from "react";
 
-// Expanded mock listings per category
-const MOCK_LISTINGS: Record<string, Array<{
-    id: string; title: string; location: string; sublocation: string;
-    guests: number; rooms: string; price: number; rating: number;
-    badge?: string; img: string;
-}>> = {
-    villa: [
-        { id: "v1", title: "The Private Hilltop Estate", location: "Alibaug, Maharashtra", sublocation: "Hilltop", guests: 20, rooms: "6 Rooms", price: 4200, rating: 4.98, badge: "Rare Find", img: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=800&auto=format&fit=crop" },
-        { id: "v2", title: "Azure Infinity Villa", location: "Goa, India", sublocation: "Beachfront", guests: 12, rooms: "4 Rooms", price: 6500, rating: 4.85, img: "https://images.unsplash.com/photo-1613490493576-7fde63acd811?q=80&w=800&auto=format&fit=crop" },
-        { id: "v3", title: "Forest Canopy Retreat", location: "Coorg, Karnataka", sublocation: "Riverside", guests: 8, rooms: "3 Rooms", price: 3200, rating: 5.0, img: "https://images.unsplash.com/photo-1602343168117-bb8ffe3e2e9f?q=80&w=800&auto=format&fit=crop" },
-        { id: "v4", title: "Metropolis Sky Loft", location: "Mumbai, Maharashtra", sublocation: "Bandra West", guests: 25, rooms: "8 Rooms", price: 12000, rating: 4.92, img: "https://images.unsplash.com/photo-1604014237800-1c9102c219da?q=80&w=800&auto=format&fit=crop" },
-        { id: "v5", title: "Beachside Sanctuary", location: "Pondicherry, India", sublocation: "Seafront", guests: 10, rooms: "4 Rooms", price: 2800, rating: 4.79, img: "https://images.unsplash.com/photo-1571896349842-33c89424de2d?q=80&w=800&auto=format&fit=crop" },
-        { id: "v6", title: "Wabi-Sabi Villa", location: "Udaipur, Rajasthan", sublocation: "Lake View", guests: 14, rooms: "5 Rooms", price: 3900, rating: 4.95, img: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?q=80&w=800&auto=format&fit=crop" },
-        { id: "v7", title: "Alpine Glass House", location: "Manali, Himachal Pradesh", sublocation: "Mountain Side", guests: 16, rooms: "6 Rooms", price: 7500, rating: 4.89, img: "https://images.unsplash.com/photo-1601918774946-25832a4be0d6?q=80&w=800&auto=format&fit=crop" },
-        { id: "v8", title: "Valley Peak Estate", location: "Ooty, Tamil Nadu", sublocation: "Highland Area", guests: 20, rooms: "7 Rooms", price: 4800, rating: 4.82, img: "https://images.unsplash.com/photo-1568605114967-8130f3a36994?q=80&w=800&auto=format&fit=crop" },
-    ],
-    studio: [
-        { id: "s1", title: "The Light Studio", location: "Bandra, Mumbai", sublocation: "Art District", guests: 15, rooms: "2000 sq ft", price: 1200, rating: 4.9, badge: "Top Rated", img: "https://images.unsplash.com/photo-1554995207-c18c203602cb?q=80&w=800&auto=format&fit=crop" },
-        { id: "s2", title: "Urban Creative Hub", location: "Indiranagar, Bengaluru", sublocation: "Ground Floor", guests: 25, rooms: "3500 sq ft", price: 1800, rating: 4.8, img: "https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=800&auto=format&fit=crop" },
-        { id: "s3", title: "Glasshouse Studio", location: "Hauz Khas, Delhi", sublocation: "Rooftop Access", guests: 10, rooms: "1200 sq ft", price: 900, rating: 5.0, img: "https://images.unsplash.com/photo-1516156008625-3a9d6067fab5?q=80&w=800&auto=format&fit=crop" },
-        { id: "s4", title: "Minimal White Box", location: "Colaba, Mumbai", sublocation: "City View", guests: 8, rooms: "800 sq ft", price: 750, rating: 4.75, img: "https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?q=80&w=800&auto=format&fit=crop" },
-    ],
-    cafe: [
-        { id: "c1", title: "Jardin Café Space", location: "Koramangala, Bengaluru", sublocation: "Garden Level", guests: 30, rooms: "Full Buyout", price: 800, rating: 4.8, badge: "Popular", img: "https://images.unsplash.com/photo-1554118811-1e0d58224f24?q=80&w=800&auto=format&fit=crop" },
-        { id: "c2", title: "The Attic Café", location: "Connaught Place, Delhi", sublocation: "Top Floor", guests: 20, rooms: "Partial Buyout", price: 600, rating: 4.6, img: "https://images.unsplash.com/photo-1445116572660-236099ec97a0?q=80&w=800&auto=format&fit=crop" },
-        { id: "c3", title: "Brew & Co Studio", location: "Fort, Mumbai", sublocation: "Heritage Zone", guests: 40, rooms: "Full Buyout", price: 1200, rating: 4.9, img: "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?q=80&w=800&auto=format&fit=crop" },
-        { id: "c4", title: "Patio Grounds", location: "Jubilee Hills, Hyderabad", sublocation: "Outdoor", guests: 50, rooms: "Full Buyout", price: 1500, rating: 4.7, img: "https://images.unsplash.com/photo-1521017432531-fbd92d768814?q=80&w=800&auto=format&fit=crop" },
-    ],
-    rooftop: [
-        { id: "r1", title: "Skyline Terrace", location: "South Mumbai, Mumbai", sublocation: "Sea Facing", guests: 60, rooms: "Open Air", price: 2500, rating: 4.9, badge: "Rare Find", img: "https://images.unsplash.com/photo-1533090161767-e6ffed986c88?q=80&w=800&auto=format&fit=crop" },
-        { id: "r2", title: "Sunset Heights", location: "Golf Course Road, Gurugram", sublocation: "City View", guests: 40, rooms: "Open Air", price: 1800, rating: 4.7, img: "https://images.unsplash.com/photo-1511895426328-dc8714191300?q=80&w=800&auto=format&fit=crop" },
-        { id: "r3", title: "Garden Sky Lounge", location: "Whitefield, Bengaluru", sublocation: "Panoramic", guests: 80, rooms: "Open + Covered", price: 3200, rating: 4.85, img: "https://images.unsplash.com/photo-1574631410145-34a71a3dabb0?q=80&w=800&auto=format&fit=crop" },
-        { id: "r4", title: "The Cloud Bar", location: "Andheri, Mumbai", sublocation: "Pool Deck", guests: 100, rooms: "Full Venue", price: 4500, rating: 4.95, img: "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=800&auto=format&fit=crop" },
-    ],
-};
+interface Space {
+    id: string;
+    title: string;
+    description: string;
+    location: string;
+    price_per_hour: number;
+    capacity: number;
+    type: string;
+    amenities: string[];
+    images: string[];
+    rating: number;
+    reviews_count: number;
+}
 
 const CATEGORY_META: Record<string, { label: string; count: string; desc: string; icon: string }> = {
     villa: { label: "Villas", count: "120+", desc: "exclusive villas available", icon: "🏡" },
@@ -56,26 +34,37 @@ const FILTERS = ["Price Range", "Capacity", "Amenities", "Instant Book"];
 export default function CategoryPage({ params }: { params: Promise<{ slug: string }> }) {
     const { slug } = use(params);
     const meta = CATEGORY_META[slug] ?? { label: slug.charAt(0).toUpperCase() + slug.slice(1), count: "100+", desc: "spaces available", icon: "🏠" };
-    const listings = MOCK_LISTINGS[slug] ?? [];
+    
+    const [spaces, setSpaces] = useState<Space[]>([]);
+    const [loading, setLoading] = useState(true);
     const [shown, setShown] = useState(8);
 
-    // Fall back to real spaces data filtered by type if no mock
-    const spacesFallback = spacesData.filter(s => s.type.toLowerCase() === slug);
+    useEffect(() => {
+        const fetchSpaces = async () => {
+            setLoading(true);
+            const { data, error } = await supabase
+                .from("spaces")
+                .select("*")
+                .ilike("type", slug); 
 
-    const allItems: Array<{ id: string; title: string; location: string; sublocation: string; guests: number; rooms: string; price: number; rating: number; badge?: string; img: string }> =
-        listings.length > 0 ? listings : spacesFallback.map(s => ({
-            id: s.id,
-            title: s.title,
-            location: s.location,
-            sublocation: s.type,
-            guests: s.capacity,
-            rooms: `${s.amenities.length} amenities`,
-            price: s.price_per_hour,
-            rating: s.rating,
-            img: s.images[0],
-        }));
+            if (!error && data) {
+                setSpaces(data);
+            }
+            setLoading(false);
+        };
 
-    const visible = allItems.slice(0, shown);
+        fetchSpaces();
+    }, [slug]);
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="w-10 h-10 border-4 border-[#1d1aff]/20 border-t-[#1d1aff] rounded-full animate-spin" />
+            </div>
+        );
+    }
+
+    const visible = spaces.slice(0, shown);
 
     return (
         <div className="bg-[#f8f6f6] min-h-screen">
@@ -92,7 +81,7 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
                             {meta.label} for your next event
                         </h1>
                         <p className="text-slate-500 text-lg">
-                            {meta.count} {meta.desc} in your selected area
+                            {spaces.length} {meta.desc} in your selected area
                         </p>
                     </div>
                     <div className="flex gap-3">
@@ -146,17 +135,13 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
                                         </svg>
                                     </button>
                                     {/* Badge */}
-                                    {item.badge ? (
-                                        <div className="absolute top-3 left-3 z-10 bg-white/90 backdrop-blur-sm text-slate-900 text-xs font-bold px-3 py-1 rounded-full">
-                                            {item.badge}
-                                        </div>
-                                    ) : i === 0 ? (
+                                    {i === 0 ? (
                                         <div className="absolute top-3 left-3 z-10 bg-[#1d1aff]/90 backdrop-blur-sm text-white text-xs font-bold px-3 py-1 rounded-full">
                                             Popular
                                         </div>
                                     ) : null}
                                     <img
-                                        src={item.img}
+                                        src={item.images[0]}
                                         alt={item.title}
                                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                                     />
@@ -173,10 +158,10 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
                                             <span>{item.rating}</span>
                                         </div>
                                     </div>
-                                    <p className="text-slate-500 text-sm">{item.location} · {item.sublocation}</p>
-                                    <p className="text-slate-400 text-sm">Up to {item.guests} guests · {item.rooms}</p>
+                                    <p className="text-slate-500 text-sm">{item.location}</p>
+                                    <p className="text-slate-400 text-sm">Up to {item.capacity} guests</p>
                                     <div className="mt-1 flex items-baseline gap-1">
-                                        <span className="text-base font-black text-slate-900">₹{item.price.toLocaleString()}</span>
+                                        <span className="text-base font-black text-slate-900">₹{item.price_per_hour.toLocaleString()}</span>
                                         <span className="text-slate-400 text-sm">/ hr</span>
                                     </div>
                                 </div>
@@ -195,9 +180,9 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
                 )}
 
                 {/* Load More */}
-                {shown < allItems.length && (
+                {shown < spaces.length && (
                     <div className="mt-20 flex flex-col items-center gap-4">
-                        <p className="text-slate-500 text-sm">Showing {shown} of {allItems.length} {meta.label.toLowerCase()}</p>
+                        <p className="text-slate-500 text-sm">Showing {shown} of {spaces.length} {meta.label.toLowerCase()}</p>
                         <button
                             onClick={() => setShown(shown + 8)}
                             className="px-8 py-3 rounded-xl border-2 border-slate-900 font-bold hover:bg-slate-900 hover:text-white transition-all"

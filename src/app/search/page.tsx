@@ -1,34 +1,70 @@
 "use client";
 
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { useState, Suspense } from "react";
-import spacesData from "@/data/spaces.json";
+import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 
 const TYPES = ["All", "Studio", "Rooftop", "Villa", "Cafe", "Event Space"];
 
+interface Space {
+    id: string;
+    title: string;
+    description: string;
+    location: string;
+    price_per_hour: number;
+    capacity: number;
+    type: string;
+    amenities: string[];
+    images: string[];
+    rating: number;
+    reviews_count: number;
+}
+
 function SearchContent() {
     const searchParams = useSearchParams();
+    const [spaces, setSpaces] = useState<Space[]>([]);
     const [location, setLocation] = useState(searchParams.get("location") || "");
     const [type, setType] = useState("All");
     const [sortBy, setSortBy] = useState("recommended");
+    const [loading, setLoading] = useState(true);
 
-    const filteredSpaces = spacesData
-        .filter((space) => {
-            const matchesLoc = location
-                ? space.location.toLowerCase().includes(location.toLowerCase())
-                : true;
-            const matchesType = type && type !== "All"
-                ? space.type.toLowerCase() === type.toLowerCase()
-                : true;
-            return matchesLoc && matchesType;
-        })
-        .sort((a, b) => {
-            if (sortBy === "price_asc") return a.price_per_hour - b.price_per_hour;
-            if (sortBy === "price_desc") return b.price_per_hour - a.price_per_hour;
-            if (sortBy === "rating") return b.rating - a.rating;
-            return 0; // recommended
-        });
+    useEffect(() => {
+        const fetchSpaces = async () => {
+            setLoading(true);
+            let query = supabase
+                .from("spaces")
+                .select("*");
+
+            if (location) {
+                query = query.ilike("location", `%${location}%`);
+            }
+
+            if (type !== "All") {
+                query = query.eq("type", type);
+            }
+
+            // Sorting
+            if (sortBy === "price_asc") {
+                query = query.order("price_per_hour", { ascending: true });
+            } else if (sortBy === "price_desc") {
+                query = query.order("price_per_hour", { ascending: false });
+            } else if (sortBy === "rating") {
+                query = query.order("rating", { ascending: false });
+            } else {
+                query = query.order("created_at", { ascending: false });
+            }
+
+            const { data, error } = await query;
+
+            if (!error && data) {
+                setSpaces(data);
+            }
+            setLoading(false);
+        };
+
+        fetchSpaces();
+    }, [location, type, sortBy]);
 
     return (
         <div className="bg-[#f8f6f6] min-h-screen">
@@ -86,18 +122,15 @@ function SearchContent() {
             {/* Results */}
             <div className="container-custom py-8">
                 {/* Count + heading */}
-                <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-slate-900">
-                        {filteredSpaces.length}{" "}
-                        <span className="text-slate-500 font-normal text-base">
-                            {filteredSpaces.length === 1 ? "space" : "spaces"} found
-                        </span>
-                    </h2>
-                </div>
-
-                {filteredSpaces.length > 0 ? (
+                {loading ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-                        {filteredSpaces.map((space) => (
+                        {[1, 2, 3].map((n) => (
+                            <div key={n} className="bg-slate-100 animate-pulse rounded-xl aspect-[4/5]" />
+                        ))}
+                    </div>
+                ) : spaces.length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                        {spaces.map((space) => (
                             <Link
                                 key={space.id}
                                 href={`/spaces/${space.id}`}
@@ -149,7 +182,7 @@ function SearchContent() {
 
                                     {/* Amenities */}
                                     <div className="flex flex-wrap gap-1 mt-3">
-                                        {space.amenities.slice(0, 3).map((amenity) => (
+                                        {space.amenities.slice(0, 3).map((amenity: string) => (
                                             <span key={amenity} className="text-[11px] font-semibold px-2 py-1 bg-[#1d1aff]/5 text-[#1d1aff] rounded-md">
                                                 {amenity}
                                             </span>

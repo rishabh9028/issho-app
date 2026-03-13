@@ -3,35 +3,105 @@
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import bookingsData from "@/data/bookings.json";
-import spacesData from "@/data/spaces.json";
 import Link from "next/link";
+import { supabase } from "@/lib/supabase";
 import HostSidebar from "@/components/host/HostSidebar";
+
+interface Space {
+    id: string;
+    title: string;
+    location: string;
+    price_per_hour: number;
+    images: string[];
+}
+
+interface Booking {
+    id: string;
+    space_id: string;
+    user_id: string;
+    start_time: string;
+    end_time: string;
+    total_price: number;
+    status: string;
+    profiles?: {
+        full_name: string;
+        avatar_url: string;
+    };
+    spaces?: {
+        title: string;
+    };
+}
 
 export default function HostDashboard() {
     const { user } = useAuth();
     const router = useRouter();
+    const [mySpaces, setMySpaces] = useState<Space[]>([]);
+    const [bookings, setBookings] = useState<Booking[]>([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         if (!user) {
             router.push("/auth/login");
-        } else if (user.role !== "host" && user.role !== "admin") {
-            router.push("/guest/dashboard");
+            return;
         }
+
+        const fetchData = async () => {
+            // Fetch Host's Spaces
+            const { data: spacesData, error: spacesError } = await supabase
+                .from("spaces")
+                .select("*")
+                .eq("host_id", user.id);
+
+            if (spacesError) {
+                console.error("Error fetching spaces:", spacesError);
+            } else {
+                setMySpaces(spacesData || []);
+                
+                if (spacesData && spacesData.length > 0) {
+                    const spaceIds = spacesData.map(s => s.id);
+                    
+                    // Fetch Bookings for these spaces
+                    const { data: bookingsData, error: bookingsError } = await supabase
+                        .from("bookings")
+                        .select(`
+                            *,
+                            profiles:user_id (
+                                full_name,
+                                avatar_url
+                            ),
+                            spaces:space_id (
+                                title
+                            )
+                        `)
+                        .in("space_id", spaceIds)
+                        .order("created_at", { ascending: false });
+
+                    if (bookingsError) {
+                        console.error("Error fetching bookings:", bookingsError);
+                    } else {
+                        setBookings(bookingsData as Booking[] || []);
+                    }
+                }
+            }
+            setLoading(false);
+        };
+
+        fetchData();
     }, [user, router]);
 
-    if (!user) return null;
+    if (!user || loading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="w-10 h-10 border-4 border-[#1d1aff]/20 border-t-[#1d1aff] rounded-full animate-spin" />
+            </div>
+        );
+    }
 
-    // Mock fetching host data
-    const mySpaces = spacesData.filter(s => s.host_id === user.id);
-    const mySpaceIds = mySpaces.map(s => s.id);
-    const allIncomingBookings = bookingsData.filter(b => mySpaceIds.includes(b.space_id));
-
-    const pendingRequests = allIncomingBookings.filter(b => b.status === "pending");
-    const upcomingBookings = allIncomingBookings.filter(b => b.status === "confirmed");
-
-    // Calculate mock stats
-    const totalEarnings = allIncomingBookings.filter(b => b.status === "confirmed" || b.status === "completed").reduce((sum, b) => sum + b.total_price, 0);
+    const pendingRequests = bookings.filter(b => b.status === "pending");
+    const upcomingBookings = bookings.filter(b => b.status === "confirmed");
+    const totalEarnings = bookings
+        .filter(b => b.status === "confirmed" || b.status === "completed")
+        .reduce((sum, b) => sum + b.total_price, 0);
 
     return (
         <div className="w-full bg-[#f8f6f6] min-h-screen">
@@ -67,7 +137,7 @@ export default function HostDashboard() {
                                     </div>
                                     <div>
                                         <p className="text-xs font-black uppercase tracking-widest text-[#1d1aff]">Total Earnings</p>
-                                        <h3 className="text-3xl font-black text-slate-900 mt-1">${totalEarnings.toLocaleString()}</h3>
+                                        <h3 className="text-3xl font-black text-slate-900 mt-1">₹{totalEarnings.toLocaleString()}</h3>
                                     </div>
                                     <p className="text-xs font-bold text-green-500 flex items-center gap-1 bg-green-50 w-fit px-2 py-1 rounded-full border border-green-100">
                                         <span className="material-symbols-outlined text-[14px]">trending_up</span> +14% this month
@@ -122,17 +192,17 @@ export default function HostDashboard() {
                                                 return (
                                                     <div key={b.id} className="bg-white rounded-[32px] p-6 border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-500 flex flex-col sm:flex-row items-center gap-6">
                                                         <div className="h-20 w-20 rounded-2xl overflow-hidden shadow-inner border border-slate-100 bg-slate-50 shrink-0">
-                                                            <img src={`https://i.pravatar.cc/150?u=${b.user_id}`} alt="Guest" className="w-full h-full object-cover" />
+                                                            <img src={b.profiles?.avatar_url || `https://i.pravatar.cc/150?u=${b.user_id}`} alt="Guest" className="w-full h-full object-cover" />
                                                         </div>
                                                         <div className="flex-1 text-center sm:text-left">
                                                             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-1">
-                                                                <h4 className="font-black text-slate-900 leading-tight">Guest Request · {space?.title}</h4>
+                                                                <h4 className="font-black text-slate-900 leading-tight">{b.profiles?.full_name || 'Guest Request'} · {b.spaces?.title}</h4>
                                                                 <span className="px-2 py-0.5 bg-rose-50 text-rose-500 text-[10px] font-black uppercase tracking-widest rounded-full border border-rose-100">New</span>
                                                             </div>
                                                             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 text-xs font-bold text-slate-500">
-                                                                <span className="flex items-center gap-1.5"><span className="material-symbols-outlined text-[16px]">calendar_today</span> {new Date(b.date).toLocaleDateString()}</span>
-                                                                <span className="flex items-center gap-1.5"><span className="material-symbols-outlined text-[16px]">schedule</span> {b.start_time}-{b.end_time}</span>
-                                                                <span className="font-black text-[#1d1aff] text-sm">${b.total_price}</span>
+                                                                <span className="flex items-center gap-1.5"><span className="material-symbols-outlined text-[16px]">calendar_today</span> {new Date(b.start_time).toLocaleDateString()}</span>
+                                                                <span className="flex items-center gap-1.5"><span className="material-symbols-outlined text-[16px]">schedule</span> {new Date(b.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                                                <span className="font-black text-[#1d1aff] text-sm">₹{b.total_price.toLocaleString()}</span>
                                                             </div>
                                                         </div>
                                                         <div className="flex gap-2 shrink-0">
@@ -178,17 +248,17 @@ export default function HostDashboard() {
                                                             <tr key={b.id} className="hover:bg-slate-50/30 transition-colors">
                                                                 <td className="px-8 py-5">
                                                                     <div className="flex items-center gap-3">
-                                                                        <img src={`https://i.pravatar.cc/150?u=${b.user_id}`} alt="G" className="w-8 h-8 rounded-full border border-slate-100 shadow-sm" />
-                                                                        <span className="font-black text-slate-900">Guest User</span>
+                                                                        <img src={b.profiles?.avatar_url || `https://i.pravatar.cc/150?u=${b.user_id}`} alt="G" className="w-8 h-8 rounded-full border border-slate-100 shadow-sm" />
+                                                                        <span className="font-black text-slate-900">{b.profiles?.full_name || 'Guest User'}</span>
                                                                     </div>
                                                                 </td>
                                                                 <td className="px-8 py-5">
-                                                                    <span className="font-bold text-slate-600">{mySpaces.find(s => s.id === b.space_id)?.title}</span>
+                                                                    <span className="font-bold text-slate-600">{b.spaces?.title}</span>
                                                                 </td>
                                                                 <td className="px-8 py-5 text-slate-500 font-bold">
-                                                                    {new Date(b.date).toLocaleDateString()} · <span className="text-xs italic">{b.start_time}</span>
+                                                                    {new Date(b.start_time).toLocaleDateString()} · <span className="text-xs italic">{new Date(b.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                                                                 </td>
-                                                                <td className="px-8 py-5 text-right font-black text-slate-900">${b.total_price}</td>
+                                                                <td className="px-8 py-5 text-right font-black text-slate-900">₹{b.total_price.toLocaleString()}</td>
                                                             </tr>
                                                         ))
                                                     ) : (
@@ -221,7 +291,7 @@ export default function HostDashboard() {
                                                         <h4 className="font-black text-sm text-slate-900 line-clamp-1 mb-1">{s.title}</h4>
                                                         <p className="text-[10px] font-bold text-slate-500 flex items-center gap-1"><span className="material-symbols-outlined text-[12px]">location_on</span> {s.location}</p>
                                                         <div className="flex items-center justify-between mt-2">
-                                                            <p className="text-xs font-black text-[#1d1aff]">${s.price_per_hour}/hr</p>
+                                                            <p className="text-xs font-black text-[#1d1aff]">₹{s.price_per_hour}/hr</p>
                                                             <span className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
                                                         </div>
                                                     </div>

@@ -5,13 +5,33 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import GuestSidebar from "@/components/guest/GuestSidebar";
 import Link from "next/link";
-import bookingsData from "@/data/bookings.json";
-import spacesData from "@/data/spaces.json";
+import { supabase } from "@/lib/supabase";
+
+interface Space {
+    id: string;
+    title: string;
+    location: string;
+    images: string[];
+}
+
+interface Booking {
+    id: string;
+    space_id: string;
+    user_id: string;
+    start_time: string;
+    end_time: string;
+    total_price: number;
+    status: string;
+    date: string;
+    spaces: Space;
+}
 
 export default function GuestBookings() {
     const { user } = useAuth();
     const router = useRouter();
     const [activeTab, setActiveTab] = useState("all");
+    const [bookings, setBookings] = useState<Booking[]>([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         if (!user) {
@@ -21,21 +41,39 @@ export default function GuestBookings() {
         }
     }, [user, router]);
 
+    useEffect(() => {
+        const fetchBookings = async () => {
+            if (!user) return;
+            setLoading(true);
+            const { data, error } = await supabase
+                .from("bookings")
+                .select(`
+                    *,
+                    spaces (
+                        id,
+                        title,
+                        location,
+                        images
+                    )
+                `)
+                .eq("user_id", user.id)
+                .order("created_at", { ascending: false });
+
+            if (!error && data) {
+                setBookings(data as any);
+            }
+            setLoading(false);
+        };
+
+        fetchBookings();
+    }, [user]);
+
     if (!user) return null;
 
-    // Filter logic
-    const allMyBookings = bookingsData.filter(b => b.user_id === user.id);
-
-    const filteredBookings = allMyBookings.filter(b => {
+    const filteredBookings = bookings.filter(b => {
         if (activeTab === "all") return true;
-        if (activeTab === "confirmed") return b.status === "confirmed";
-        if (activeTab === "pending") return b.status === "pending";
-        return true;
+        return b.status === activeTab;
     });
-
-    const getSpaceForBooking = (spaceId: string) => {
-        return spacesData.find(s => s.id === spaceId);
-    };
 
     return (
         <div className="w-full bg-[#f8f6f6] min-h-screen">
@@ -53,9 +91,9 @@ export default function GuestBookings() {
                         {/* Tabs */}
                         <div className="flex items-center gap-8 border-b border-slate-200 mb-8">
                             {[
-                                { id: "all", label: `All Stays (${allMyBookings.length})` },
-                                { id: "confirmed", label: `Confirmed (${allMyBookings.filter(b => b.status === 'confirmed').length})` },
-                                { id: "pending", label: `Pending (${allMyBookings.filter(b => b.status === 'pending').length})` }
+                                { id: "all", label: `All Stays (${bookings.length})` },
+                                { id: "confirmed", label: `Confirmed (${bookings.filter(b => b.status === 'confirmed').length})` },
+                                { id: "pending", label: `Pending (${bookings.filter(b => b.status === 'pending').length})` }
                             ].map((tab) => (
                                 <button
                                     key={tab.id}
@@ -75,9 +113,15 @@ export default function GuestBookings() {
 
                         {/* Bookings List */}
                         <div className="flex flex-col gap-6">
-                            {filteredBookings.length > 0 ? (
+                            {loading ? (
+                                <div className="flex flex-col gap-4">
+                                    {[1, 2].map(n => (
+                                        <div key={n} className="h-48 w-full bg-slate-100 animate-pulse rounded-3xl" />
+                                    ))}
+                                </div>
+                            ) : filteredBookings.length > 0 ? (
                                 filteredBookings.map((booking) => {
-                                    const space = getSpaceForBooking(booking.space_id);
+                                    const space = booking.spaces;
                                     return (
                                         <div key={booking.id} className="flex flex-col lg:flex-row bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-sm transition-all hover:shadow-md group">
                                             {/* Image Column */}
@@ -102,7 +146,7 @@ export default function GuestBookings() {
                                                     </div>
                                                     <div className="text-left sm:text-right">
                                                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">TOTAL</p>
-                                                        <p className="text-3xl font-black text-slate-900">${booking.total_price}</p>
+                                                        <p className="text-3xl font-black text-slate-900">₹{booking.total_price.toLocaleString()}</p>
                                                     </div>
                                                 </div>
 

@@ -8,7 +8,7 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 export function Navbar() {
-    const { user, logout } = useAuth();
+    const { user, signOut } = useAuth();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const pathname = usePathname();
 
@@ -45,7 +45,7 @@ export function Navbar() {
                                 Dashboard
                             </Link>
                             <button
-                                onClick={logout}
+                                onClick={signOut}
                                 className="btn-airbnb-outline"
                             >
                                 Log out
@@ -129,7 +129,7 @@ export function Navbar() {
                             </Link>
                             <button 
                                 onClick={() => {
-                                    logout();
+                                    signOut();
                                     setMobileMenuOpen(false);
                                 }} 
                                 className="block w-full text-left px-3 py-2 text-sm font-semibold text-red-600 hover:bg-red-50 rounded-lg"

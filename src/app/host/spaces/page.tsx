@@ -5,29 +5,57 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import HostSidebar from "@/components/host/HostSidebar";
 import Link from "next/link";
-import spacesData from "@/data/spaces.json";
+import { supabase } from "@/lib/supabase";
+
+interface Space {
+    id: string;
+    title: string;
+    location: string;
+    price_per_hour: number;
+    capacity: number;
+    images: string[];
+    status?: string;
+}
 
 export default function HostSpaces() {
     const { user } = useAuth();
     const router = useRouter();
     const [activeTab, setActiveTab] = useState("all");
+    const [spaces, setSpaces] = useState<Space[]>([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         if (!user) {
             router.push("/auth/login");
-        } else if (user.role !== "host" && user.role !== "admin") {
-            router.push("/guest/dashboard");
+            return;
         }
+
+        const fetchSpaces = async () => {
+            const { data, error } = await supabase
+                .from("spaces")
+                .select("*")
+                .eq("host_id", user.id);
+
+            if (!error && data) {
+                setSpaces(data as Space[]);
+            }
+            setLoading(false);
+        };
+
+        fetchSpaces();
     }, [user, router]);
 
-    if (!user) return null;
+    if (!user || loading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="w-10 h-10 border-4 border-[#1d1aff]/20 border-t-[#1d1aff] rounded-full animate-spin" />
+            </div>
+        );
+    }
 
-    // Filter logic
-    const allMySpaces = spacesData.filter(s => s.host_id === user.id);
-
-    const filteredSpaces = allMySpaces.filter(s => {
+    const filteredSpaces = spaces.filter(s => {
         if (activeTab === "all") return true;
-        if (activeTab === "active") return true; // Assuming all in JSON are active for now
+        if (activeTab === "active") return true; 
         if (activeTab === "paused") return false;
         return true;
     });
@@ -57,8 +85,8 @@ export default function HostSpaces() {
                         {/* Tabs */}
                         <div className="flex gap-8 mb-8 border-b border-slate-200">
                             {[
-                                { id: "all", label: "All Listings", count: allMySpaces.length },
-                                { id: "active", label: "Active", count: allMySpaces.length },
+                                { id: "all", label: "All Listings", count: spaces.length },
+                                { id: "active", label: "Active", count: spaces.length },
                                 { id: "paused", label: "Paused", count: 0 },
                             ].map(tab => (
                                 <button
@@ -109,7 +137,7 @@ export default function HostSpaces() {
                                                     </span>
                                                 </td>
                                                 <td className="px-8 py-6">
-                                                    <span className="font-black text-slate-900">${space.price_per_hour.toFixed(2)}</span>
+                                                    <span className="font-black text-slate-900">₹{space.price_per_hour.toLocaleString()}</span>
                                                 </td>
                                                 <td className="px-8 py-6">
                                                     <span className="text-sm font-bold text-slate-500">{space.capacity} guests</span>
@@ -136,7 +164,7 @@ export default function HostSpaces() {
                                 </table>
                             </div>
                             <div className="px-8 py-6 bg-slate-50/50 border-t border-slate-50 flex items-center justify-between">
-                                <p className="text-xs font-bold text-slate-400">Showing {filteredSpaces.length} of {allMySpaces.length} properties</p>
+                                <p className="text-xs font-bold text-slate-400">Showing {filteredSpaces.length} of {spaces.length} properties</p>
                             </div>
                         </div>
 
@@ -164,7 +192,7 @@ export default function HostSpaces() {
                                     </div>
                                     <h4 className="text-base font-black text-slate-900 tracking-tight">Revenue</h4>
                                     <div>
-                                        <h3 className="text-3xl font-black text-slate-900 leading-none mb-2">$4,280</h3>
+                                        <h3 className="text-3xl font-black text-slate-900 leading-none mb-2">₹4,280</h3>
                                         <p className="text-xs font-bold text-slate-400">Est. earnings for next 30 days</p>
                                     </div>
                                 </div>

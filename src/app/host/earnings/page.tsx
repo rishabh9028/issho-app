@@ -4,12 +4,30 @@ import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import HostSidebar from "@/components/host/HostSidebar";
-import bookingsData from "@/data/bookings.json";
-import spacesData from "@/data/spaces.json";
+import { supabase } from "@/lib/supabase";
+
+interface Space {
+    id: string;
+    title: string;
+    location: string;
+}
+
+interface Booking {
+    id: string;
+    space_id: string;
+    total_price: number;
+    status: string;
+    date: string;
+    spaces: Space;
+    created_at: string;
+}
 
 export default function HostEarnings() {
     const { user } = useAuth();
     const router = useRouter();
+
+    const [bookings, setBookings] = useState<Booking[]>([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         if (!user) {
@@ -19,15 +37,33 @@ export default function HostEarnings() {
         }
     }, [user, router]);
 
+    useEffect(() => {
+        const fetchEarnings = async () => {
+            if (!user) return;
+            setLoading(true);
+            const { data, error } = await supabase
+                .from("bookings")
+                .select(`
+                    *,
+                    spaces!inner (*)
+                `)
+                .eq("spaces.host_id", user.id)
+                .in("status", ["confirmed", "completed"])
+                .order("created_at", { ascending: false });
+
+            if (!error && data) {
+                setBookings(data as any);
+            }
+            setLoading(false);
+        };
+
+        fetchEarnings();
+    }, [user]);
+
     if (!user) return null;
 
-    // Filter logic
-    const mySpaces = spacesData.filter(s => s.host_id === user.id);
-    const mySpaceIds = mySpaces.map(s => s.id);
-    const myConfirmedBookings = bookingsData.filter(b => mySpaceIds.includes(b.space_id) && (b.status === "confirmed" || b.status === "completed"));
-
-    const totalEarnings = myConfirmedBookings.reduce((sum, b) => sum + b.total_price, 0);
-    const pendingPayout = myConfirmedBookings.filter(b => b.status === "confirmed").reduce((sum, b) => sum + b.total_price, 0);
+    const totalEarnings = bookings.reduce((sum, b) => sum + b.total_price, 0);
+    const pendingPayout = bookings.filter(b => b.status === "confirmed").reduce((sum, b) => sum + b.total_price, 0);
 
     // Mock monthly data
     const monthlyData = [
@@ -61,29 +97,41 @@ export default function HostEarnings() {
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
                             <div className="bg-white rounded-[32px] p-8 border border-slate-100 shadow-sm relative overflow-hidden group">
                                 <div className="absolute -right-6 -bottom-6 h-28 w-28 rounded-full bg-[#1d1aff]/5 group-hover:scale-125 transition-transform duration-700"></div>
-                                <div className="flex flex-col gap-4 relative z-10">
+                                <div className="flex flex-col gap-4 relative z-10 text-left">
                                     <h4 className="text-[10px] font-black uppercase tracking-widest text-[#1d1aff]">Available for Payout</h4>
-                                    <h3 className="text-4xl font-black text-slate-900 leading-none">${(totalEarnings - pendingPayout).toLocaleString()}</h3>
+                                    {loading ? (
+                                        <div className="h-10 w-32 bg-slate-100 animate-pulse rounded-lg"></div>
+                                    ) : (
+                                        <h3 className="text-4xl font-black text-slate-900 leading-none">₹{(totalEarnings - pendingPayout).toLocaleString()}</h3>
+                                    )}
                                     <p className="text-xs font-bold text-slate-400">Next payout scheduled for Monday</p>
                                 </div>
                             </div>
 
                             <div className="bg-white rounded-[32px] p-8 border border-slate-100 shadow-sm relative overflow-hidden group text-white bg-slate-900">
                                 <div className="absolute -right-6 -bottom-6 h-28 w-28 rounded-full bg-white/5 group-hover:scale-125 transition-transform duration-700"></div>
-                                <div className="flex flex-col gap-4 relative z-10">
+                                <div className="flex flex-col gap-4 relative z-10 text-left">
                                     <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Total Lifetime Revenue</h4>
-                                    <h3 className="text-4xl font-black leading-none">${(totalEarnings + 5400).toLocaleString()}</h3>
+                                    {loading ? (
+                                        <div className="h-10 w-32 bg-white/5 animate-pulse rounded-lg"></div>
+                                    ) : (
+                                        <h3 className="text-4xl font-black leading-none">₹{(totalEarnings).toLocaleString()}</h3>
+                                    )}
                                     <p className="text-xs font-bold text-emerald-400 flex items-center gap-1">
-                                        <span className="material-symbols-outlined text-sm">trending_up</span> +22% from last year
+                                        <span className="material-symbols-outlined text-sm">trending_up</span> Live Data
                                     </p>
                                 </div>
                             </div>
 
                             <div className="bg-white rounded-[32px] p-8 border border-slate-100 shadow-sm relative overflow-hidden group">
                                 <div className="absolute -right-6 -bottom-6 h-28 w-28 rounded-full bg-emerald-500/5 group-hover:scale-125 transition-transform duration-700"></div>
-                                <div className="flex flex-col gap-4 relative z-10">
+                                <div className="flex flex-col gap-4 relative z-10 text-left">
                                     <h4 className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Pending Clear</h4>
-                                    <h3 className="text-4xl font-black text-slate-900 leading-none">${pendingPayout.toLocaleString()}</h3>
+                                    {loading ? (
+                                        <div className="h-10 w-32 bg-slate-100 animate-pulse rounded-lg"></div>
+                                    ) : (
+                                        <h3 className="text-4xl font-black text-slate-900 leading-none">₹{pendingPayout.toLocaleString()}</h3>
+                                    )}
                                     <p className="text-xs font-bold text-slate-400">Currently in escrow for active stays</p>
                                 </div>
                             </div>
@@ -109,7 +157,7 @@ export default function HostEarnings() {
                                                     style={{ height: `${h}%` }}
                                                 ></div>
                                                 <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] font-bold px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    ${h * 20}
+                                                    ₹{h * 200}
                                                 </div>
                                             </div>
                                         ))}
@@ -147,21 +195,28 @@ export default function HostEarnings() {
                                                     </tr>
                                                 </thead>
                                                 <tbody className="divide-y divide-slate-50">
-                                                    {[
-                                                        { id: "TX-48291", date: "Mar 22, 2024", desc: "Payout to Bank Account • • • 4821", amount: -2450.00, status: "completed" },
-                                                        { id: "TX-48288", date: "Mar 20, 2024", desc: "Booking Payment (Zen Garden Studio)", amount: 120.00, status: "completed" },
-                                                        { id: "TX-48282", date: "Mar 18, 2024", desc: "Booking Payment (Modern Rooftop Lounge)", amount: 250.00, status: "completed" },
-                                                        { id: "TX-48275", date: "Mar 15, 2024", desc: "Payout to Bank Account • • • 4821", amount: -1500.00, status: "completed" },
-                                                    ].map((t) => (
-                                                        <tr key={t.id} className="hover:bg-slate-50 transition-colors">
-                                                            <td className="px-8 py-5 text-sm font-bold text-slate-900">{t.id}</td>
-                                                            <td className="px-8 py-5 text-sm font-medium text-slate-500">{t.date}</td>
-                                                            <td className="px-8 py-5 text-sm font-bold text-slate-700">{t.desc}</td>
-                                                            <td className={`px-8 py-5 text-sm font-black text-right ${t.amount < 0 ? "text-slate-900" : "text-emerald-500"}`}>
-                                                                {t.amount < 0 ? `-$${Math.abs(t.amount).toLocaleString()}` : `+$${t.amount.toLocaleString()}`}
-                                                            </td>
+                                                    {loading ? (
+                                                        [1, 2, 3].map(n => (
+                                                            <tr key={n}>
+                                                                <td colSpan={4} className="px-8 py-5"><div className="h-6 w-full bg-slate-50 animate-pulse rounded-lg"></div></td>
+                                                            </tr>
+                                                        ))
+                                                    ) : bookings.length > 0 ? (
+                                                        bookings.map((t) => (
+                                                            <tr key={t.id} className="hover:bg-slate-50 transition-colors">
+                                                                <td className="px-8 py-5 text-sm font-bold text-slate-900">TX-{t.id.slice(0, 8)}</td>
+                                                                <td className="px-8 py-5 text-sm font-medium text-slate-500">{new Date(t.created_at).toLocaleDateString()}</td>
+                                                                <td className="px-8 py-5 text-sm font-bold text-slate-700">Booking Payment ({t.spaces.title})</td>
+                                                                <td className={`px-8 py-5 text-sm font-black text-right text-emerald-500`}>
+                                                                    +₹{t.total_price.toLocaleString()}
+                                                                </td>
+                                                            </tr>
+                                                        ))
+                                                    ) : (
+                                                        <tr>
+                                                            <td colSpan={4} className="px-8 py-10 text-center text-slate-400 font-bold">No transactions found</td>
                                                         </tr>
-                                                    ))}
+                                                    )}
                                                 </tbody>
                                             </table>
                                         </div>

@@ -4,14 +4,41 @@ import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import HostSidebar from "@/components/host/HostSidebar";
-import bookingsData from "@/data/bookings.json";
-import spacesData from "@/data/spaces.json";
 import Link from "next/link";
+import { supabase } from "@/lib/supabase";
+
+interface Profile {
+    id: string;
+    full_name: string;
+    avatar_url: string;
+}
+
+interface Space {
+    id: string;
+    title: string;
+    location: string;
+    images: string[];
+}
+
+interface Booking {
+    id: string;
+    space_id: string;
+    user_id: string;
+    start_time: string;
+    end_time: string;
+    total_price: number;
+    status: string;
+    date: string;
+    spaces: Space;
+    profiles: Profile;
+}
 
 export default function HostBookings() {
     const { user } = useAuth();
     const router = useRouter();
     const [activeTab, setActiveTab] = useState("all");
+    const [bookings, setBookings] = useState<Booking[]>([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         if (!user) {
@@ -21,14 +48,32 @@ export default function HostBookings() {
         }
     }, [user, router]);
 
+    useEffect(() => {
+        const fetchBookings = async () => {
+            if (!user) return;
+            setLoading(true);
+            const { data, error } = await supabase
+                .from("bookings")
+                .select(`
+                    *,
+                    spaces!inner (*),
+                    profiles:user_id (*)
+                `)
+                .eq("spaces.host_id", user.id)
+                .order("created_at", { ascending: false });
+
+            if (!error && data) {
+                setBookings(data as any);
+            }
+            setLoading(false);
+        };
+
+        fetchBookings();
+    }, [user]);
+
     if (!user) return null;
 
-    // Filter logic
-    const mySpaces = spacesData.filter(s => s.host_id === user.id);
-    const mySpaceIds = mySpaces.map(s => s.id);
-    const allIncomingBookings = bookingsData.filter(b => mySpaceIds.includes(b.space_id));
-
-    const filteredBookings = allIncomingBookings.filter(b => {
+    const filteredBookings = bookings.filter(b => {
         if (activeTab === "all") return true;
         if (activeTab === "pending") return b.status === "pending";
         if (activeTab === "upcoming") return b.status === "confirmed";
@@ -70,10 +115,10 @@ export default function HostBookings() {
                         {/* Tabs */}
                         <div className="flex gap-8 mb-8 border-b border-slate-200">
                             {[
-                                { id: "all", label: "All Bookings", count: allIncomingBookings.length },
-                                { id: "pending", label: "Pending", count: allIncomingBookings.filter(b => b.status === "pending").length },
-                                { id: "upcoming", label: "Upcoming", count: allIncomingBookings.filter(b => b.status === "confirmed").length },
-                                { id: "completed", label: "History", count: allIncomingBookings.filter(b => b.status === "completed" || b.status === "cancelled").length }
+                                { id: "all", label: "All Bookings", count: bookings.length },
+                                { id: "pending", label: "Pending", count: bookings.filter(b => b.status === "pending").length },
+                                { id: "upcoming", label: "Upcoming", count: bookings.filter(b => b.status === "confirmed").length },
+                                { id: "completed", label: "History", count: bookings.filter(b => b.status === "completed" || b.status === "cancelled").length }
                             ].map(tab => (
                                 <button
                                     key={tab.id}
@@ -89,9 +134,16 @@ export default function HostBookings() {
 
                         {/* Booking List */}
                         <div className="space-y-4">
-                            {filteredBookings.length > 0 ? (
+                            {loading ? (
+                                <div className="space-y-4">
+                                    {[1, 2, 3].map(n => (
+                                        <div key={n} className="h-40 w-full bg-slate-100 animate-pulse rounded-[32px]" />
+                                    ))}
+                                </div>
+                            ) : filteredBookings.length > 0 ? (
                                 filteredBookings.map((b) => {
-                                    const space = mySpaces.find(s => s.id === b.space_id);
+                                    const space = b.spaces;
+                                    const guest = b.profiles;
                                     return (
                                         <div key={b.id} className="bg-white rounded-[32px] p-8 border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-500 group flex flex-col lg:flex-row items-start lg:items-center gap-8 relative overflow-hidden">
                                             {/* Status Badge Overhang */}
@@ -104,23 +156,23 @@ export default function HostBookings() {
                                             {/* Guest Info */}
                                             <div className="flex items-center gap-6 shrink-0">
                                                 <div className="h-20 w-20 rounded-[24px] overflow-hidden shadow-inner border border-slate-100 bg-slate-50 relative group-hover:scale-105 transition-transform duration-700">
-                                                    <img src={`https://i.pravatar.cc/150?u=${b.user_id}`} alt="Guest" className="w-full h-full object-cover" />
+                                                    <img src={guest?.avatar_url || `https://i.pravatar.cc/150?u=${b.user_id}`} alt="Guest" className="w-full h-full object-cover" />
                                                 </div>
-                                                <div>
-                                                    <h4 className="font-black text-xl text-slate-900 leading-tight mb-1">Guest User</h4>
+                                                <div className="text-left">
+                                                    <h4 className="font-black text-xl text-slate-900 leading-tight mb-1">{guest?.full_name || "Guest User"}</h4>
                                                     <p className="text-[10px] font-black text-[#1d1aff] uppercase tracking-widest bg-[#1d1aff]/5 px-2 py-0.5 rounded-md inline-block">Verified Guest</p>
                                                 </div>
                                             </div>
 
                                             {/* Space Info */}
-                                            <div className="flex-1 lg:border-l lg:border-slate-50 lg:pl-8">
+                                            <div className="flex-1 lg:border-l lg:border-slate-50 lg:pl-8 text-left">
                                                 <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Space Details</h5>
                                                 <p className="font-black text-slate-900 text-lg mb-1">{space?.title}</p>
                                                 <p className="text-sm font-bold text-slate-500 flex items-center gap-1.5"><span className="material-symbols-outlined text-[16px]">location_on</span> {space?.location}</p>
                                             </div>
 
                                             {/* Schedule Info */}
-                                            <div className="flex-1 lg:border-l lg:border-slate-50 lg:pl-8">
+                                            <div className="flex-1 lg:border-l lg:border-slate-50 lg:pl-8 text-left">
                                                 <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Staying On</h5>
                                                 <div className="flex flex-col gap-1">
                                                     <p className="font-black text-slate-900 text-base">{new Date(b.date).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</p>
@@ -129,9 +181,9 @@ export default function HostBookings() {
                                             </div>
 
                                             {/* Revenue Info */}
-                                            <div className="flex-1 lg:border-l lg:border-slate-50 lg:pl-8">
+                                            <div className="flex-1 lg:border-l lg:border-slate-50 lg:pl-8 text-left">
                                                 <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Expected Payout</h5>
-                                                <p className="font-black text-2xl text-slate-900">${b.total_price}</p>
+                                                <p className="font-black text-2xl text-slate-900">₹{b.total_price.toLocaleString()}</p>
                                                 <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Ready for release</p>
                                             </div>
 
@@ -145,7 +197,7 @@ export default function HostBookings() {
                                                 ) : (
                                                     <>
                                                         <button className="h-12 px-8 rounded-xl bg-slate-900 text-white text-xs font-black hover:bg-[#1d1aff] transition-colors active:scale-95">Message Guest</button>
-                                                        <button className="h-12 px-8 rounded-xl bg-white border border-slate-200 text-slate-600 text-xs font-black hover:bg-slate-50 transition-all">View Details</button>
+                                                        <Link href={`/host/bookings/${b.id}`} className="h-12 px-8 rounded-xl bg-white border border-slate-200 text-slate-600 text-xs font-black hover:bg-slate-50 transition-all flex items-center justify-center">View Details</Link>
                                                     </>
                                                 )}
                                             </div>

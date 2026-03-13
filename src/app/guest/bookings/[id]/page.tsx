@@ -4,9 +4,27 @@ import { useAuth } from "@/context/AuthContext";
 import { useRouter, useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import GuestSidebar from "@/components/guest/GuestSidebar";
-import bookingsData from "@/data/bookings.json";
-import spacesData from "@/data/spaces.json";
 import Link from "next/link";
+import { supabase } from "@/lib/supabase";
+
+interface Space {
+    id: string;
+    title: string;
+    location: string;
+    images: string[];
+}
+
+interface Booking {
+    id: string;
+    space_id: string;
+    user_id: string;
+    start_time: string;
+    end_time: string;
+    total_price: number;
+    status: string;
+    date: string;
+    spaces: Space;
+}
 
 export default function BookingDetailsPage() {
     const { user } = useAuth();
@@ -14,20 +32,56 @@ export default function BookingDetailsPage() {
     const params = useParams();
     const id = params.id as string;
 
-    const booking = bookingsData.find(b => b.id === id);
-    const space = booking ? spacesData.find(s => s.id === booking.space_id) : null;
+    const [booking, setBooking] = useState<Booking | null>(null);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         if (!user) {
             router.push("/auth/login");
         } else if (user.role !== "guest" && user.role !== "admin") {
             router.push("/host/dashboard");
-        } else if (!booking) {
-            router.push("/guest/bookings");
         }
-    }, [user, router, booking]);
+    }, [user, router]);
 
-    if (!user || !booking || !space) return null;
+    useEffect(() => {
+        const fetchBooking = async () => {
+            if (!user || !id) return;
+            setLoading(true);
+            const { data, error } = await supabase
+                .from("bookings")
+                .select(`
+                    *,
+                    spaces (
+                        id,
+                        title,
+                        location,
+                        images
+                    )
+                `)
+                .eq("id", id)
+                .single();
+
+            if (!error && data) {
+                setBooking(data as any);
+            }
+            setLoading(false);
+        };
+
+        fetchBooking();
+    }, [user, id]);
+
+    if (!user || loading) return (
+        <div className="flex items-center justify-center min-h-screen">
+            <div className="w-10 h-10 border-4 border-[#1d1aff]/20 border-t-[#1d1aff] rounded-full animate-spin" />
+        </div>
+    );
+
+    if (!booking) {
+         router.push("/guest/bookings");
+         return null;
+    }
+
+    const space = booking.spaces;
 
     return (
         <div className="w-full bg-[#f8f6f6] min-h-screen">
@@ -87,11 +141,11 @@ export default function BookingDetailsPage() {
                                             <div>
                                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Guest</p>
                                                 <p className="font-black text-slate-900">{user.name}</p>
-                                                <p className="text-xs font-bold text-slate-500">2 People</p>
+                                                <p className="text-xs font-bold text-slate-500">Scheduled Visit</p>
                                             </div>
                                             <div>
                                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Paid</p>
-                                                <p className="font-black text-slate-900 text-xl">${booking.total_price}</p>
+                                                <p className="font-black text-slate-900 text-xl">₹{booking.total_price.toLocaleString()}</p>
                                             </div>
                                         </div>
                                     </div>
