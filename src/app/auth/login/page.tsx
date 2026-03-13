@@ -28,9 +28,20 @@ export default function LoginPage() {
             return;
         }
 
-        // The AuthContext will handle the user state and profile fetching
-        // We just need to wait a moment or redirect
-        router.push("/");
+        // Fetch user role for intelligent redirect
+        const { data: profile } = await supabase
+            .from("profiles")
+            .select("role")
+            .eq("id", data.user?.id)
+            .single();
+
+        if (profile?.role === "host") {
+            router.push("/host/dashboard");
+        } else if (profile?.role === "guest") {
+            router.push("/guest/dashboard");
+        } else {
+            router.push("/");
+        }
     };
 
     return (

@@ -38,8 +38,23 @@ export function Navbar() {
                 <div className="flex items-center gap-3">
                     {user ? (
                         <div className="flex items-center gap-2">
+                            {pathname.startsWith("/host") ? (
+                                <Link
+                                    href="/guest/bookings"
+                                    className="hidden sm:flex px-4 py-2 text-xs font-black uppercase tracking-widest text-slate-600 hover:text-[#1d1aff] transition-all"
+                                >
+                                    Switch to Traveling
+                                </Link>
+                            ) : (
+                                <Link
+                                    href="/host/dashboard"
+                                    className="hidden sm:flex px-4 py-2 text-xs font-black uppercase tracking-widest text-[#1d1aff] hover:bg-[#1d1aff]/5 rounded-xl transition-all"
+                                >
+                                    Switch to Hosting
+                                </Link>
+                            )}
                             <Link
-                                href={user.role === "host" ? "/host/dashboard" : "/guest/dashboard"}
+                                href={pathname.startsWith("/host") ? "/host/dashboard" : "/guest/dashboard"}
                                 className="hidden sm:flex btn-airbnb-primary"
                             >
                                 Dashboard
