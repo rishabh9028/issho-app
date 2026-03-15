@@ -1,0 +1,3 @@
+ALTER TABLE spaces ADD COLUMN allow_extra_guests BOOLEAN DEFAULT FALSE;
+ALTER TABLE spaces ADD COLUMN extra_guest_price NUMERIC DEFAULT 0;
+ALTER TABLE spaces ADD COLUMN max_extra_guests INTEGER DEFAULT 0;

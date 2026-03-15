@@ -23,6 +23,9 @@ interface Space {
         avatar_url: string;
     };
     availability?: any;
+    allow_extra_guests?: boolean;
+    extra_guest_price?: number;
+    max_extra_guests?: number;
 }
 
 export default function SpaceDetail() {
@@ -37,12 +40,16 @@ export default function SpaceDetail() {
     const [checkInDate, setCheckInDate] = useState(new Date().toISOString().split('T')[0]);
     const [duration, setDuration] = useState(4);
     const [checkInTime, setCheckInTime] = useState("10:00 AM");
+    const [numberOfGuests, setNumberOfGuests] = useState(1);
 
 
     const [reviews, setReviews] = useState<any[]>([]);
     const [reviewRating, setReviewRating] = useState(5);
     const [reviewComment, setReviewComment] = useState("");
     const [submittingReview, setSubmittingReview] = useState(false);
+    const [dateBookings, setDateBookings] = useState<any[]>([]);
+    const [pricingOptions, setPricingOptions] = useState<any[]>([]);
+    const [selectedPricing, setSelectedPricing] = useState<string>("non-refundable");
 
     const fetchReviews = async () => {
         const { data, error } = await supabase
@@ -63,29 +70,63 @@ export default function SpaceDetail() {
     };
 
     useEffect(() => {
-        const fetchSpace = async () => {
-            const { data, error } = await supabase
-                .from("spaces")
-                .select(`
-                    *,
-                    profiles:host_id (
-                        full_name,
-                        avatar_url
-                    )
-                `)
-                .eq("id", spaceId)
-                .single();
+        const fetchData = async () => {
+            if (!spaceId) return;
+            console.time(`load-space-${spaceId}`);
+            setLoading(true);
+            
+            try {
+                // Fetch everything needed for initial render in parallel
+                console.time('supabase-parallel-fetch');
+                const [year, month, day] = checkInDate.split('-').map(Number);
+                const startOfDay = `${checkInDate}T00:00:00.000Z`;
+                const endOfDay = `${checkInDate}T23:59:59.999Z`;
 
-            if (!error && data) {
-                setSpace(data as Space);
+                const [spaceRes, reviewsRes, bookingsRes] = await Promise.all([
+                    supabase
+                        .from("spaces")
+                        .select(`
+                            *,
+                            profiles:host_id (
+                                full_name,
+                                avatar_url
+                            )
+                        `)
+                        .eq("id", spaceId)
+                        .single(),
+                    supabase
+                        .from("reviews")
+                        .select(`
+                            *,
+                            profiles:user_id (
+                                full_name,
+                                avatar_url
+                            )
+                        `)
+                        .eq("space_id", spaceId)
+                        .order("created_at", { ascending: false }),
+                    supabase
+                        .from("bookings")
+                        .select("*")
+                        .eq("space_id", spaceId)
+                        .eq("status", "confirmed")
+                        .gte("start_time", startOfDay)
+                        .lte("start_time", endOfDay)
+                ]);
+                console.timeEnd('supabase-parallel-fetch');
+
+                if (spaceRes.data) setSpace(spaceRes.data as Space);
+                if (reviewsRes.data) setReviews(reviewsRes.data);
+                if (bookingsRes.data) setDateBookings(bookingsRes.data);
+            } catch (error) {
+                console.error("Error fetching space data:", error);
+            } finally {
+                setLoading(false);
+                console.timeEnd(`load-space-${spaceId}`);
             }
-            setLoading(false);
         };
 
-        if (spaceId) {
-            fetchSpace();
-            fetchReviews();
-        }
+        fetchData();
 
         // Real-time reviews
         const channel = supabase
@@ -100,7 +141,8 @@ export default function SpaceDetail() {
                 },
                 () => {
                     fetchReviews();
-                    fetchSpace(); // Refresh space rating too
+                    // We don't necessarily need to re-fetch the whole space on every review change
+                    // unless we want to update the aggregate rating immediately.
                 }
             )
             .subscribe();
@@ -110,7 +152,33 @@ export default function SpaceDetail() {
         };
     }, [spaceId]);
 
-    // Handle time reset when date changes
+    // Refetch bookings when date changes (after initial load)
+    useEffect(() => {
+        const fetchDateBookings = async () => {
+            if (!spaceId || !checkInDate || loading) return;
+
+            console.time(`fetch-bookings-${checkInDate}`);
+            const startOfDay = `${checkInDate}T00:00:00.000Z`;
+            const endOfDay = `${checkInDate}T23:59:59.999Z`;
+
+            const { data, error } = await supabase
+                .from("bookings")
+                .select("*")
+                .eq("space_id", spaceId)
+                .eq("status", "confirmed")
+                .gte("start_time", startOfDay)
+                .lte("start_time", endOfDay);
+
+            if (!error && data) {
+                setDateBookings(data);
+            }
+            console.timeEnd(`fetch-bookings-${checkInDate}`);
+        };
+
+        fetchDateBookings();
+    }, [spaceId, checkInDate, loading]);
+
+    // Handle time reset and pricing update when date/time changes
     useEffect(() => {
         if (!space) return;
         
@@ -140,11 +208,87 @@ export default function SpaceDetail() {
                 return `${displayH.toString().padStart(2, '0')}:00 ${period}`;
             };
             
-            setCheckInTime(formatTime(startH));
+            // Generate valid slots considering buffer
+            const bookedHours = dateBookings.map(b => {
+                const start = new Date(b.start_time).getHours();
+                const end = new Date(b.end_time).getHours();
+                return { start, end };
+            });
+
+            let firstValidH = -1;
+            const endH = parseTime(dayAvailability.end);
+            for (let h = startH; h < endH; h++) {
+                const isBooked = bookedHours.some(b => h >= b.start && h < b.end);
+                const isBuffer = bookedHours.some(b => h === b.end); // 1-hour buffer after booking
+                if (!isBooked && !isBuffer) {
+                    firstValidH = h;
+                    break;
+                }
+            }
+
+            if (firstValidH !== -1) {
+                setCheckInTime(formatTime(firstValidH));
+            } else {
+                setCheckInTime("");
+            }
         } else {
             setCheckInTime("");
         }
-    }, [checkInDate, space?.availability]);
+    }, [checkInDate, space?.availability, dateBookings]);
+
+    // Calculate dynamic pricing options
+    useEffect(() => {
+        if (!checkInTime || !space) return;
+
+        const parts = checkInTime.split(' ');
+        let [hours] = parts[0].split(':').map(Number);
+        const period = parts[1];
+        if (period === 'PM' && hours !== 12) hours += 12;
+        if (period === 'AM' && hours === 12) hours = 0;
+
+        const bookingStartTime = new Date(`${checkInDate}T${hours.toString().padStart(2, '0')}:00:00`);
+        const now = new Date();
+        const leadTimeHours = (bookingStartTime.getTime() - now.getTime()) / (1000 * 60 * 60);
+
+        const extraGuestsCount = Math.max(0, numberOfGuests - space.capacity);
+        const extraGuestFee = extraGuestsCount * (space.extra_guest_price || 0) * duration;
+        const basePrice = (space.price_per_hour * duration) + extraGuestFee;
+        const options = [];
+
+        if (leadTimeHours < 2) {
+            options.push({
+                id: 'non-refundable',
+                label: 'Last Minute (Non-refundable)',
+                price: basePrice,
+                refundable: false
+            });
+        } else if (leadTimeHours >= 3 && leadTimeHours <= 5) {
+            options.push({
+                id: 'non-refundable',
+                label: 'Save 5% (Non-refundable)',
+                price: basePrice * 0.95,
+                refundable: false
+            });
+            options.push({
+                id: 'refundable',
+                label: 'Flexible (Refundable + 10% Fee)',
+                price: basePrice * 1.1,
+                refundable: true
+            });
+        } else {
+            options.push({
+                id: 'non-refundable',
+                label: 'Standard (Non-refundable)',
+                price: basePrice,
+                refundable: false
+            });
+        }
+
+        setPricingOptions(options);
+        if (options.length > 0 && !options.find(o => o.id === selectedPricing)) {
+            setSelectedPricing(options[0].id);
+        }
+    }, [checkInDate, checkInTime, duration, space, numberOfGuests]);
 
     const handleBooking = async () => {
         if (!user) {
@@ -182,6 +326,8 @@ export default function SpaceDetail() {
 
             const endTime = new Date(startTime.getTime() + duration * 60 * 60 * 1000);
 
+            const selectedOption = pricingOptions.find(o => o.id === selectedPricing) || pricingOptions[0];
+
             const { error } = await supabase
                 .from("bookings")
                 .insert([
@@ -190,8 +336,13 @@ export default function SpaceDetail() {
                         user_id: user.id,
                         start_time: startTime.toISOString(),
                         end_time: endTime.toISOString(),
-                        total_price: space.price_per_hour * duration,
-                        status: 'pending'
+                        total_price: selectedOption.price,
+                        status: 'pending',
+                        metadata: {
+                            refundable: selectedOption.refundable,
+                            pricing_label: selectedOption.label,
+                            guests: numberOfGuests
+                        }
                     }
                 ]);
 
@@ -476,24 +627,17 @@ export default function SpaceDetail() {
                                             <div className="p-3 hover:bg-slate-50 transition-colors">
                                                 <label className="block text-[10px] font-black uppercase text-slate-500 mb-1">Start Time</label>
                                                 {(() => {
-                                                    const [y, m, d] = checkInDate.split('-').map(Number);
-                                                    const dateObj = new Date(y, m - 1, d);
+                                                    const dateObj = new Date(checkInDate + 'T00:00:00');
                                                     const dayOfWeek = dateObj.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
-                                                    
-                                                    const availability = space.availability || {};
-                                                    const dayAvailability = availability[dayOfWeek];
+                                                    const dayAvailability = (space.availability || {})[dayOfWeek];
                                                     
                                                     if (!dayAvailability || !dayAvailability.open) {
-                                                        return <div className="text-sm font-bold text-red-500 italic">Closed for bookings</div>;
+                                                        return <div className="text-sm font-bold text-red-500 italic">Closed</div>;
                                                     }
 
-                                                    // Generate time slots between start and end
-                                                    const slots = [];
-                                                    
-                                                    // Simple time incrementor (hour by hour)
                                                     const parseTime = (t: string) => {
                                                         const [time, period] = t.split(' ');
-                                                        let [h, m] = time.split(':').map(Number);
+                                                        let [h] = time.split(':').map(Number);
                                                         if (period === 'PM' && h !== 12) h += 12;
                                                         if (period === 'AM' && h === 12) h = 0;
                                                         return h;
@@ -508,21 +652,26 @@ export default function SpaceDetail() {
 
                                                     const startH = parseTime(dayAvailability.start);
                                                     const endH = parseTime(dayAvailability.end);
-                                                    
                                                     const now = new Date();
                                                     const todayStr = now.toISOString().split('T')[0];
                                                     const currentH = now.getHours();
 
+                                                    const bookedHours = dateBookings.map(b => ({
+                                                        start: new Date(b.start_time).getHours(),
+                                                        end: new Date(b.end_time).getHours()
+                                                    }));
+
                                                     const availableSlots = [];
                                                     for (let h = startH; h < endH; h++) {
-                                                        // If today, only show future hours
                                                         if (checkInDate === todayStr && h <= currentH) continue;
-                                                        availableSlots.push(formatTime(h));
+                                                        const isBooked = bookedHours.some(b => h >= b.start && h < b.end);
+                                                        const isBuffer = bookedHours.some(b => h === b.end);
+                                                        if (!isBooked && !isBuffer) {
+                                                            availableSlots.push(formatTime(h));
+                                                        }
                                                     }
 
-                                                    if (availableSlots.length === 0) {
-                                                        return <div className="text-sm font-bold text-red-500 italic">No slots available</div>;
-                                                    }
+                                                    if (availableSlots.length === 0) return <div className="text-xs font-bold text-red-500">None</div>;
 
                                                     return (
                                                         <select 
@@ -539,10 +688,8 @@ export default function SpaceDetail() {
                                             </div>
                                         </div>
                                         {(() => {
-                                            const [y, m, d] = checkInDate.split('-').map(Number);
-                                            const dateObj = new Date(y, m - 1, d);
+                                            const dateObj = new Date(checkInDate + 'T00:00:00');
                                             const dayOfWeek = dateObj.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
-                                            
                                             const dayAvailability = (space.availability || {})[dayOfWeek];
                                             if (dayAvailability?.open) {
                                                 return (
@@ -553,22 +700,79 @@ export default function SpaceDetail() {
                                                             value={duration}
                                                             onChange={(e) => setDuration(Number(e.target.value))}
                                                         >
-                                                            {[1, 2, 3, 4, 5, 6, 7, 8].map(h => {
-                                                                return <option key={h} value={h}>{h} {h === 1 ? 'hour' : 'hours'}</option>;
-                                                            })}
+                                                            {[1, 2, 3, 4, 5, 6, 7, 8].map(h => (
+                                                                <option key={h} value={h}>{h} {h === 1 ? 'hour' : 'hours'}</option>
+                                                            ))}
                                                         </select>
                                                     </div>
                                                 );
                                             }
                                             return null;
                                         })()}
+                                        
+                                        <div className="p-3 border-t border-slate-300 hover:bg-slate-50 transition-colors">
+                                            <div className="flex items-center justify-between">
+                                                <div>
+                                                    <label className="block text-[10px] font-black uppercase text-slate-500 mb-1">Guests</label>
+                                                    <div className="text-sm font-bold text-slate-900">{numberOfGuests} {numberOfGuests === 1 ? 'Guest' : 'Guests'}</div>
+                                                </div>
+                                                <div className="flex items-center gap-3">
+                                                    <button 
+                                                        onClick={() => setNumberOfGuests(Math.max(1, numberOfGuests - 1))}
+                                                        className="w-8 h-8 rounded-full border border-slate-300 flex items-center justify-center hover:bg-slate-100 transition-colors"
+                                                    >
+                                                        <span className="material-symbols-outlined text-sm">remove</span>
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => setNumberOfGuests(prev => {
+                                                            const max = space.allow_extra_guests 
+                                                                ? space.capacity + (space.max_extra_guests || 0) 
+                                                                : space.capacity;
+                                                            return Math.min(max, prev + 1);
+                                                        })}
+                                                        className="w-8 h-8 rounded-full border border-slate-300 flex items-center justify-center hover:bg-slate-100 transition-colors"
+                                                    >
+                                                        <span className="material-symbols-outlined text-sm">add</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            {numberOfGuests > space.capacity && (
+                                                <p className="mt-2 text-[10px] font-bold text-[#2F2BFF]">
+                                                    + ₹{space.extra_guest_price?.toLocaleString()} per extra guest / hour
+                                                </p>
+                                            )}
+                                        </div>
                                     </div>
 
+                                    {/* Pricing Options UI */}
+                                    {pricingOptions.length > 0 && (
+                                        <div className="mb-6 space-y-3">
+                                            <p className="text-[10px] font-black uppercase text-slate-500">Choice of Rate</p>
+                                            <div className="flex flex-col gap-2">
+                                                {pricingOptions.map((option) => (
+                                                    <button
+                                                        key={option.id}
+                                                        onClick={() => setSelectedPricing(option.id)}
+                                                        className={`flex items-center justify-between p-3 rounded-xl border-2 transition-all ${
+                                                            selectedPricing === option.id
+                                                                ? "border-[#2F2BFF] bg-[#2F2BFF]/5"
+                                                                : "border-slate-100 hover:border-slate-200"
+                                                        }`}
+                                                    >
+                                                        <div className="text-left">
+                                                            <p className={`text-xs font-black ${selectedPricing === option.id ? "text-[#2F2BFF]" : "text-slate-900"}`}>{option.label}</p>
+                                                            <p className="text-[10px] text-slate-500 font-bold">{option.refundable ? "Full refund if cancelled" : "No refund once confirmed"}</p>
+                                                        </div>
+                                                        <p className="text-sm font-black text-slate-900">₹{option.price.toLocaleString()}</p>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
                                     {(() => {
-                                        const [y, m, d] = checkInDate.split('-').map(Number);
-                                        const dateObj = new Date(y, m - 1, d);
+                                        const dateObj = new Date(checkInDate + 'T00:00:00');
                                         const dayOfWeek = dateObj.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
-                                        
                                         const dayAvailability = (space.availability || {})[dayOfWeek];
                                         const isOpen = dayAvailability?.open;
 
@@ -596,17 +800,17 @@ export default function SpaceDetail() {
 
                                     <div className="mt-6 space-y-3">
                                         <div className="flex justify-between text-sm font-medium">
-                                            <span className="underline decoration-slate-300 text-slate-600">₹{space.price_per_hour.toLocaleString()} x {duration} hours</span>
-                                            <span className="font-bold text-slate-900">₹{(space.price_per_hour * duration).toLocaleString()}</span>
+                                            <span className="underline decoration-slate-300 text-slate-600">Rate: {pricingOptions.find(o => o.id === selectedPricing)?.label || "Standard"}</span>
+                                            <span className="font-bold text-slate-900">₹{(pricingOptions.find(o => o.id === selectedPricing)?.price || space.price_per_hour * duration).toLocaleString()}</span>
                                         </div>
                                         <div className="flex justify-between text-sm font-medium">
                                             <span className="underline decoration-slate-300 text-slate-600">Service fee</span>
-                                            <span className="font-bold text-slate-900">₹{Math.round(space.price_per_hour * duration * 0.1).toLocaleString()}</span>
+                                            <span className="font-bold text-slate-900">₹{Math.round((pricingOptions.find(o => o.id === selectedPricing)?.price || space.price_per_hour * duration) * 0.1).toLocaleString()}</span>
                                         </div>
                                         <div className="h-px bg-slate-200 my-2"></div>
                                         <div className="flex justify-between font-black text-xl text-slate-900">
                                             <span>Total</span>
-                                            <span>₹{Math.round(space.price_per_hour * duration * 1.1).toLocaleString()}</span>
+                                            <span>₹{Math.round((pricingOptions.find(o => o.id === selectedPricing)?.price || space.price_per_hour * duration) * 1.1).toLocaleString()}</span>
                                         </div>
                                     </div>
 

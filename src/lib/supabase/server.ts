@@ -32,6 +32,7 @@ export async function createClient() {
                 secure: process.env.NODE_ENV === 'production',
                 sameSite: 'lax',
                 path: '/',
+                maxAge: 7200, // 2 hours in seconds
               })
             )
           } catch {

@@ -38,6 +38,11 @@ export default function HostBookingDetails() {
     const router = useRouter();
     const [booking, setBooking] = useState<Booking | null>(null);
     const [loading, setLoading] = useState(true);
+    const [guestReviewRating, setGuestReviewRating] = useState(5);
+    const [guestReviewComment, setGuestReviewComment] = useState("");
+    const [submittingGuestReview, setSubmittingGuestReview] = useState(false);
+    const [existingGuestReview, setExistingGuestReview] = useState<any>(null);
+    const [guestAverageRating, setGuestAverageRating] = useState<number | null>(null);
 
     useEffect(() => {
         if (!user) {
@@ -47,28 +52,75 @@ export default function HostBookingDetails() {
         }
     }, [user, router]);
 
+    const fetchGuestReview = async (bookingId: string) => {
+        const { data } = await supabase
+            .from("guest_reviews")
+            .select("*")
+            .eq("booking_id", bookingId)
+            .maybeSingle();
+        if (data) setExistingGuestReview(data);
+    };
+
+    const fetchGuestAverageRating = async (guestId: string) => {
+        const { data, error } = await supabase
+            .from("guest_reviews")
+            .select("rating")
+            .eq("guest_id", guestId);
+        
+        if (!error && data && data.length > 0) {
+            const sum = data.reduce((acc, curr) => acc + curr.rating, 0);
+            setGuestAverageRating(sum / data.length);
+        }
+    };
+
     useEffect(() => {
-        const fetchBooking = async () => {
+        const fetchBookingData = async () => {
             if (!user || !params.id) return;
             setLoading(true);
-            const { data, error } = await supabase
-                .from("bookings")
-                .select(`
-                    *,
-                    spaces!inner (*),
-                    profiles:user_id (*)
-                `)
-                .eq("id", params.id)
-                .eq("spaces.host_id", user.id)
-                .single();
+            
+            try {
+                const { data: bookingData, error: bookingError } = await supabase
+                    .from("bookings")
+                    .select(`
+                        *,
+                        spaces!inner (*),
+                        profiles:user_id (*)
+                    `)
+                    .eq("id", params.id)
+                    .eq("spaces.host_id", user.id)
+                    .single();
 
-            if (!error && data) {
-                setBooking(data as any);
+                if (!bookingError && bookingData) {
+                    setBooking(bookingData as any);
+                    
+                    // Fetch guest specific data in parallel
+                    const [reviewRes, ratingRes] = await Promise.all([
+                        supabase
+                            .from("guest_reviews")
+                            .select("*")
+                            .eq("booking_id", bookingData.id)
+                            .maybeSingle(),
+                        supabase
+                            .from("guest_reviews")
+                            .select("rating")
+                            .eq("guest_id", bookingData.user_id)
+                    ]);
+
+                    if (reviewRes.data) setExistingGuestReview(reviewRes.data);
+                    
+                    if (!ratingRes.error && ratingRes.data && ratingRes.data.length > 0) {
+                        const sum = ratingRes.data.reduce((acc, curr) => acc + curr.rating, 0);
+                        setGuestAverageRating(sum / ratingRes.data.length);
+                    }
+                }
+            } catch (err) {
+                console.error("Error fetching booking details:", err);
+            } finally {
+                setLoading(false);
             }
-            setLoading(false);
         };
 
-        fetchBooking();
+        fetchBookingData();
 
         // Real-time listener for this specific booking
         const channel = supabase
@@ -82,7 +134,7 @@ export default function HostBookingDetails() {
                     filter: `id=eq.${params.id}`
                 },
                 () => {
-                    fetchBooking();
+                    fetchBookingData();
                 }
             )
             .subscribe();
@@ -102,6 +154,29 @@ export default function HostBookingDetails() {
         if (!error) {
             setBooking({ ...booking, status: newStatus });
         }
+    };
+
+    const handleGuestReviewSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!user || !booking) return;
+
+        setSubmittingGuestReview(true);
+        const { error } = await supabase
+            .from("guest_reviews")
+            .insert([
+                {
+                    booking_id: booking.id,
+                    host_id: user.id,
+                    guest_id: booking.user_id,
+                    rating: guestReviewRating,
+                    comment: guestReviewComment
+                }
+            ]);
+
+        if (!error) {
+            fetchGuestReview(booking.id);
+        }
+        setSubmittingGuestReview(false);
     };
 
     if (loading) return (
@@ -235,17 +310,71 @@ export default function HostBookingDetails() {
                                         <div className="space-y-6">
                                             <div className="flex items-start gap-4">
                                                 <div className="h-10 w-10 bg-slate-50 rounded-xl flex items-center justify-center border border-slate-100 shrink-0">
-                                                    <span className="material-symbols-outlined text-slate-400">history</span>
+                                                    <span className="material-symbols-outlined text-slate-400">star</span>
                                                 </div>
                                                 <div>
-                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Guest History</p>
-                                                    <p className="font-bold text-slate-900">12 successfully completed stays</p>
+                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Guest Rating</p>
+                                                    <p className="font-bold text-slate-900">
+                                                        {guestAverageRating ? `${guestAverageRating.toFixed(1)} / 5.0` : "No ratings yet"}
+                                                    </p>
                                                 </div>
                                             </div>
                                             <button className="h-11 w-full rounded-2xl bg-slate-50 border border-slate-100 text-xs font-black text-slate-600 hover:bg-[#2F2BFF]/5 hover:text-[#2F2BFF] hover:border-[#2F2BFF]/10 transition-all">Send Message to Guest</button>
                                         </div>
                                     </div>
                                 </section>
+
+                                {/* Guest Review Section */}
+                                {booking.status === "confirmed" && (
+                                    <section className="bg-white rounded-[40px] p-10 border border-slate-100 shadow-sm">
+                                        <h2 className="text-2xl font-black text-slate-900 tracking-tight mb-8">Rate your Guest</h2>
+                                        {existingGuestReview ? (
+                                            <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100">
+                                                <div className="flex gap-1 mb-3">
+                                                    {[1, 2, 3, 4, 5].map((star) => (
+                                                        <span key={star} className={`material-symbols-outlined text-xl ${existingGuestReview.rating >= star ? "text-amber-500 fill-1" : "text-slate-200"}`}>star</span>
+                                                    ))}
+                                                </div>
+                                                <p className="text-slate-600 font-medium italic">"{existingGuestReview.comment}"</p>
+                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-4">Submitted on {new Date(existingGuestReview.created_at).toLocaleDateString()}</p>
+                                            </div>
+                                        ) : (
+                                            <form onSubmit={handleGuestReviewSubmit} className="space-y-6">
+                                                <div>
+                                                    <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Select Rating</p>
+                                                    <div className="flex gap-3">
+                                                        {[1, 2, 3, 4, 5].map((star) => (
+                                                            <button
+                                                                key={star}
+                                                                type="button"
+                                                                onClick={() => setGuestReviewRating(star)}
+                                                                className={`material-symbols-outlined text-3xl transition-all ${guestReviewRating >= star ? "text-amber-500 fill-1 scale-110" : "text-slate-200 hover:text-slate-300"}`}
+                                                            >
+                                                                star
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Private Feedback (Optional)</p>
+                                                    <textarea
+                                                        value={guestReviewComment}
+                                                        onChange={(e) => setGuestReviewComment(e.target.value)}
+                                                        placeholder="How was your experience with this guest?"
+                                                        className="w-full h-32 rounded-2xl border-slate-200 bg-slate-50 p-4 text-sm font-medium focus:ring-[#2F2BFF] focus:border-[#2F2BFF] transition-all"
+                                                    ></textarea>
+                                                </div>
+                                                <button
+                                                    type="submit"
+                                                    disabled={submittingGuestReview}
+                                                    className="h-14 px-8 rounded-[20px] bg-slate-900 text-white font-black hover:bg-slate-800 active:scale-95 transition-all disabled:opacity-50"
+                                                >
+                                                    {submittingGuestReview ? "Submitting..." : "Submit Review"}
+                                                </button>
+                                            </form>
+                                        )}
+                                    </section>
+                                )}
 
                                 {booking.status === "pending" && (
                                     <section className="bg-rose-50/50 rounded-[40px] p-10 border border-rose-100 shadow-sm flex flex-col items-center text-center gap-6">

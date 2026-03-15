@@ -37,7 +37,10 @@ export default function EditSpacePage() {
             friday: { open: true, start: "09:00 AM", end: "05:00 PM" },
             saturday: { open: false, start: "10:00 AM", end: "04:00 PM" },
             sunday: { open: false, start: "10:00 AM", end: "04:00 PM" },
-        }
+        },
+        allowExtraGuests: false,
+        extraGuestPrice: "0.00",
+        maxExtraGuests: "0"
     });
 
     useEffect(() => {
@@ -85,7 +88,10 @@ export default function EditSpacePage() {
                 zip: stateZip[1] || "",
                 price: data.price_per_hour.toString(),
                 images: data.images || [],
-                availability: data.availability || formData.availability
+                availability: data.availability || formData.availability,
+                allowExtraGuests: data.allow_extra_guests || false,
+                extraGuestPrice: (data.extra_guest_price || 0).toString(),
+                maxExtraGuests: (data.max_extra_guests || 0).toString()
             });
             setLoading(false);
         };
@@ -210,7 +216,10 @@ export default function EditSpacePage() {
                     capacity: parseInt(formData.capacity),
                     type: formData.type.toLowerCase(),
                     images: finalImages,
-                    availability: formData.availability
+                    availability: formData.availability,
+                    allow_extra_guests: formData.allowExtraGuests,
+                    extra_guest_price: parseFloat(formData.extraGuestPrice),
+                    max_extra_guests: parseInt(formData.maxExtraGuests)
                 })
                 .eq("id", id);
 
@@ -321,6 +330,56 @@ export default function EditSpacePage() {
                                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                     className="w-full bg-white border border-slate-200 rounded-3xl p-6 text-base font-bold placeholder:font-medium placeholder:text-slate-300 focus:outline-none focus:border-[#2F2BFF] transition-all resize-none"
                                 ></textarea>
+                            </div>
+
+                            <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-6">
+                                <div className="flex items-center justify-between">
+                                    <div className="space-y-1">
+                                        <h3 className="text-base font-black text-slate-900">Allow Extra Guests</h3>
+                                        <p className="text-xs text-slate-500 font-medium">Charge a fee for guests exceeding standard capacity.</p>
+                                    </div>
+                                    <label className="relative inline-flex items-center cursor-pointer scale-110">
+                                        <input 
+                                            type="checkbox" 
+                                            checked={formData.allowExtraGuests} 
+                                            onChange={(e) => setFormData({ ...formData, allowExtraGuests: e.target.checked })}
+                                            className="sr-only peer" 
+                                        />
+                                        <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-gradient"></div>
+                                    </label>
+                                </div>
+
+                                {formData.allowExtraGuests && (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-top-2 duration-300 text-left">
+                                        <div>
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3 block">Price per extra guest</label>
+                                            <div className="relative group">
+                                                <span className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 font-black text-lg group-focus-within:text-[#2F2BFF] transition-colors">₹</span>
+                                                <input
+                                                    type="text"
+                                                    value={formData.extraGuestPrice}
+                                                    onChange={e => setFormData({...formData, extraGuestPrice: e.target.value})}
+                                                    className="w-full h-16 bg-white border border-slate-200 rounded-2xl pl-12 pr-16 text-xl font-black text-slate-900 focus:outline-none focus:border-[#2F2BFF] transition-all"
+                                                    placeholder="0.00"
+                                                />
+                                                <span className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">/ guest</span>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3 block">Max extra guests allowed</label>
+                                            <div className="relative group">
+                                                <input
+                                                    type="number"
+                                                    value={formData.maxExtraGuests}
+                                                    onChange={e => setFormData({...formData, maxExtraGuests: e.target.value})}
+                                                    className="w-full h-16 bg-white border border-slate-200 rounded-2xl px-6 text-xl font-black text-slate-900 focus:outline-none focus:border-[#2F2BFF] transition-all"
+                                                    placeholder="0"
+                                                />
+                                                <span className="absolute right-6 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 pointer-events-none">groups_3</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>

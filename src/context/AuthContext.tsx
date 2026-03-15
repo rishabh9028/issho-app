@@ -51,6 +51,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
                 // Setup or cleanup profile subscription based on auth state
                 if (derived) {
+                    console.time(`fetch-profile-${derived.id}`);
                     // Initial fetch
                     supabase
                         .from("profiles")
@@ -58,6 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                         .eq("id", derived.id)
                         .single()
                         .then(({ data }) => {
+                            console.timeEnd(`fetch-profile-${derived.id}`);
                             if (data) {
                                 setUser(prev => prev ? {
                                     ...prev,

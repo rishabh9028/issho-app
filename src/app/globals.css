@@ -31,6 +31,8 @@
   --radius-md: 0.75rem;
   --radius-xl: 1rem;
   --radius-2xl: 2rem;
+  
+  --background-image-brand-gradient: linear-gradient(135deg, var(--color-brand-gradient-start) 0%, var(--color-brand-gradient-end) 100%);
 }
 
 @layer base {
@@ -101,10 +103,6 @@
 
   .card-premium {
     @apply rounded-xl bg-[var(--color-card)] shadow-[0_8px_30px_#0000000a] dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 transition-all hover:shadow-[0_8px_30px_#00000014];
-  }
-
-  .bg-brand-gradient {
-    background: linear-gradient(135deg, var(--color-brand-gradient-start) 0%, var(--color-brand-gradient-end) 100%);
   }
 
   .material-symbols-outlined {
