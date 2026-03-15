@@ -37,13 +37,14 @@ interface Booking {
 }
 
 export default function HostDashboard() {
-    const { user } = useAuth();
+    const { user, loading: authLoading } = useAuth();
     const router = useRouter();
     const [mySpaces, setMySpaces] = useState<Space[]>([]);
     const [bookings, setBookings] = useState<Booking[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [dataLoading, setLoading] = useState(true);
 
     useEffect(() => {
+        if (authLoading) return; // wait for auth to resolve before redirecting
         if (!user) {
             router.push("/auth/login");
             return;
@@ -96,7 +97,7 @@ export default function HostDashboard() {
         };
 
         fetchData();
-    }, [user, router]);
+    }, [user, authLoading, router]);
 
     const handleStatusUpdate = async (bookingId: string, status: 'confirmed' | 'cancelled' | 'completed') => {
         try {
@@ -130,7 +131,7 @@ export default function HostDashboard() {
         return profile?.full_name || 'Guest Request';
     };
 
-    if (!user || loading) {
+    if (!user || dataLoading) {
         return (
             <div className="flex items-center justify-center min-h-screen">
                 <div className="w-10 h-10 border-4 border-[#2F2BFF]/20 border-t-[#2F2BFF] rounded-full animate-spin" />

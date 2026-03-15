@@ -26,18 +26,19 @@ interface Booking {
 }
 
 export default function GuestDashboard() {
-    const { user } = useAuth();
+    const { user, loading: authLoading } = useAuth();
     const router = useRouter();
     const [bookings, setBookings] = useState<Booking[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [dataLoading, setLoading] = useState(true);
 
     useEffect(() => {
+        if (authLoading) return; // wait for auth to resolve before redirecting
         if (!user) {
             router.push("/auth/login");
         } else if (user.role !== "guest" && user.role !== "admin") {
             router.push("/host/dashboard");
         }
-    }, [user, router]);
+    }, [user, authLoading, router]);
 
     useEffect(() => {
         if (!user) return;
@@ -153,7 +154,7 @@ export default function GuestDashboard() {
                                 </Link>
                             </div>
 
-                            {loading ? (
+                            {dataLoading ? (
                                 <div className="grid gap-4 sm:grid-cols-2">
                                     {[1, 2].map((i) => (
                                         <div key={i} className="h-56 rounded-2xl bg-white animate-pulse border border-slate-100" />
@@ -235,7 +236,7 @@ export default function GuestDashboard() {
                                 <h2 className="text-lg font-bold">Past Bookings</h2>
                             </div>
 
-                            {loading ? (
+                            {dataLoading ? (
                                 <div className="space-y-3">
                                     {[1, 2].map((i) => (
                                         <div key={i} className="h-20 rounded-2xl bg-white animate-pulse border border-slate-100" />
