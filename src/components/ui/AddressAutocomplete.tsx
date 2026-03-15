@@ -86,6 +86,7 @@ const AddressAutocomplete: React.FC<AddressAutocompleteProps> = ({
         <div className={`address-autocomplete-container relative ${className}`}>
             {!isBare && <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 z-10 pointer-events-none" />}
             <AsyncSelect
+                instanceId="address-autocomplete"
                 cacheOptions
                 loadOptions={loadOptions}
                 onChange={handleSelect}
