@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { MapPin, Users, Star } from "lucide-react";
+import Image from "next/image";
 
 interface SpaceCardProps {
     id: string;
@@ -17,12 +18,13 @@ export function SpaceCard({ id, title, location, pricePerHour, capacity, imageUr
         <Link href={`/spaces/${id}`} className="group block">
             <div className="card-premium overflow-hidden border-0">
                 <div className="aspect-[4/3] w-full overflow-hidden relative bg-zinc-100 dark:bg-zinc-800">
-                    {/* Using img for MVP, would use next/image in prod */}
-                    <img
-                        src={imageUrl}
+                    {/* Uses next/image for automatic WebP conversion and optimization */}
+                    <Image
+                        src={imageUrl || 'https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=1000&auto=format&fit=crop'}
                         alt={title}
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                        loading="lazy"
+                        fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        className="object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                     <div className="absolute top-3 right-3 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1 shadow-sm">
                         <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />

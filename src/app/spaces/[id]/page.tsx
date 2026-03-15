@@ -4,9 +4,15 @@ import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
+import Image from "next/image";
 import { supabase } from "@/lib/supabase";
-import LocationMap from "@/components/ui/LocationMap";
+import dynamic from "next/dynamic";
 import { calculatePricing, PricingBreakdown } from "@/lib/pricing";
+
+const LocationMap = dynamic(() => import("@/components/ui/LocationMap"), {
+    ssr: false,
+    loading: () => <div className="w-full h-full bg-slate-100 animate-pulse rounded-2xl flex items-center justify-center"><span className="material-symbols-outlined text-slate-300">map</span></div>
+});
 
 interface Space {
     id: string;
@@ -455,23 +461,26 @@ export default function SpaceDetail() {
                         return (
                             <>
                                 <div className={`${hasMoreImages ? 'md:col-span-2' : 'md:col-span-4'} md:row-span-2 relative overflow-hidden rounded-xl bg-slate-200`}>
-                                    <img
-                                        className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
+                                    <Image
+                                        className="object-cover transition-transform duration-500 hover:scale-105"
                                         alt={space.title}
                                         src={mainImg}
-                                        onError={(e) => { (e.target as HTMLImageElement).src = fallback; }}
+                                        fill
+                                        priority
+                                        sizes="(max-width: 768px) 100vw, 66vw"
                                     />
                                     <button className="absolute bottom-4 left-4 flex items-center gap-2 rounded-lg bg-white/90 px-4 py-2 text-sm font-bold text-slate-900 shadow-sm hover:bg-white transition-colors">
                                         <span className="material-symbols-outlined text-sm">grid_view</span> View all photos
                                     </button>
                                 </div>
                                 {gridImages.length > 0 && gridImages.map((img, idx) => (
-                                    <div key={idx} className="hidden md:block overflow-hidden rounded-xl bg-slate-200">
-                                        <img 
-                                            className="h-full w-full object-cover transition-transform duration-500 hover:scale-105" 
+                                    <div key={idx} className="hidden md:block overflow-hidden relative rounded-xl bg-slate-200">
+                                        <Image 
+                                            className="object-cover transition-transform duration-500 hover:scale-105" 
                                             alt={`${space.title} ${idx + 2}`} 
                                             src={img}
-                                            onError={(e) => { (e.target as HTMLImageElement).src = fallback; }}
+                                            fill
+                                            sizes="33vw"
                                         />
                                     </div>
                                 ))}

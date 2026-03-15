@@ -5,8 +5,14 @@ import { useAuth } from "@/context/AuthContext";
 import { useRouter, useParams } from "next/navigation";
 import React, { useEffect, useState, useRef } from "react";
 import { ChevronLeft, ChevronRight, Upload, X, MapPin, Search } from "lucide-react";
+import { supabase } from "@/lib/supabase";
+import dynamic from "next/dynamic";
+
+const LocationMap = dynamic(() => import("@/components/ui/LocationMap"), {
+    ssr: false,
+    loading: () => <div className="w-full h-full bg-zinc-100 animate-pulse rounded-xl flex items-center justify-center"><span className="material-symbols-outlined text-zinc-300">map</span></div>
+});
 import AddressAutocomplete from "@/components/ui/AddressAutocomplete";
-import LocationMap from "@/components/ui/LocationMap";
 import Link from "next/link";
 
 export default function EditSpacePage() {

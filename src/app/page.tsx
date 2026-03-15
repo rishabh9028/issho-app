@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { HeroSearch } from "@/components/ui/HeroSearch";
 import { useState, useEffect } from "react";
 
@@ -57,13 +58,22 @@ export default function Home() {
             {HERO_IMAGES.map((img, index) => (
               <div
                 key={img}
-                className="absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ease-in-out"
+                className="absolute inset-0 transition-opacity duration-1000 ease-in-out"
                 style={{
-                  backgroundImage: `linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.85)), url("${img}")`,
                   opacity: index === currentImageIndex ? 1 : 0,
                   zIndex: index === currentImageIndex ? 1 : 0,
                 }}
-              />
+              >
+                <div className="absolute inset-0 bg-black/60 z-10" />
+                <Image
+                  src={img}
+                  alt="Hero Background"
+                  fill
+                  priority={index === 0}
+                  className="object-cover"
+                  sizes="100vw"
+                />
+              </div>
             ))}
             
             {/* Content Overlay */}
@@ -113,16 +123,21 @@ export default function Home() {
             {/* For Guests Section - 50/50 Split */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
               {/* Image Block */}
-              <div className="relative overflow-hidden rounded-[32px] shadow-2xl min-h-[450px]">
+              <div className="aspect-[4/3] rounded-3xl overflow-hidden relative shadow-2xl">
                 {GUEST_HOW_IMAGES.map((img, idx) => (
                   <div
                     key={img}
-                    className="absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ease-in-out"
-                    style={{
-                      backgroundImage: `url("${img}")`,
-                      opacity: idx === guestImgIndex ? 1 : 0,
-                    }}
-                  />
+                    className="absolute inset-0 transition-opacity duration-1000"
+                    style={{ opacity: guestImgIndex === idx ? 1 : 0 }}
+                  >
+                    <Image
+                      src={img}
+                      alt={`Guest Guide ${idx + 1}`}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 768px) 100vw, 50vw"
+                    />
+                  </div>
                 ))}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
               </div>

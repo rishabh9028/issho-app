@@ -6,7 +6,13 @@ import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight, Upload, X, Star, MapPin, Clock, Users, Shield, Plus, Minus } from "lucide-react";
 import AddressAutocomplete from "@/components/ui/AddressAutocomplete";
-import LocationMap from "@/components/ui/LocationMap";
+import dynamic from "next/dynamic";
+import { supabase } from "@/lib/supabase";
+
+const LocationMap = dynamic(() => import("@/components/ui/LocationMap"), {
+    ssr: false,
+    loading: () => <div className="w-full h-full bg-zinc-100 animate-pulse rounded-xl flex items-center justify-center"><span className="material-symbols-outlined text-zinc-300">map</span></div>
+});
 import Link from "next/link";
 
 export default function NewSpaceFlow() {
