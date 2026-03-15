@@ -293,6 +293,14 @@ export default function SpaceDetail() {
                 pricing: pricingStandard,
                 refundable: false
             });
+            
+            const pricingRef = calculatePricing(rawBasePrice * 1.1);
+            options.push({
+                id: 'refundable',
+                label: 'Flexible (Refundable + 10% Fee)',
+                pricing: pricingRef,
+                refundable: true
+            });
         }
 
         setPricingOptions(options);
