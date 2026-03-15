@@ -462,11 +462,12 @@ export default function SpaceDetail() {
                             <>
                                 <div className={`${hasMoreImages ? 'md:col-span-2' : 'md:col-span-4'} md:row-span-2 relative overflow-hidden rounded-xl bg-slate-200`}>
                                     <Image
-                                        className="object-cover transition-transform duration-500 hover:scale-105"
+                                        className="object-cover transition-transform duration-500 hover:scale-110"
                                         alt={space.title}
                                         src={mainImg}
                                         fill
                                         priority
+                                        unoptimized
                                         sizes="(max-width: 768px) 100vw, 66vw"
                                     />
                                     <button className="absolute bottom-4 left-4 flex items-center gap-2 rounded-lg bg-white/90 px-4 py-2 text-sm font-bold text-slate-900 shadow-sm hover:bg-white transition-colors">
@@ -476,10 +477,11 @@ export default function SpaceDetail() {
                                 {gridImages.length > 0 && gridImages.map((img, idx) => (
                                     <div key={idx} className="hidden md:block overflow-hidden relative rounded-xl bg-slate-200">
                                         <Image 
-                                            className="object-cover transition-transform duration-500 hover:scale-105" 
+                                            className="object-cover transition-transform duration-500 hover:scale-110" 
                                             alt={`${space.title} ${idx + 2}`} 
                                             src={img}
                                             fill
+                                            unoptimized
                                             sizes="33vw"
                                         />
                                     </div>
@@ -515,18 +517,17 @@ export default function SpaceDetail() {
                         {/* Host Section */}
                         <div className="flex items-center gap-4 mb-8">
                             <div
-                                className="h-14 w-14 rounded-full bg-cover bg-center border border-slate-100 shadow-sm bg-slate-100 overflow-hidden"
+                                className="h-14 w-14 rounded-full border border-slate-100 shadow-sm bg-slate-100 overflow-hidden relative"
                             >
-                                <img 
+                                <Image 
                                     src={
                                         (Array.isArray(space.profiles) ? space.profiles[0]?.avatar_url : space.profiles?.avatar_url) || 
                                         `https://api.dicebear.com/7.x/avataaars/svg?seed=${(Array.isArray(space.profiles) ? space.profiles[0]?.full_name : space.profiles?.full_name) || 'Host'}`
                                     } 
                                     alt={(Array.isArray(space.profiles) ? space.profiles[0]?.full_name : space.profiles?.full_name) || 'Host'}
-                                    className="w-full h-full object-cover"
-                                    onError={(e) => { 
-                                        (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${(Array.isArray(space.profiles) ? space.profiles[0]?.full_name : space.profiles?.full_name) || 'Host'}`; 
-                                    }}
+                                    fill
+                                    className="object-cover"
+                                    unoptimized
                                 />
                             </div>
                             <div>
@@ -936,6 +937,28 @@ export default function SpaceDetail() {
                     </aside>
                 </div>
             </main>
+
+            {/* Mobile Sticky Booking Bar */}
+            {!bookingSuccess && (
+                <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-6 py-4 z-50 flex items-center justify-between shadow-[0_-10px_30px_rgba(0,0,0,0.05)]">
+                    <div className="flex flex-col">
+                        <div className="flex items-baseline gap-1">
+                            <span className="text-xl font-black text-[#2F2BFF]">₹{space.price_per_hour.toLocaleString()}</span>
+                            <span className="text-slate-500 text-xs font-bold">/ hour</span>
+                        </div>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{checkInDate}</p>
+                    </div>
+                    <button 
+                        onClick={() => {
+                            const widget = document.querySelector('aside');
+                            widget?.scrollIntoView({ behavior: 'smooth' });
+                        }}
+                        className="bg-brand-gradient text-white px-8 py-3.5 rounded-xl font-black text-sm shadow-lg shadow-[#2F2BFF]/20 active:scale-95 transition-all"
+                    >
+                        Check Availability
+                    </button>
+                </div>
+            )}
         </div>
     );
 }

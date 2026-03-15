@@ -4,7 +4,10 @@ import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
+import Image from "next/image";
+import { X, SlidersHorizontal, ChevronDown, Check, Star } from "lucide-react";
 import AddressAutocomplete from "@/components/ui/AddressAutocomplete";
+import { cn } from "@/lib/utils";
 
 const TYPES = ["All", "Studio", "Rooftop", "Villa", "Cafe", "Event Space", "Warehouse", "Gallery", "Garden", "Co-working"];
 const AMENITIES = [
@@ -50,6 +53,7 @@ function SearchContent() {
     const [showAllTypes, setShowAllTypes] = useState(false);
     const [showAllAmenities, setShowAllAmenities] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [showMobileFilters, setShowMobileFilters] = useState(false);
 
     useEffect(() => {
         const fetchSpaces = async () => {
@@ -121,59 +125,233 @@ function SearchContent() {
     return (
         <div className="bg-[#F8FAFF] min-h-screen pb-12">
             {/* Search Header Bar */}
-            <div className="bg-white border-b border-slate-100 py-6 sticky top-0 z-40 backdrop-blur-md bg-white/80">
+            <div className="bg-white border-b border-slate-100 py-4 sticky top-0 z-40 backdrop-blur-md bg-white/80">
                 <div className="container-custom">
-                    <div className="flex flex-col sm:flex-row gap-4 items-center">
-                        {/* Location Input */}
-                        <div className="flex-1 px-5 py-2.5 rounded-2xl border border-slate-200 bg-slate-50/50 focus-within:border-[#2F2BFF] focus-within:bg-white transition-all relative z-20 shadow-sm">
-                            <div className="flex items-center gap-3">
-                                <span className="material-symbols-outlined text-[#2F2BFF]">location_on</span>
-                                <AddressAutocomplete
-                                    value={location ? { label: location, value: location } : null}
-                                    onSelect={(data) => setLocation(data.label)}
-                                    placeholder="Where are you going?"
-                                    className="w-full"
-                                    variant="bare"
-                                />
+                    <div className="flex flex-col gap-4">
+                        <div className="flex flex-col sm:flex-row gap-4 items-center">
+                            {/* Location Input */}
+                            <div className="flex-1 w-full px-5 py-2.5 rounded-2xl border border-slate-200 bg-slate-50/50 focus-within:border-[#2F2BFF] focus-within:bg-white transition-all relative z-20 shadow-sm">
+                                <div className="flex items-center gap-3">
+                                    <span className="material-symbols-outlined text-[#2F2BFF]">location_on</span>
+                                    <AddressAutocomplete
+                                        value={location ? { label: location, value: location } : null}
+                                        onSelect={(data) => setLocation(data.label)}
+                                        placeholder="Where are you going?"
+                                        className="w-full"
+                                        variant="bare"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Sort Select */}
+                            <div className="flex items-center gap-3 w-full sm:w-auto">
+                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 whitespace-nowrap">Sort By</span>
+                                <div className="relative flex-1 sm:flex-initial">
+                                    <select
+                                        value={sortBy}
+                                        onChange={(e) => setSortBy(e.target.value)}
+                                        className="appearance-none w-full px-5 py-2.5 pr-10 rounded-2xl border border-slate-200 bg-white text-xs font-bold text-slate-700 outline-none focus:border-[#2F2BFF] transition-all cursor-pointer shadow-sm min-w-[150px]"
+                                    >
+                                        <option value="recommended">Best Match</option>
+                                        <option value="price_asc">Price: Low to High</option>
+                                        <option value="price_desc">Price: High to Low</option>
+                                        <option value="rating">Highest Rated</option>
+                                    </select>
+                                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none w-4 h-4" />
+                                </div>
                             </div>
                         </div>
 
-                        {/* Sort Select */}
-                        <div className="flex items-center gap-3">
-                            <span className="text-xs font-black uppercase tracking-widest text-slate-400">Sort By</span>
-                            <div className="relative">
-                                <select
-                                    value={sortBy}
-                                    onChange={(e) => setSortBy(e.target.value)}
-                                    className="appearance-none px-6 py-3 pr-12 rounded-2xl border border-slate-200 bg-white text-sm font-bold text-slate-700 outline-none focus:border-[#2F2BFF] transition-all cursor-pointer shadow-sm min-w-[180px]"
-                                >
-                                    <option value="recommended">Best Match</option>
-                                    <option value="price_asc">Price: Low to High</option>
-                                    <option value="price_desc">Price: High to Low</option>
-                                    <option value="rating">Highest Rated</option>
-                                </select>
-                                <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-xl">expand_more</span>
-                            </div>
+                        {/* Horizontal Filter Bar */}
+                        <div className="flex items-center justify-end">
+                            <button
+                                onClick={() => setShowMobileFilters(true)}
+                                className="flex items-center gap-2 px-6 py-2.5 rounded-full border border-slate-200 bg-white hover:border-slate-900 transition-all shadow-sm group"
+                            >
+                                <SlidersHorizontal className="w-4 h-4 text-slate-600 group-hover:text-[#2F2BFF]" />
+                                <span className="text-xs font-bold text-slate-700">Filters</span>
+                                {(type !== "All" || selectedAmenities.length > 0 || petFriendlyOnly || minPrice || maxPrice || minCapacity || minRating > 0) && (
+                                    <div className="w-2 h-2 rounded-full bg-[#2F2BFF]"></div>
+                                )}
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
 
             <div className="container-custom py-8">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                    
-                    {/* Sidebar Filters */}
-                    <aside className="lg:col-span-3">
-                        <div className="sticky top-28 space-y-4">
-                            
-                            {/* Filter Header */}
-                            <div className="flex items-center justify-between px-2">
-                                <div className="flex items-center gap-2">
-                                    <span className="material-symbols-outlined text-slate-900 text-xl font-black">tune</span>
-                                    <h3 className="text-base font-black text-slate-900 uppercase tracking-wider">Filters</h3>
+                <div className="flex flex-col gap-8">
+                    {/* Mobile Filters Drawer */}
+                    {showMobileFilters && (
+                        <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+                            <div
+                                className="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl animate-in slide-in-from-right duration-500 overflow-y-auto"
+                            >
+                                <div className="sticky top-0 bg-white border-b border-slate-100 flex items-center justify-between p-6 z-10">
+                                    <div className="flex items-center gap-2">
+                                        <SlidersHorizontal className="w-5 h-5 text-[#2F2BFF]" />
+                                        <h2 className="text-xl font-black text-slate-900 tracking-tight">Filters</h2>
+                                    </div>
+                                    <button
+                                        onClick={() => setShowMobileFilters(false)}
+                                        className="p-2 hover:bg-slate-100 rounded-full transition-colors"
+                                    >
+                                        <X className="w-6 h-6 text-slate-500" />
+                                    </button>
                                 </div>
-                                {(type !== "All" || selectedAmenities.length > 0 || petFriendlyOnly || minPrice || maxPrice || minCapacity || minRating > 0) && (
-                                    <button 
+
+                                <div className="p-8 space-y-10">
+                                    {/* Property Type */}
+                                    <div className="space-y-4">
+                                        <label className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 block">Property Type</label>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            {TYPES.map((t) => (
+                                                <button
+                                                    key={t}
+                                                    onClick={() => setType(t)}
+                                                    className={cn(
+                                                        "px-4 py-3 rounded-xl text-xs font-bold transition-all border flex items-center justify-between",
+                                                        type === t
+                                                            ? "bg-[#2F2BFF]/5 text-[#2F2BFF] border-[#2F2BFF]"
+                                                            : "bg-white text-slate-600 border-slate-100 hover:border-slate-200"
+                                                    )}
+                                                >
+                                                    {t}
+                                                    {type === t && <Check className="w-3.5 h-3.5" />}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Price Range */}
+                                    <div className="space-y-4">
+                                        <label className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 block tracking-[0.2em]">Price / Hour (₹)</label>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-1.5">
+                                                <span className="text-[10px] font-bold text-slate-400 px-1">Min Price</span>
+                                                <input
+                                                    type="number"
+                                                    placeholder="₹ 0"
+                                                    value={minPrice}
+                                                    onChange={(e) => setMinPrice(e.target.value)}
+                                                    className="w-full h-12 bg-slate-50 border border-slate-100 focus:bg-white focus:border-[#2F2BFF] rounded-xl px-4 text-sm font-bold outline-none transition-all shadow-sm"
+                                                />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <span className="text-[10px] font-bold text-slate-400 px-1">Max Price</span>
+                                                <input
+                                                    type="number"
+                                                    placeholder="Max"
+                                                    value={maxPrice}
+                                                    onChange={(e) => setMaxPrice(e.target.value)}
+                                                    className="w-full h-12 bg-slate-50 border border-slate-100 focus:bg-white focus:border-[#2F2BFF] rounded-xl px-4 text-sm font-bold outline-none transition-all shadow-sm"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Min Guests */}
+                                    <div className="space-y-4">
+                                        <label className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 block">Minimum Capacity</label>
+                                        <input
+                                            type="number"
+                                            placeholder="Number of guests"
+                                            value={minCapacity}
+                                            onChange={(e) => setMinCapacity(e.target.value)}
+                                            className="w-full h-12 bg-slate-50 border border-slate-100 focus:bg-white focus:border-[#2F2BFF] rounded-xl px-4 text-sm font-bold outline-none transition-all shadow-sm"
+                                        />
+                                    </div>
+
+                                    {/* Rating */}
+                                    <div className="space-y-4">
+                                        <label className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 block">Minimum Rating</label>
+                                        <div className="flex gap-2 justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                                            {[1, 2, 3, 4, 5].map((star) => (
+                                                <button
+                                                    key={star}
+                                                    onClick={() => setMinRating(minRating === star ? 0 : star)}
+                                                    className="transition-transform active:scale-90"
+                                                >
+                                                    <Star className={cn(
+                                                        "w-7 h-7 transition-colors leading-none",
+                                                        minRating >= star ? "text-amber-400 fill-amber-400" : "text-slate-300"
+                                                    )} />
+                                                </button>
+                                            ))}
+                                            <span className="text-xs font-black text-slate-400 min-w-[3rem] text-right">
+                                                {minRating > 0 ? `${minRating}+ Stars` : "Any"}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {/* Facilities */}
+                                    <div className="space-y-4">
+                                        <label className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 block text-xs">Facilities</label>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            {AMENITIES.map((amenity) => (
+                                                <button
+                                                    key={amenity.id}
+                                                    onClick={() => {
+                                                        const updated = selectedAmenities.includes(amenity.id)
+                                                            ? selectedAmenities.filter(a => a !== amenity.id)
+                                                            : [...selectedAmenities, amenity.id];
+                                                        setSelectedAmenities(updated);
+                                                    }}
+                                                    className={cn(
+                                                        "flex items-center gap-3 px-4 py-3 rounded-xl border transition-all text-left",
+                                                        selectedAmenities.includes(amenity.id)
+                                                            ? "border-[#2F2BFF] bg-[#2F2BFF]/5 text-[#2F2BFF] shadow-xs"
+                                                            : "border-slate-100 bg-white text-slate-500 hover:border-slate-200"
+                                                    )}
+                                                >
+                                                    <span className="material-symbols-outlined text-base">{amenity.icon}</span>
+                                                    <span className="text-[11px] font-bold truncate">{amenity.label}</span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Pet Friendly */}
+                                    <div className="pt-4 border-t border-slate-100">
+                                        <button
+                                            onClick={() => setPetFriendlyOnly(!petFriendlyOnly)}
+                                            className={cn(
+                                                "w-full flex items-center justify-between p-4 rounded-2xl transition-all border",
+                                                petFriendlyOnly ? "bg-orange-50 border-orange-200 shadow-sm" : "border-slate-100 hover:bg-slate-50"
+                                            )}
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div className={cn(
+                                                    "w-10 h-10 rounded-xl flex items-center justify-center transition-colors",
+                                                    petFriendlyOnly ? "bg-orange-500 text-white" : "bg-orange-50 text-orange-500"
+                                                )}>
+                                                    <span className="material-symbols-outlined text-lg fill-1">pets</span>
+                                                </div>
+                                                <div className="text-left">
+                                                    <span className={cn(
+                                                        "text-[11px] font-black uppercase tracking-widest block",
+                                                        petFriendlyOnly ? "text-orange-900" : "text-slate-600"
+                                                    )}>
+                                                        Pet Friendly
+                                                    </span>
+                                                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Allow furry friends</span>
+                                                </div>
+                                            </div>
+                                            <div className={cn(
+                                                "w-10 h-5 rounded-full relative transition-colors",
+                                                petFriendlyOnly ? "bg-orange-500" : "bg-slate-200"
+                                            )}>
+                                                <div className={cn(
+                                                    "absolute top-1 left-1 w-3 h-3 bg-white rounded-full transition-all",
+                                                    petFriendlyOnly ? "translate-x-5" : ""
+                                                )} />
+                                            </div>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="sticky bottom-0 bg-white border-t border-slate-100 p-6 flex gap-4 z-10">
+                                    <button
                                         onClick={() => {
                                             setType("All");
                                             setSelectedAmenities([]);
@@ -181,163 +359,25 @@ function SearchContent() {
                                             setMinPrice("");
                                             setMaxPrice("");
                                             setMinCapacity("");
-                                            setShowAllTypes(false);
-                                            setShowAllAmenities(false);
+                                            setMinRating(0);
                                         }}
-                                        className="text-[10px] font-black uppercase tracking-widest text-[#2F2BFF] hover:underline"
+                                        className="flex-1 px-6 py-4 rounded-2xl border border-slate-200 text-xs font-black uppercase tracking-widest text-slate-600 hover:bg-slate-50 transition-all"
                                     >
-                                        Reset
+                                        Clear All
                                     </button>
-                                )}
-                            </div>
-
-                            {/* Main Filter Container */}
-                            <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden">
-                                
-                                {/* Section: Property Type (Expandable) */}
-                                <div className="p-4 border-b border-slate-50">
-                                    <div className="flex items-center justify-between mb-3">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block">Property Type</label>
-                                        <button 
-                                            onClick={() => setShowAllTypes(!showAllTypes)}
-                                            className="text-[10px] font-black uppercase tracking-widest text-[#2F2BFF] hover:underline"
-                                        >
-                                            {showAllTypes ? "Less" : "More"}
-                                        </button>
-                                    </div>
-                                    <div className="flex flex-wrap gap-1.5 transition-all duration-300">
-                                        {(showAllTypes ? TYPES : TYPES.slice(0, 5)).map((t) => (
-                                            <button
-                                                key={t}
-                                                onClick={() => setType(t)}
-                                                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                                                    type === t 
-                                                    ? "bg-[#2F2BFF] text-white shadow-md shadow-[#2F2BFF]/20" 
-                                                    : "bg-slate-50 text-slate-500 hover:bg-slate-100"
-                                                }`}
-                                            >
-                                                {t}
-                                            </button>
-                                        ))}
-                                    </div>
+                                    <button
+                                        onClick={() => setShowMobileFilters(false)}
+                                        className="flex-[2] px-6 py-4 rounded-2xl bg-brand-gradient text-white text-xs font-black uppercase tracking-widest hover:opacity-90 transition-all shadow-lg shadow-[#2F2BFF]/20"
+                                    >
+                                        Show Results
+                                    </button>
                                 </div>
-
-                                {/* Section: Price Range (Compact) */}
-                                <div className="p-4 border-b border-slate-50">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3 block">Price / Hour (₹)</label>
-                                    <div className="grid grid-cols-2 gap-2">
-                                        <input 
-                                            type="number" 
-                                            placeholder="Min" 
-                                            value={minPrice}
-                                            onChange={(e) => setMinPrice(e.target.value)}
-                                            className="w-full h-9 bg-slate-50 border-transparent focus:bg-white focus:border-[#2F2BFF] rounded-lg px-3 text-xs font-bold outline-none transition-all shadow-sm"
-                                        />
-                                        <input 
-                                            type="number" 
-                                            placeholder="Max" 
-                                            value={maxPrice}
-                                            onChange={(e) => setMaxPrice(e.target.value)}
-                                            className="w-full h-9 bg-slate-50 border-transparent focus:bg-white focus:border-[#2F2BFF] rounded-lg px-3 text-xs font-bold outline-none transition-all shadow-sm"
-                                        />
-                                    </div>
-                                </div>
-
-                                {/* Section: Capacity & Rating (Stacked) */}
-                                <div className="p-4 border-b border-slate-50 space-y-4">
-                                    <div>
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 block">Min Guests</label>
-                                        <input 
-                                            type="number" 
-                                            placeholder="0+" 
-                                            value={minCapacity}
-                                            onChange={(e) => setMinCapacity(e.target.value)}
-                                            className="w-full h-9 bg-slate-50 border-transparent focus:bg-white focus:border-[#2F2BFF] rounded-lg px-3 text-xs font-bold outline-none transition-all shadow-sm"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 block">Min Rating</label>
-                                        <div className="flex gap-1 justify-between px-1">
-                                            {[1, 2, 3, 4, 5].map((star) => (
-                                                <button 
-                                                    key={star}
-                                                    onClick={() => setMinRating(minRating === star ? 0 : star)}
-                                                    className={`material-symbols-outlined text-[22px] transition-colors leading-none ${
-                                                        minRating >= star ? "text-amber-400 fill-1" : "text-slate-200 hover:text-slate-300"
-                                                    }`}
-                                                >
-                                                    star
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Section: Facilities (Expandable Grid) */}
-                                <div className="p-4 border-b border-slate-50">
-                                    <div className="flex items-center justify-between mb-3">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block">Facilities</label>
-                                        <button 
-                                            onClick={() => setShowAllAmenities(!showAllAmenities)}
-                                            className="text-[10px] font-black uppercase tracking-widest text-[#2F2BFF] hover:underline"
-                                        >
-                                            {showAllAmenities ? "Less" : "More"}
-                                        </button>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-2 transition-all duration-300">
-                                        {(showAllAmenities ? AMENITIES : AMENITIES.slice(0, 4)).map((amenity) => (
-                                            <button
-                                                key={amenity.id}
-                                                onClick={() => {
-                                                    const updated = selectedAmenities.includes(amenity.id)
-                                                        ? selectedAmenities.filter(a => a !== amenity.id)
-                                                        : [...selectedAmenities, amenity.id];
-                                                    setSelectedAmenities(updated);
-                                                }}
-                                                className={`flex items-center gap-2 px-3 py-2 rounded-xl border transition-all ${
-                                                    selectedAmenities.includes(amenity.id)
-                                                    ? "border-[#2F2BFF] bg-[#2F2BFF]/5 text-[#2F2BFF] shadow-sm"
-                                                    : "border-transparent bg-slate-50 text-slate-500 hover:bg-slate-100"
-                                                }`}
-                                            >
-                                                <span className="material-symbols-outlined text-base leading-none">{amenity.icon}</span>
-                                                <span className="text-[10px] font-bold truncate">{amenity.label}</span>
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                {/* Section: Pet Friendly (Toggle Row) */}
-                                <button
-                                    onClick={() => setPetFriendlyOnly(!petFriendlyOnly)}
-                                    className={`w-full flex items-center justify-between p-4 transition-all ${
-                                        petFriendlyOnly ? "bg-orange-50/50" : "hover:bg-slate-50"
-                                    }`}
-                                >
-                                    <div className="flex items-center gap-2">
-                                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                                            petFriendlyOnly ? "bg-orange-500 text-white" : "bg-orange-50 text-orange-500"
-                                        }`}>
-                                            <span className="material-symbols-outlined text-base fill-1">pets</span>
-                                        </div>
-                                        <span className={`text-[11px] font-black uppercase tracking-widest ${petFriendlyOnly ? "text-orange-900" : "text-slate-600"}`}>
-                                            Pet Friendly
-                                        </span>
-                                    </div>
-                                    <div className={`w-8 h-4 rounded-full relative transition-colors ${
-                                        petFriendlyOnly ? "bg-orange-500" : "bg-slate-200"
-                                    }`}>
-                                        <div className={`absolute top-0.5 left-0.5 w-3 h-3 bg-white rounded-full transition-all ${
-                                            petFriendlyOnly ? "translate-x-4" : ""
-                                        }`} />
-                                    </div>
-                                </button>
                             </div>
                         </div>
-                    </aside>
+                    )}
 
                     {/* Results Area */}
-                    <main className="lg:col-span-9">
+                    <main className="w-full">
                         <div className="flex items-center justify-between mb-8">
                             <div>
                                 <h1 className="text-2xl font-black text-slate-900 tracking-tight">
@@ -359,7 +399,7 @@ function SearchContent() {
                             </div>
                         ) : spaces.length > 0 ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                                {spaces.map((space) => (
+                                {spaces.map((space, idx) => (
                                     <Link
                                         key={space.id}
                                         href={`/spaces/${space.id}`}
@@ -386,13 +426,14 @@ function SearchContent() {
                                                     : fallback;
 
                                                 return (
-                                                    <img
+                                                    <Image
                                                         src={displayImg}
                                                         alt={space.title}
-                                                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                                                        onError={(e) => {
-                                                            (e.target as HTMLImageElement).src = fallback;
-                                                        }}
+                                                        fill
+                                                        priority={idx < 3}
+                                                        unoptimized
+                                                        className="object-cover transition-transform duration-700 group-hover:scale-110"
+                                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                                     />
                                                 );
                                             })()}

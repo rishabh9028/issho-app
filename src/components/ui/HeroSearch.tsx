@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Search, ChevronDown, MapPin, Calendar, Users } from "lucide-react";
+import { Search, ChevronDown, MapPin, Calendar, Users, X } from "lucide-react";
 import DateRangePicker from "@/components/ui/DateRangePicker";
 import GuestPicker from "@/components/ui/GuestPicker";
 import AddressAutocomplete from "@/components/ui/AddressAutocomplete";
@@ -114,25 +114,45 @@ export function HeroSearch() {
                 </div>
             </div>
 
-            {/* Date Picker Dropdown */}
+            {/* Date Picker Dropdown/Drawer */}
             {showCal && (
-                <div className="absolute top-[calc(100%+12px)] left-1/2 -translate-x-1/2 w-full max-w-[820px] bg-white rounded-3xl shadow-2xl border border-slate-100 z-[100] animate-in fade-in slide-in-from-top-2 duration-300">
-                    <DateRangePicker
-                        value={dateRange}
-                        onChange={setDateRange}
-                        onClose={() => setShowCal(false)}
-                    />
+                <div className="fixed inset-0 md:absolute md:inset-auto md:top-[calc(100%+12px)] md:left-1/2 md:-translate-x-1/2 w-full max-w-none md:max-w-[820px] bg-white rounded-none md:rounded-3xl shadow-2xl border-none md:border border-slate-100 z-[100] animate-in fade-in slide-in-from-bottom-4 md:slide-in-from-top-2 duration-300 md:duration-300 flex flex-col">
+                    {/* Mobile Header */}
+                    <div className="flex md:hidden items-center justify-between p-6 border-b border-slate-100">
+                        <h3 className="text-lg font-black text-slate-900 tracking-tight">Select Dates</h3>
+                        <button onClick={() => setShowCal(false)} className="p-2 hover:bg-slate-100 rounded-full">
+                            <X className="w-6 h-6 text-slate-500" />
+                        </button>
+                    </div>
+                    
+                    <div className="flex-1 overflow-y-auto">
+                        <DateRangePicker
+                            value={dateRange}
+                            onChange={setDateRange}
+                            onClose={() => setShowCal(false)}
+                        />
+                    </div>
                 </div>
             )}
 
-            {/* Guest Picker Dropdown */}
+            {/* Guest Picker Dropdown/Drawer */}
             {showGuests && (
-                <div className="absolute top-[calc(100%+12px)] right-0 w-full md:w-96 bg-white rounded-3xl shadow-2xl border border-slate-100 z-[100] animate-in fade-in slide-in-from-top-2 duration-300">
-                    <GuestPicker
-                        value={guests}
-                        onChange={setGuests}
-                        onClose={() => setShowGuests(false)}
-                    />
+                <div className="fixed inset-0 md:absolute md:inset-auto md:top-[calc(100%+12px)] md:right-0 w-full md:w-96 bg-white rounded-none md:rounded-3xl shadow-2xl border-none md:border border-slate-100 z-[100] animate-in fade-in slide-in-from-bottom-4 md:slide-in-from-top-2 duration-300 flex flex-col">
+                    {/* Mobile Header */}
+                    <div className="flex md:hidden items-center justify-between p-6 border-b border-slate-100 text-left">
+                        <h3 className="text-lg font-black text-slate-900 tracking-tight">Add Guests</h3>
+                        <button onClick={() => setShowGuests(false)} className="p-2 hover:bg-slate-100 rounded-full">
+                            <X className="w-6 h-6 text-slate-500" />
+                        </button>
+                    </div>
+
+                    <div className="flex-1 overflow-y-auto">
+                        <GuestPicker
+                            value={guests}
+                            onChange={setGuests}
+                            onClose={() => setShowGuests(false)}
+                        />
+                    </div>
                 </div>
             )}
         </div>

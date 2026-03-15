@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export function Footer() {
     return (
@@ -10,8 +11,15 @@ export function Footer() {
 
                     {/* Brand Column */}
                     <div className="col-span-2">
-                        <Link href="/" className="flex items-center gap-2 mb-4">
-                            <img src="/logo2.png" alt="Isshō Logo" className="h-9 w-auto object-contain" />
+                        <Link href="/" className="flex flex-col items-center group">
+                            <Image 
+                                src="/logo2.png" 
+                                alt="Isshō Logo" 
+                                width={120}
+                                height={36}
+                                className="h-9 w-auto object-contain transition-transform group-hover:scale-105" 
+                            />
+                            <p className="mt-4 text-slate-400 font-medium text-sm">Where every space has a story.</p>
                         </Link>
                         <p className="text-slate-500 text-sm max-w-xs mb-6 leading-relaxed">
                             The world's premier platform for curated hourly space rentals. Quality, simplicity, and style in every booking.

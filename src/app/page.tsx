@@ -123,7 +123,7 @@ export default function Home() {
             {/* For Guests Section - 50/50 Split */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
               {/* Image Block */}
-              <div className="aspect-[4/3] rounded-3xl overflow-hidden relative shadow-2xl">
+              <div className="relative w-full overflow-hidden rounded-3xl shadow-2xl h-[350px] lg:h-auto lg:min-h-full">
                 {GUEST_HOW_IMAGES.map((img, idx) => (
                   <div
                     key={img}
@@ -134,12 +134,14 @@ export default function Home() {
                       src={img}
                       alt={`Guest Guide ${idx + 1}`}
                       fill
+                      priority={idx === 0}
+                      unoptimized
                       className="object-cover"
                       sizes="(max-width: 768px) 100vw, 50vw"
                     />
                   </div>
                 ))}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent pointer-events-none" />
               </div>
 
               {/* Content Block */}
@@ -204,18 +206,27 @@ export default function Home() {
               </div>
 
               {/* Image Block (Right on Desktop) */}
-              <div className="relative overflow-hidden rounded-[32px] shadow-2xl min-h-[450px] order-1 lg:order-2">
+              <div className="relative w-full overflow-hidden rounded-3xl shadow-2xl h-[350px] lg:h-auto lg:min-h-full order-1 lg:order-2">
                 {HOST_HOW_IMAGES.map((img, idx) => (
                   <div
                     key={img}
-                    className="absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ease-in-out"
+                    className="absolute inset-0 transition-opacity duration-1000 ease-in-out"
                     style={{
-                      backgroundImage: `url("${img}")`,
                       opacity: idx === hostImgIndex ? 1 : 0,
                     }}
-                  />
+                  >
+                    <Image
+                      src={img}
+                      alt={`Host Guide ${idx + 1}`}
+                      fill
+                      priority={idx === 0}
+                      unoptimized
+                      className="object-cover"
+                      sizes="(max-width: 768px) 100vw, 50vw"
+                    />
+                  </div>
                 ))}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent pointer-events-none" />
               </div>
             </div>
           </div>
@@ -244,11 +255,16 @@ export default function Home() {
               { label: "Cafes", desc: "Unique venues for small events", img: "https://images.unsplash.com/photo-1556912173-3bb406ef7e77?q=80&w=2670&auto=format&fit=crop", slug: "cafe" },
             ].map((cat) => (
               <Link href={`/categories/${cat.slug}`} key={cat.label} className="group relative overflow-hidden rounded-2xl aspect-[4/5] cursor-pointer block">
-                <div
-                  className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110"
-                  style={{ backgroundImage: `linear-gradient(to top, rgba(0,0,0,0.8), transparent), url("${cat.img}")` }}
+                <Image
+                  src={cat.img}
+                  alt={cat.label}
+                  fill
+                  unoptimized
+                  className="object-cover transition-transform duration-500 group-hover:scale-110"
+                  sizes="(max-width: 768px) 100vw, 33vw"
                 />
-                <div className="absolute bottom-0 p-6">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
+                <div className="absolute bottom-6 left-6 text-white z-10 pointer-events-none">
                   <h3 className="text-white text-2xl font-bold mb-1">{cat.label}</h3>
                   <p className="text-slate-300 text-sm">{cat.desc}</p>
                 </div>

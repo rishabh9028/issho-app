@@ -1,4 +1,6 @@
 "use client";
+ 
+import Image from "next/image";
 
 export default function LoadingScreen() {
     return (
@@ -9,7 +11,14 @@ export default function LoadingScreen() {
                 
                 {/* Main Logo Container */}
                 <div className="relative bg-white rounded-3xl p-6 shadow-2xl shadow-[#2F2BFF]/10 border border-slate-100/50">
-                    <img src="/logo2.png" alt="Isshō" className="h-10 w-auto object-contain animate-bounce" />
+                    <Image 
+                        src="/logo2.png" 
+                        alt="Isshō" 
+                        width={120}
+                        height={40}
+                        className="h-10 w-auto object-contain animate-bounce" 
+                        priority
+                    />
                 </div>
                 
                 {/* Modern Spinner */}

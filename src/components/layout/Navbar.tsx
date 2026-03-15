@@ -6,6 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 export function Navbar() {
     const { user, signOut } = useAuth();
@@ -20,8 +21,15 @@ export function Navbar() {
             <div className="container-custom flex items-center justify-between py-2 border-b border-[#2F2BFF]/10">
 
                 {/* Left: Brand */}
-                <Link href="/" className="flex items-center gap-2">
-                    <img src="/logo2.png" alt="Isshō Logo" className="h-12 w-auto object-contain" />
+                <Link href="/" className="flex-shrink-0 flex items-center gap-2 group">
+                    <Image 
+                        src="/logo2.png" 
+                        alt="Isshō Logo" 
+                        width={140}
+                        height={48}
+                        className="h-12 w-auto object-contain transition-transform group-hover:scale-105" 
+                        priority
+                    />
                 </Link>
 
                 {/* Center: Nav Links */}
