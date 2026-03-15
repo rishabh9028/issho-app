@@ -225,7 +225,6 @@ export default function HostBookingDetails() {
                                 Back to Bookings
                             </Link>
                             <div className="flex gap-3">
-                                <button className="h-11 px-6 rounded-2xl bg-white border border-slate-200 text-sm font-black text-slate-600 hover:bg-slate-50 active:scale-95 transition-all">Support</button>
                                 <button className="h-11 px-6 rounded-2xl bg-slate-900 border border-slate-900 text-sm font-black text-white hover:bg-slate-800 active:scale-95 transition-all">Download Receipt</button>
                             </div>
                         </div>
@@ -319,14 +318,13 @@ export default function HostBookingDetails() {
                                                     </p>
                                                 </div>
                                             </div>
-                                            <button className="h-11 w-full rounded-2xl bg-slate-50 border border-slate-100 text-xs font-black text-slate-600 hover:bg-[#2F2BFF]/5 hover:text-[#2F2BFF] hover:border-[#2F2BFF]/10 transition-all">Send Message to Guest</button>
                                         </div>
                                     </div>
                                 </section>
 
                                 {/* Guest Review Section */}
-                                {booking.status === "confirmed" && (
-                                    <section className="bg-white rounded-[40px] p-10 border border-slate-100 shadow-sm">
+                                {booking.status === "completed" && (
+                                    <section className="bg-white rounded-[40px] p-10 border border-slate-100 shadow-sm mt-8">
                                         <h2 className="text-2xl font-black text-slate-900 tracking-tight mb-8">Rate your Guest</h2>
                                         {existingGuestReview ? (
                                             <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100">
@@ -377,7 +375,7 @@ export default function HostBookingDetails() {
                                 )}
 
                                 {booking.status === "pending" && (
-                                    <section className="bg-rose-50/50 rounded-[40px] p-10 border border-rose-100 shadow-sm flex flex-col items-center text-center gap-6">
+                                    <section className="bg-rose-50/50 rounded-[40px] p-10 border border-rose-100 shadow-sm flex flex-col items-center text-center gap-6 mt-8">
                                         <div className="h-16 w-16 bg-white rounded-full flex items-center justify-center border border-rose-100 shadow-sm text-rose-500">
                                             <span className="material-symbols-outlined text-3xl">notifications_active</span>
                                         </div>
@@ -389,6 +387,19 @@ export default function HostBookingDetails() {
                                             <button onClick={() => updateStatus("confirmed")} className="flex-1 h-14 rounded-[20px] bg-brand-gradient text-white font-black shadow-xl shadow-blue-500/20 active:scale-95 transition-all">Approve Booking</button>
                                             <button onClick={() => updateStatus("cancelled")} className="flex-1 h-14 rounded-[20px] bg-white border border-slate-200 text-rose-500 font-black hover:bg-rose-50 active:scale-95 transition-all">Decline</button>
                                         </div>
+                                    </section>
+                                )}
+
+                                {booking.status === "confirmed" && (
+                                    <section className="bg-emerald-50/50 rounded-[40px] p-10 border border-emerald-100 shadow-sm flex flex-col items-center text-center gap-6 mt-8">
+                                         <div className="h-16 w-16 bg-white rounded-full flex items-center justify-center border border-emerald-100 shadow-sm text-emerald-500">
+                                            <span className="material-symbols-outlined text-3xl">check_circle</span>
+                                        </div>
+                                        <div>
+                                            <h3 className="text-2xl font-black text-slate-900 mb-2">Complete Reservation</h3>
+                                            <p className="text-slate-500 font-medium max-w-md">Once the stay is over, mark it as complete to log the booking in your history and review the guest.</p>
+                                        </div>
+                                        <button onClick={() => updateStatus("completed")} className="h-14 px-8 rounded-[20px] bg-slate-900 text-white font-black hover:bg-slate-800 active:scale-95 transition-all">Mark as Completed</button>
                                     </section>
                                 )}
                             </div>

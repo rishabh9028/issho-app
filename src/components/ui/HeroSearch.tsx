@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Search, ChevronDown, MapPin, Calendar, Users } from "lucide-react";
 import DateRangePicker from "@/components/ui/DateRangePicker";
 import GuestPicker from "@/components/ui/GuestPicker";
+import AddressAutocomplete from "@/components/ui/AddressAutocomplete";
 
 const MONTHS_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
@@ -56,17 +57,16 @@ export function HeroSearch() {
         <div ref={containerRef} className="relative w-full max-w-4xl mx-auto z-[60]">
             <div className="flex flex-col md:flex-row items-center bg-white rounded-2xl md:rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-slate-50 p-1.5 gap-0">
                 {/* Where */}
-                <div className="flex-1 w-full flex items-center gap-2.5 px-6 py-2.5 md:border-r border-slate-100 hover:bg-slate-50 transition-all rounded-t-2xl md:rounded-l-full md:rounded-tr-none cursor-pointer group outline-none">
-                    <MapPin className="w-4 h-4 text-[#2F2BFF]" />
+                <div className="flex-1 w-full flex items-center gap-2.5 px-6 py-2.5 md:border-r border-slate-100 hover:bg-slate-50 transition-all rounded-t-2xl md:rounded-l-full md:rounded-tr-none cursor-pointer group outline-none relative">
+                    <MapPin className="w-4 h-4 text-[#2F2BFF] flex-shrink-0" />
                     <div className="flex flex-col w-full text-left">
                         <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5 group-hover:text-[#2F2BFF] transition-colors">Where</span>
-                        <input
-                            type="text"
-                            value={location}
-                            onChange={e => setLocation(e.target.value)}
-                            onKeyDown={e => e.key === "Enter" && handleSearch()}
-                            className="bg-transparent border-none outline-none p-0 text-sm font-semibold text-[#0F172A] placeholder:text-slate-400 w-full focus:ring-0"
+                        <AddressAutocomplete
+                            value={location ? { label: location, value: location } : null}
+                            onSelect={(data) => setLocation(data.label)}
                             placeholder="Search destinations"
+                            className="w-full"
+                            variant="bare"
                         />
                     </div>
                 </div>

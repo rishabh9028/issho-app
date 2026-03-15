@@ -10,6 +10,7 @@ export default function HostSettings() {
     const { user, signOut } = useAuth();
     const router = useRouter();
     const [activeTab, setActiveTab] = useState("profile");
+    const [upgradingToGold, setUpgradingToGold] = useState(false);
 
     // Profile fields
     const [firstName, setFirstName] = useState("");
@@ -32,6 +33,12 @@ export default function HostSettings() {
             router.push("/auth/login");
         } else if (user.role !== "host" && user.role !== "admin") {
             router.push("/become-a-host");
+        }
+        
+        // Handle upgrade query param
+        const searchParams = new URLSearchParams(window.location.search);
+        if (searchParams.get('upgrade') === 'gold') {
+            setActiveTab('membership');
         }
     }, [user, router]);
 
@@ -135,6 +142,31 @@ export default function HostSettings() {
         }
     };
 
+    const handleUpgradeToGold = async () => {
+        setUpgradingToGold(true);
+        const expiresAt = new Date();
+        expiresAt.setMonth(expiresAt.getMonth() + 1);
+
+        const { error } = await supabase
+            .from("profiles")
+            .update({ 
+                is_gold_host: true, 
+                gold_host_expires_at: expiresAt.toISOString() 
+            })
+            .eq("id", user.id);
+        
+        setUpgradingToGold(false);
+        if (!error) {
+            setProfileMsg({ type: "success", text: "Congratulations! You are now a Gold Host 🌟" });
+            // Remove the query param
+            window.history.replaceState({}, '', window.location.pathname);
+            // Revalidate/Refresh data
+            router.refresh();
+        } else {
+            setProfileMsg({ type: "error", text: error.message });
+        }
+    };
+
     return (
         <div className="w-full bg-[#F8FAFF] min-h-screen pb-24 md:pb-0">
             <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -153,6 +185,7 @@ export default function HostSettings() {
                                 {[
                                     { id: "profile", label: "Public Profile", icon: "person" },
                                     { id: "security", label: "Security & Login", icon: "shield" },
+                                    { id: "membership", label: "Membership", icon: "stars" },
                                 ].map(tab => (
                                     <button
                                         key={tab.id}
@@ -317,6 +350,102 @@ export default function HostSettings() {
                                                 Update Password
                                             </button>
                                         </div>
+                                    </div>
+                                )}
+
+                                {activeTab === "membership" && (
+                                    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                                        <div>
+                                            <h2 className="text-xl font-black text-slate-900 mb-1">Your Membership</h2>
+                                            <p className="text-sm text-slate-400 font-medium">Manage your host tier and premium benefits.</p>
+                                        </div>
+
+                                        {user.is_gold_host ? (
+                                            <div className="bg-amber-50 rounded-[32px] p-8 border border-amber-100 flex flex-col md:flex-row items-center gap-8">
+                                                <div className="h-24 w-24 bg-amber-100 rounded-full flex items-center justify-center text-amber-500 shadow-inner">
+                                                    <span className="material-symbols-outlined text-5xl filled-icon">stars</span>
+                                                </div>
+                                                <div className="flex-1 text-center md:text-left">
+                                                    <div className="flex items-center justify-center md:justify-start gap-2 mb-2">
+                                                        <h3 className="text-2xl font-black text-amber-900 leading-none">Gold Host Status</h3>
+                                                        <span className="px-3 py-1 bg-amber-200/50 text-amber-700 text-[10px] font-black uppercase tracking-widest rounded-full">Active</span>
+                                                    </div>
+                                                    <p className="text-sm font-medium text-amber-800 opacity-70 mb-4">
+                                                        Your membership is active and expires on {user.gold_host_expires_at ? new Date(user.gold_host_expires_at).toLocaleDateString() : 'N/A'}.
+                                                    </p>
+                                                    <div className="flex flex-wrap items-center justify-center md:justify-start gap-4">
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="material-symbols-outlined text-amber-500 text-lg">check_circle</span>
+                                                            <span className="text-xs font-black text-amber-900">Priority Search</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="material-symbols-outlined text-amber-500 text-lg">check_circle</span>
+                                                            <span className="text-xs font-black text-amber-900">Gold Badge</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="material-symbols-outlined text-amber-500 text-lg">check_circle</span>
+                                                            <span className="text-xs font-black text-amber-900">2x Visibility</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="space-y-6">
+                                                <div className="bg-slate-50 rounded-[32px] p-8 border border-slate-100 flex flex-col items-center text-center gap-6">
+                                                    <div className="h-20 w-20 bg-white rounded-2xl flex items-center justify-center text-slate-300 shadow-sm">
+                                                        <span className="material-symbols-outlined text-4xl">workspace_premium</span>
+                                                    </div>
+                                                    <div>
+                                                        <h3 className="text-2xl font-black text-slate-900 mb-2">Standard Host</h3>
+                                                        <p className="text-slate-500 font-medium max-w-md">Upgrade to Gold to stand out and grow your hosting business faster.</p>
+                                                    </div>
+                                                </div>
+
+                                                <div className="bg-brand-gradient rounded-[40px] p-10 text-white shadow-2xl shadow-blue-500/20 relative overflow-hidden group">
+                                                    <div className="absolute -right-20 -top-20 h-64 w-64 bg-white/10 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-700"></div>
+                                                    <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+                                                        <div className="space-y-6">
+                                                            <div className="flex items-center gap-3">
+                                                                <span className="material-symbols-outlined text-amber-400 text-3xl font-black filled-icon">stars</span>
+                                                                <h4 className="text-4xl font-black italic tracking-tighter">GOLD HOST</h4>
+                                                            </div>
+                                                            <div className="space-y-4">
+                                                                <div className="flex items-center gap-4">
+                                                                    <div className="h-6 w-6 rounded-full bg-white/20 flex items-center justify-center"><span className="material-symbols-outlined text-sm">check</span></div>
+                                                                    <p className="font-bold">Always show above Standard properties</p>
+                                                                </div>
+                                                                <div className="flex items-center gap-4">
+                                                                    <div className="h-6 w-6 rounded-full bg-white/20 flex items-center justify-center"><span className="material-symbols-outlined text-sm">check</span></div>
+                                                                    <p className="font-bold">Exclusive Gold Host verification badge</p>
+                                                                </div>
+                                                                <div className="flex items-center gap-4">
+                                                                    <div className="h-6 w-6 rounded-full bg-white/20 flex items-center justify-center"><span className="material-symbols-outlined text-sm">check</span></div>
+                                                                    <p className="font-bold">Advanced performance analytics</p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div className="bg-white/10 backdrop-blur-md rounded-3xl p-8 border border-white/20 text-center space-y-6">
+                                                            <div>
+                                                                <p className="text-amber-300 text-sm font-black uppercase tracking-widest mb-1">Premium Tier</p>
+                                                                <div className="flex items-end justify-center gap-1">
+                                                                    <span className="text-5xl font-black tracking-tight">₹200</span>
+                                                                    <span className="text-white/60 font-black mb-1">/ Month</span>
+                                                                </div>
+                                                            </div>
+                                                            <button 
+                                                                onClick={handleUpgradeToGold}
+                                                                disabled={upgradingToGold}
+                                                                className="w-full py-4 bg-white text-[#2F2BFF] rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-black/10 active:scale-95 transition-all flex items-center justify-center gap-2"
+                                                            >
+                                                                {upgradingToGold && <div className="w-4 h-4 border-2 border-[#2F2BFF]/30 border-t-[#2F2BFF] rounded-full animate-spin" />}
+                                                                Pay & Upgrade
+                                                            </button>
+                                                            <p className="text-[10px] text-white/50 font-bold uppercase tracking-wider">Secure Stripe Payment Simulation</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                             </div>

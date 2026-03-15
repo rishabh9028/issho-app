@@ -113,11 +113,12 @@ export default function GuestBookings() {
                         </div>
 
                         {/* Tabs */}
-                        <div className="flex items-center gap-8 border-b border-slate-200 mb-8">
+                        <div className="flex items-center gap-8 border-b border-slate-200 mb-8 overflow-x-auto whitespace-nowrap hide-scrollbar pb-1">
                             {[
                                 { id: "all", label: `All Stays (${bookings.length})` },
-                                { id: "confirmed", label: `Confirmed (${bookings.filter(b => b.status === 'confirmed').length})` },
+                                { id: "confirmed", label: `Upcoming (${bookings.filter(b => b.status === 'confirmed').length})` },
                                 { id: "pending", label: `Pending (${bookings.filter(b => b.status === 'pending').length})` },
+                                { id: "completed", label: `Completed (${bookings.filter(b => b.status === 'completed').length})` },
                                 { id: "cancelled", label: `Cancelled (${bookings.filter(b => b.status === 'cancelled').length})` }
                             ].map((tab) => (
                                 <button

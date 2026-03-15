@@ -107,7 +107,8 @@ export default function HostBookings() {
         if (activeTab === "all") return true;
         if (activeTab === "pending") return b.status === "pending";
         if (activeTab === "upcoming") return b.status === "confirmed";
-        if (activeTab === "completed") return b.status === "completed" || b.status === "cancelled";
+        if (activeTab === "completed") return b.status === "completed";
+        if (activeTab === "cancelled") return b.status === "cancelled";
         return true;
     });
 
@@ -151,12 +152,13 @@ export default function HostBookings() {
                         </header>
 
                         {/* Tabs */}
-                        <div className="flex gap-8 mb-8 border-b border-slate-200">
+                        <div className="flex items-center gap-8 mb-8 border-b border-slate-200 overflow-x-auto whitespace-nowrap hide-scrollbar pb-1">
                             {[
                                 { id: "all", label: "All Bookings", count: bookings.length },
                                 { id: "pending", label: "Pending", count: bookings.filter(b => b.status === "pending").length },
                                 { id: "upcoming", label: "Upcoming", count: bookings.filter(b => b.status === "confirmed").length },
-                                { id: "completed", label: "History", count: bookings.filter(b => b.status === "completed" || b.status === "cancelled").length }
+                                { id: "completed", label: "Completed", count: bookings.filter(b => b.status === "completed").length },
+                                { id: "cancelled", label: "Cancelled", count: bookings.filter(b => b.status === "cancelled").length }
                             ].map(tab => (
                                 <button
                                     key={tab.id}
@@ -228,9 +230,24 @@ export default function HostBookings() {
 
                                             {/* Revenue Info */}
                                             <div className="flex-1 lg:border-l lg:border-slate-50 lg:pl-8 text-left">
-                                                <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Expected Payout</h5>
-                                                <p className="font-black text-2xl text-slate-900">₹{Number(b.total_price).toLocaleString()}</p>
-                                                <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Ready for release</p>
+                                                <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
+                                                    {b.status === "completed" ? "Final Payout" : b.status === "cancelled" ? "Payout Forfeited" : "Expected Payout"}
+                                                </h5>
+                                                {b.status === "cancelled" ? (
+                                                    <p className="font-black text-2xl text-slate-400">₹0</p>
+                                                ) : (
+                                                    <p className="font-black text-2xl text-slate-900">₹{Number(b.total_price).toLocaleString()}</p>
+                                                )}
+                                                
+                                                {b.status === "completed" && (
+                                                    <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest mt-1">Ready for release</p>
+                                                )}
+                                                {(b.status === "pending" || b.status === "confirmed") && (
+                                                    <p className="text-[10px] font-bold text-amber-500 uppercase tracking-widest mt-1">Pending Stay</p>
+                                                )}
+                                                {b.status === "cancelled" && (
+                                                    <p className="text-[10px] font-bold text-rose-500 uppercase tracking-widest mt-1">Booking Cancelled</p>
+                                                )}
                                             </div>
 
                                             {/* Actions */}
@@ -252,8 +269,7 @@ export default function HostBookings() {
                                                     </>
                                                 ) : (
                                                     <>
-                                                        <button className="h-12 px-8 rounded-xl bg-slate-900 text-white text-xs font-black hover:bg-brand-gradient transition-colors active:scale-95">Message Guest</button>
-                                                        <Link href={`/host/bookings/${b.id}`} className="h-12 px-8 rounded-xl bg-white border border-slate-200 text-slate-600 text-xs font-black hover:bg-slate-50 transition-all flex items-center justify-center">View Details</Link>
+                                                        <Link href={`/host/bookings/${b.id}`} className="h-12 px-8 w-full block text-center leading-[3rem] rounded-xl bg-slate-900 border border-slate-900 text-white text-xs font-black hover:bg-slate-800 transition-all">View Details</Link>
                                                     </>
                                                 )}
                                             </div>

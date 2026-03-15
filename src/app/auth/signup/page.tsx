@@ -17,6 +17,7 @@ export default function SignupPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
+    const [isGoldHost, setIsGoldHost] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -29,6 +30,7 @@ export default function SignupPage() {
         formData.append('password', password);
         formData.append('name', name);
         formData.append('role', role);
+        formData.append('isGoldHost', isGoldHost.toString());
 
         const result = await signup(formData);
 
@@ -169,6 +171,31 @@ export default function SignupPage() {
                                             </button>
                                         </div>
                                     </div>
+
+                                    {/* Gold Host Promotion - Only for Hosts */}
+                                    {role === "host" && (
+                                        <div className="bg-amber-50 rounded-xl border border-amber-200 p-4 animate-in fade-in slide-in-from-top-2 duration-500">
+                                            <div className="flex items-start gap-3">
+                                                <div className="pt-0.5">
+                                                    <input
+                                                        id="goldHost"
+                                                        type="checkbox"
+                                                        checked={isGoldHost}
+                                                        onChange={(e) => setIsGoldHost(e.target.checked)}
+                                                        className="h-5 w-5 rounded border-amber-300 text-amber-500 focus:ring-amber-500"
+                                                    />
+                                                </div>
+                                                <div className="flex-1">
+                                                    <label htmlFor="goldHost" className="block text-sm font-black text-amber-900 group cursor-pointer selection:bg-amber-200">
+                                                        Become a <span className="text-amber-600">Gold Host</span> 🌟
+                                                    </label>
+                                                    <p className="text-[11px] font-medium text-amber-700 leading-relaxed mt-1">
+                                                        Get prioritized in search results, exclusive badges, and 2x more visibility for just <span className="font-bold">₹200/month</span>.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
 
                                     {/* Terms */}
                                     <div className="flex items-start gap-3 py-2">

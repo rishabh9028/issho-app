@@ -249,17 +249,6 @@ export default function BookingDetailsPage() {
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className="space-y-4">
-                                            <div className="flex gap-4">
-                                                <div className="h-10 w-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 shrink-0">
-                                                    <span className="material-symbols-outlined">info</span>
-                                                </div>
-                                                <div>
-                                                    <p className="text-sm font-black text-slate-900 mb-1">Host Support</p>
-                                                    <p className="text-xs font-medium text-slate-500">Your host is available via Ishhō Messages for any immediate needs.</p>
-                                                </div>
-                                            </div>
-                                        </div>
                                     </div>
                                 </section>
                             </div>
@@ -270,10 +259,6 @@ export default function BookingDetailsPage() {
                                 <div className="bg-white rounded-[40px] p-8 border border-slate-100 shadow-xl shadow-slate-200/50">
                                     <h4 className="text-lg font-black text-slate-900 mb-6">Management Actions</h4>
                                     <div className="space-y-3">
-                                        <Link href="/messages" className="w-full flex items-center justify-center gap-2 bg-brand-gradient text-white py-4 rounded-2xl font-black text-sm shadow-lg shadow-blue-500/20 active:scale-95 transition-all">
-                                            <span className="material-symbols-outlined filled-icon text-lg">chat_bubble</span>
-                                            Message Host
-                                        </Link>
                                         <button className="w-full flex items-center justify-center gap-2 bg-slate-50 text-slate-700 py-4 rounded-2xl font-black text-sm border border-slate-100 hover:bg-slate-100 active:scale-95 transition-all">
                                             <span className="material-symbols-outlined text-lg">map</span>
                                             Get Directions
@@ -289,16 +274,6 @@ export default function BookingDetailsPage() {
                                             </div>
                                         )}
                                     </div>
-                                </div>
-
-                                {/* Support Card */}
-                                <div className="bg-brand-gradient rounded-[40px] p-8 text-white relative overflow-hidden group">
-                                    <div className="absolute right-0 top-0 h-24 w-24 bg-white/5 rounded-bl-full group-hover:scale-150 transition-transform duration-1000"></div>
-                                    <h4 className="text-lg font-black mb-2 relative z-10">Need Help?</h4>
-                                    <p className="text-xs font-medium text-slate-400 mb-6 relative z-10">Our 24/7 support team is here to help with any stay issues.</p>
-                                    <Link href="/help" className="flex items-center gap-2 text-[#2F2BFF] text-[10px] font-black uppercase tracking-widest hover:underline relative z-10">
-                                        Contact Support <span className="material-symbols-outlined text-sm font-black">arrow_forward</span>
-                                    </Link>
                                 </div>
                             </aside>
                         </div>

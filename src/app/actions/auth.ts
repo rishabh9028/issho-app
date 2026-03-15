@@ -43,6 +43,7 @@ export async function signup(formData: FormData) {
   const password = formData.get('password') as string
   const name = formData.get('name') as string
   const role = formData.get('role') as string
+  const isGoldHost = formData.get('isGoldHost') === 'true'
 
   const { data, error } = await supabase.auth.signUp({
     email,
@@ -51,6 +52,7 @@ export async function signup(formData: FormData) {
       data: {
         full_name: name,
         role: role,
+        is_gold_host: isGoldHost,
       },
       emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`,
     },

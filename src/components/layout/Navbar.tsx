@@ -17,11 +17,11 @@ export function Navbar() {
         <header className="sticky top-0 z-50 w-full bg-[#F8FAFF]/80 backdrop-blur-lg">
             {/* Brand Accent Line */}
             <div className="h-1 w-full bg-brand-gradient" />
-            <div className="container-custom flex items-center justify-between py-4 border-b border-[#2F2BFF]/10">
+            <div className="container-custom flex items-center justify-between py-2 border-b border-[#2F2BFF]/10">
 
                 {/* Left: Brand */}
                 <Link href="/" className="flex items-center gap-2">
-                    <img src="/logo2.png" alt="Isshō Logo" className="h-9 w-auto object-contain" />
+                    <img src="/logo2.png" alt="Isshō Logo" className="h-12 w-auto object-contain" />
                 </Link>
 
                 {/* Center: Nav Links */}

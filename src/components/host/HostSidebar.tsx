@@ -4,7 +4,7 @@ import Link from "next/link";
 
 interface HostSidebarProps {
     user: any;
-    currentPage: "overview" | "spaces" | "bookings" | "calendar" | "messages" | "earnings" | "settings" | "help";
+    currentPage: "overview" | "spaces" | "bookings" | "calendar" | "earnings" | "settings";
 }
 
 export default function HostSidebar({ user, currentPage }: HostSidebarProps) {
@@ -30,7 +30,12 @@ export default function HostSidebar({ user, currentPage }: HostSidebarProps) {
                                 />
                             </div>
                             <div>
-                                <p className="text-sm font-black text-slate-900 leading-tight">{user?.name || "Host"}</p>
+                                <div className="flex items-center gap-1.5">
+                                    <p className="text-sm font-black text-slate-900 leading-tight">{user?.name || "Host"}</p>
+                                    {user?.is_gold_host && (
+                                        <span className="material-symbols-outlined text-[14px] text-amber-500 filled-icon font-black" title="Gold Host">stars</span>
+                                    )}
+                                </div>
                                 <p className="text-[10px] font-black uppercase tracking-wider text-[#2F2BFF] bg-[#2F2BFF]/5 px-2 py-0.5 rounded-full w-fit mt-1">{user?.role || "Host"}</p>
                             </div>
                         </div>
@@ -50,6 +55,25 @@ export default function HostSidebar({ user, currentPage }: HostSidebarProps) {
                             ))}
                         </nav>
                     </div>
+
+                    {!user?.is_gold_host && (
+                        <div className="rounded-[32px] bg-amber-50 border border-amber-100 p-6 shadow-sm overflow-hidden relative group">
+                            <div className="absolute -right-6 -bottom-6 h-20 w-20 bg-amber-200/20 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
+                            <h4 className="text-xs font-black text-amber-900 mb-2 flex items-center gap-1">
+                                <span className="material-symbols-outlined text-[16px] filled-icon">stars</span>
+                                Gold Host
+                            </h4>
+                            <p className="text-[10px] font-medium text-amber-700 leading-relaxed mb-4">
+                                Get prioritized in search and 2x more bookings for ₹200/mo.
+                            </p>
+                            <Link 
+                                href="/host/settings?upgrade=gold" 
+                                className="block w-full text-center py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-amber-500/20 active:scale-95"
+                            >
+                                Upgrade Now
+                            </Link>
+                        </div>
+                    )}
                 </div>
             </aside>
 

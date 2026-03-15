@@ -55,15 +55,7 @@ export function Footer() {
                         </ul>
                     </div>
 
-                    {/* Support */}
-                    <div>
-                        <h4 className="font-bold mb-4 text-slate-900">Support</h4>
-                        <ul className="space-y-2 text-sm text-slate-500">
-                            {["Trust & Safety", "Privacy Policy", "Terms of Service", "Cancellation"].map((item) => (
-                                <li key={item}><Link href="#" className="hover:text-[#2F2BFF] transition-colors">{item}</Link></li>
-                            ))}
-                        </ul>
-                    </div>
+
                 </div>
 
                 {/* Bottom Bar */}

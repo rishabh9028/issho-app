@@ -4,6 +4,9 @@ import { createBrowserClient } from "@supabase/ssr";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter, useParams } from "next/navigation";
 import React, { useEffect, useState, useRef } from "react";
+import { ChevronLeft, ChevronRight, Upload, X, MapPin, Search } from "lucide-react";
+import AddressAutocomplete from "@/components/ui/AddressAutocomplete";
+import LocationMap from "@/components/ui/LocationMap";
 import Link from "next/link";
 
 export default function EditSpacePage() {
@@ -40,7 +43,11 @@ export default function EditSpacePage() {
         },
         allowExtraGuests: false,
         extraGuestPrice: "0.00",
-        maxExtraGuests: "0"
+        maxExtraGuests: "0",
+        amenities: [] as string[],
+        isPetFriendly: false,
+        lat: 0,
+        lng: 0
     });
 
     useEffect(() => {
@@ -91,7 +98,11 @@ export default function EditSpacePage() {
                 availability: data.availability || formData.availability,
                 allowExtraGuests: data.allow_extra_guests || false,
                 extraGuestPrice: (data.extra_guest_price || 0).toString(),
-                maxExtraGuests: (data.max_extra_guests || 0).toString()
+                maxExtraGuests: (data.max_extra_guests || 0).toString(),
+                amenities: data.amenities || [],
+                isPetFriendly: data.is_pet_friendly || false,
+                lat: data.lat || 0,
+                lng: data.lng || 0
             });
             setLoading(false);
         };
@@ -219,7 +230,11 @@ export default function EditSpacePage() {
                     availability: formData.availability,
                     allow_extra_guests: formData.allowExtraGuests,
                     extra_guest_price: parseFloat(formData.extraGuestPrice),
-                    max_extra_guests: parseInt(formData.maxExtraGuests)
+                    max_extra_guests: parseInt(formData.maxExtraGuests.toString()),
+                    amenities: formData.amenities,
+                    is_pet_friendly: formData.isPetFriendly,
+                    lat: formData.lat,
+                    lng: formData.lng
                 })
                 .eq("id", id);
 
@@ -381,11 +396,79 @@ export default function EditSpacePage() {
                                     </div>
                                 )}
                             </div>
+
+                            {/* Amenities */}
+                            <div className="space-y-6">
+                                <div className="text-left">
+                                    <h3 className="text-xl font-black text-slate-900 tracking-tight mb-2">Facilities available</h3>
+                                    <p className="text-sm text-slate-500 font-medium mb-6">Select all the amenities your space offers.</p>
+                                </div>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                    {[
+                                        { id: 'wifi', label: 'Fast WiFi', icon: 'wifi' },
+                                        { id: 'parking', label: 'Free Parking', icon: 'local_parking' },
+                                        { id: 'ac', label: 'Air Conditioning', icon: 'ac_unit' },
+                                        { id: 'power', label: 'Power Backup', icon: 'battery_charging_full' },
+                                        { id: 'kitchen', label: 'Kitchen', icon: 'countertops' },
+                                        { id: 'coffee', label: 'Coffee', icon: 'coffee' },
+                                        { id: 'tv', label: 'TV', icon: 'tv' },
+                                        { id: 'projector', label: 'Projector', icon: 'videocam' },
+                                        { id: 'whiteboard', label: 'Whiteboard', icon: 'edit_note' },
+                                        { id: 'cctv', label: 'Security CCTV', icon: 'videocam' }
+                                    ].map((amenity) => (
+                                        <button
+                                            key={amenity.id}
+                                            type="button"
+                                            onClick={() => {
+                                                const current = formData.amenities;
+                                                const updated = current.includes(amenity.id)
+                                                    ? current.filter(id => id !== amenity.id)
+                                                    : [...current, amenity.id];
+                                                setFormData({ ...formData, amenities: updated });
+                                            }}
+                                            className={`flex flex-col items-center justify-center p-6 rounded-3xl border-2 transition-all gap-3 ${
+                                                formData.amenities.includes(amenity.id)
+                                                    ? "border-[#2F2BFF] bg-[#2F2BFF]/5 text-[#2F2BFF]"
+                                                    : "border-slate-100 bg-white text-slate-400 hover:border-slate-200"
+                                            }`}
+                                        >
+                                            <span className={`material-symbols-outlined text-2xl ${formData.amenities.includes(amenity.id) ? "fill-1" : ""}`}>
+                                                {amenity.icon}
+                                            </span>
+                                            <span className="text-[10px] font-black uppercase tracking-widest tracking-tight text-center">{amenity.label}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Pet Friendly */}
+                            <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 rounded-2xl bg-orange-50 flex items-center justify-center">
+                                            <span className="material-symbols-outlined text-orange-500">pets</span>
+                                        </div>
+                                        <div className="space-y-1 text-left">
+                                            <h3 className="text-base font-black text-slate-900">Pet Friendly</h3>
+                                            <p className="text-xs text-slate-500 font-medium">Are furry friends allowed in your space?</p>
+                                        </div>
+                                    </div>
+                                    <label className="relative inline-flex items-center cursor-pointer scale-110">
+                                        <input 
+                                            type="checkbox" 
+                                            checked={formData.isPetFriendly} 
+                                            onChange={(e) => setFormData({ ...formData, isPetFriendly: e.target.checked })}
+                                            className="sr-only peer" 
+                                        />
+                                        <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
+                                    </label>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 );
             case 2:
-                // Similar to NewSpaceFlow location step
+                // Real location step for edit
                 return (
                     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
                         <div className="text-left">
@@ -393,49 +476,61 @@ export default function EditSpacePage() {
                             <p className="text-lg text-slate-500 font-medium">Verify your property's address and map pin location.</p>
                         </div>
                         <div className="space-y-6">
-                            <div className="h-64 w-full bg-slate-100 rounded-[32px] overflow-hidden border border-slate-200 relative">
-                                <img src="https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=1474&auto=format&fit=crop" className="w-full h-full object-cover opacity-50 grayscale" alt="Map" />
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                    <div className="h-10 w-10 bg-brand-gradient rounded-full border-4 border-white shadow-xl"></div>
-                                </div>
+                            <div className="h-80 w-full overflow-hidden border border-slate-100 rounded-[2.5rem] shadow-sm">
+                                <LocationMap 
+                                    lat={formData.lat || 19.0760} 
+                                    lng={formData.lng || 72.8777} 
+                                    zoom={formData.lat ? 17 : 4}
+                                    interactive={true}
+                                    onPinChange={(lat, lng) => setFormData({ ...formData, lat, lng })}
+                                    className="h-full w-full"
+                                />
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
-                                <div className="md:col-span-2">
+                            <div className="space-y-6">
+                                <div className="text-left">
                                     <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3 block">Street Address</label>
-                                    <input 
-                                        type="text" 
-                                        value={formData.address} 
-                                        onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                                        className="w-full h-16 bg-white border border-slate-200 rounded-2xl px-6 text-base font-bold focus:outline-none focus:border-[#2F2BFF] transition-all" 
+                                    <AddressAutocomplete
+                                        value={formData.address ? { label: formData.address, value: formData.address } : null}
+                                        onSelect={(data) => {
+                                            // Extract components
+                                            let city = "";
+                                            let state = "";
+                                            let zip = "";
+                                            
+                                            data.addressComponents.forEach(comp => {
+                                                if (comp.types.includes("locality")) city = comp.long_name;
+                                                if (comp.types.includes("administrative_area_level_1")) state = comp.long_name;
+                                                if (comp.types.includes("postal_code")) zip = comp.long_name;
+                                            });
+
+                                            setFormData({
+                                                ...formData,
+                                                address: data.label,
+                                                city,
+                                                state,
+                                                zip,
+                                                lat: data.coordinates.lat,
+                                                lng: data.coordinates.lng
+                                            });
+                                        }}
+                                        placeholder="Verify your address..."
+                                        className="address-autocomplete-host"
                                     />
                                 </div>
-                                <div>
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3 block">City</label>
-                                    <input 
-                                        type="text" 
-                                        value={formData.city} 
-                                        onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                                        className="w-full h-16 bg-white border border-slate-200 rounded-2xl px-6 text-base font-bold focus:outline-none focus:border-[#2F2BFF] transition-all" 
-                                    />
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
                                     <div>
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3 block">State</label>
-                                        <input 
-                                            type="text" 
-                                            value={formData.state} 
-                                            onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                                            className="w-full h-16 bg-white border border-slate-200 rounded-2xl px-6 text-base font-bold focus:outline-none focus:border-[#2F2BFF] transition-all" 
-                                        />
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3 block">City</label>
+                                        <input type="text" value={formData.city} onChange={(e) => setFormData({ ...formData, city: e.target.value })} className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-6 text-base font-bold text-slate-600 cursor-not-allowed" disabled />
                                     </div>
-                                    <div>
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3 block">ZIP</label>
-                                        <input 
-                                            type="text" 
-                                            value={formData.zip} 
-                                            onChange={(e) => setFormData({ ...formData, zip: e.target.value })}
-                                            className="w-full h-16 bg-white border border-slate-200 rounded-2xl px-6 text-base font-bold focus:outline-none focus:border-[#2F2BFF] transition-all" 
-                                        />
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3 block">State</label>
+                                            <input type="text" value={formData.state} onChange={(e) => setFormData({ ...formData, state: e.target.value })} className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-6 text-base font-bold text-slate-600 cursor-not-allowed" disabled />
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3 block">ZIP</label>
+                                            <input type="text" value={formData.zip} onChange={(e) => setFormData({ ...formData, zip: e.target.value })} className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-6 text-base font-bold text-slate-600 cursor-not-allowed" disabled />
+                                        </div>
                                     </div>
                                 </div>
                             </div>

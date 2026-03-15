@@ -12,6 +12,8 @@ export interface User {
     email: string;
     role: Role | string;
     avatar: string;
+    is_gold_host?: boolean;
+    gold_host_expires_at?: string;
     bio?: string;
 }
 
@@ -33,6 +35,8 @@ function userFromSession(session: { user: { id: string; email?: string; user_met
         name: (meta.full_name as string) || (meta.name as string) || (session.user.email?.split("@")[0] ?? ""),
         role: (meta.role as string) || "guest",
         avatar: (meta.avatar_url as string) || "",
+        is_gold_host: (meta.is_gold_host as boolean) || false,
+        gold_host_expires_at: (meta.gold_host_expires_at as string) || undefined,
     };
 }
 
@@ -55,17 +59,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     // Initial fetch
                     supabase
                         .from("profiles")
-                        .select("role, full_name, avatar_url")
+                        .select("role, full_name, avatar_url, is_gold_host, gold_host_expires_at")
                         .eq("id", derived.id)
                         .single()
-                        .then(({ data }) => {
+                        .then(({ data, error }) => {
                             console.timeEnd(`fetch-profile-${derived.id}`);
+                            if (error) {
+                                console.warn("Could not fetch full profile details (likely pending migrations):", error.message);
+                                // Fallback: try fetching basic fields if Gold columns fail
+                                if (error.message?.includes("is_gold_host") || error.message?.includes("gold_host_expires_at")) {
+                                    supabase
+                                        .from("profiles")
+                                        .select("role, full_name, avatar_url")
+                                        .eq("id", derived.id)
+                                        .single()
+                                        .then(({ data: basicData }) => {
+                                            if (basicData) {
+                                                setUser(prev => prev ? {
+                                                    ...prev,
+                                                    role: basicData.role || prev.role,
+                                                    name: basicData.full_name || prev.name,
+                                                    avatar: basicData.avatar_url || prev.avatar,
+                                                } : null);
+                                            }
+                                        });
+                                }
+                            }
                             if (data) {
                                 setUser(prev => prev ? {
                                     ...prev,
                                     role: data.role || prev.role,
                                     name: data.full_name || prev.name,
                                     avatar: data.avatar_url || prev.avatar,
+                                    is_gold_host: data.is_gold_host ?? prev.is_gold_host,
+                                    gold_host_expires_at: data.gold_host_expires_at || prev.gold_host_expires_at,
                                 } : null);
                             }
                         });
@@ -89,6 +116,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                                         role: next.role || prev.role,
                                         name: next.full_name || prev.name,
                                         avatar: next.avatar_url || prev.avatar,
+                                        is_gold_host: next.is_gold_host ?? prev.is_gold_host,
+                                        gold_host_expires_at: next.gold_host_expires_at || prev.gold_host_expires_at,
                                     } : null);
                                 }
                             )

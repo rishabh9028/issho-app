@@ -5,6 +5,8 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import LocationMap from "@/components/ui/LocationMap";
+import { calculatePricing, PricingBreakdown } from "@/lib/pricing";
 
 interface Space {
     id: string;
@@ -26,6 +28,9 @@ interface Space {
     allow_extra_guests?: boolean;
     extra_guest_price?: number;
     max_extra_guests?: number;
+    is_pet_friendly?: boolean;
+    lat?: number;
+    lng?: number;
 }
 
 export default function SpaceDetail() {
@@ -250,36 +255,42 @@ export default function SpaceDetail() {
         const now = new Date();
         const leadTimeHours = (bookingStartTime.getTime() - now.getTime()) / (1000 * 60 * 60);
 
-        const extraGuestsCount = Math.max(0, numberOfGuests - space.capacity);
+        const extraGuestsCount = Math.max(0, numberOfGuests - (space.capacity || 0));
         const extraGuestFee = extraGuestsCount * (space.extra_guest_price || 0) * duration;
-        const basePrice = (space.price_per_hour * duration) + extraGuestFee;
+        const rawBasePrice = (space.price_per_hour * duration) + extraGuestFee;
+        
         const options = [];
 
         if (leadTimeHours < 2) {
+            const pricing = calculatePricing(rawBasePrice);
             options.push({
                 id: 'non-refundable',
                 label: 'Last Minute (Non-refundable)',
-                price: basePrice,
+                pricing: pricing,
                 refundable: false
             });
         } else if (leadTimeHours >= 3 && leadTimeHours <= 5) {
+            const pricingNonRef = calculatePricing(rawBasePrice * 0.95);
             options.push({
                 id: 'non-refundable',
                 label: 'Save 5% (Non-refundable)',
-                price: basePrice * 0.95,
+                pricing: pricingNonRef,
                 refundable: false
             });
+            
+            const pricingRef = calculatePricing(rawBasePrice * 1.1);
             options.push({
                 id: 'refundable',
                 label: 'Flexible (Refundable + 10% Fee)',
-                price: basePrice * 1.1,
+                pricing: pricingRef,
                 refundable: true
             });
         } else {
+            const pricingStandard = calculatePricing(rawBasePrice);
             options.push({
                 id: 'non-refundable',
                 label: 'Standard (Non-refundable)',
-                price: basePrice,
+                pricing: pricingStandard,
                 refundable: false
             });
         }
@@ -336,7 +347,14 @@ export default function SpaceDetail() {
                         user_id: user.id,
                         start_time: startTime.toISOString(),
                         end_time: endTime.toISOString(),
-                        total_price: selectedOption.price,
+                        total_price: selectedOption.pricing.totalGuestPrice,
+                        base_price: selectedOption.pricing.basePrice,
+                        guest_service_fee: selectedOption.pricing.guestServiceFee,
+                        host_gst_amount: selectedOption.pricing.hostGstAmount,
+                        platform_commission_from_host: selectedOption.pricing.platformCommissionFromHost,
+                        platform_gst_on_commission: selectedOption.pricing.platformGstOnCommission,
+                        host_payout_amount: selectedOption.pricing.hostPayoutAmount,
+                        platform_net_earnings: selectedOption.pricing.platformNetEarnings,
                         status: 'pending',
                         metadata: {
                             refundable: selectedOption.refundable,
@@ -469,7 +487,7 @@ export default function SpaceDetail() {
                                     <span className="material-symbols-outlined text-[#2F2BFF] text-lg fill-1">star</span> {Number(space.rating).toFixed(1)} · {space.reviews_count} reviews
                                 </span>
                                 <span>·</span>
-                                <span className="flex items-center gap-1">
+                                <span className="flex items-center gap-1 hover:text-[#2F2BFF] transition-colors cursor-pointer" onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(space.location)}`, '_blank')}>
                                     <span className="material-symbols-outlined text-lg">location_on</span> {space.location}
                                 </span>
                             </div>
@@ -504,6 +522,71 @@ export default function SpaceDetail() {
                         <div className="mb-10">
                             <p className="text-lg leading-relaxed text-slate-600 font-medium">
                                 {space.description}
+                            </p>
+                        </div>
+
+                        {/* Amenities */}
+                        <div className="mb-12">
+                            <h3 className="text-xl font-black text-slate-900 mb-6 flex items-center gap-3">
+                                <span className="material-symbols-outlined text-[#2F2BFF]">category</span>
+                                Facilities & Amenities
+                            </h3>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
+                                {space.amenities && space.amenities.map((amenityId: string) => {
+                                    const amenitiesMap: { [key: string]: { label: string, icon: string } } = {
+                                        wifi: { label: 'Fast WiFi', icon: 'wifi' },
+                                        parking: { label: 'Free Parking', icon: 'local_parking' },
+                                        ac: { label: 'Air Conditioning', icon: 'ac_unit' },
+                                        power: { label: 'Power Backup', icon: 'battery_charging_full' },
+                                        kitchen: { label: 'Kitchen', icon: 'countertops' },
+                                        coffee: { label: 'Coffee', icon: 'coffee' },
+                                        tv: { label: 'TV', icon: 'tv' },
+                                        projector: { label: 'Projector', icon: 'videocam' },
+                                        whiteboard: { label: 'Whiteboard', icon: 'edit_note' },
+                                        cctv: { label: 'Security CCTV', icon: 'videocam' }
+                                    };
+                                    const amenity = amenitiesMap[amenityId];
+                                    if (!amenity) return null;
+                                    return (
+                                        <div key={amenityId} className="flex items-center gap-4 group">
+                                            <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center border border-slate-100 group-hover:bg-[#2F2BFF]/5 group-hover:border-[#2F2BFF]/20 transition-all">
+                                                <span className="material-symbols-outlined text-slate-500 group-hover:text-[#2F2BFF] transition-colors">{amenity.icon}</span>
+                                            </div>
+                                            <span className="text-sm font-bold text-slate-600 group-hover:text-slate-900 transition-colors">{amenity.label}</span>
+                                        </div>
+                                    );
+                                })}
+
+                                {space.is_pet_friendly && (
+                                    <div className="flex items-center gap-4 group">
+                                        <div className="w-12 h-12 rounded-2xl bg-orange-50 flex items-center justify-center border border-orange-100 group-hover:bg-orange-100 transition-all">
+                                            <span className="material-symbols-outlined text-orange-500">pets</span>
+                                        </div>
+                                        <span className="text-sm font-bold text-slate-600 group-hover:text-slate-900 transition-colors">Pet Friendly</span>
+                                    </div>
+                                )}
+                            </div>
+                            {(!space.amenities || space.amenities.length === 0) && !space.is_pet_friendly && (
+                                <p className="text-sm font-medium text-slate-400">No specific amenities listed for this space.</p>
+                            )}
+                        </div>
+
+                        {/* Location Map */}
+                        <div className="mb-12">
+                            <h3 className="text-xl font-black text-slate-900 mb-6 flex items-center gap-3">
+                                <span className="material-symbols-outlined text-[#2F2BFF]">location_on</span>
+                                Location
+                            </h3>
+                            <div className="h-80 w-full overflow-hidden border border-slate-200 rounded-3xl shadow-sm bg-slate-100">
+                                <LocationMap 
+                                    lat={space.lat || 19.0760} 
+                                    lng={space.lng || 72.8777} 
+                                    zoom={space.lat ? 15 : 12}
+                                    className="h-full w-full"
+                                />
+                            </div>
+                            <p className="mt-4 text-sm font-medium text-slate-500">
+                                Exact location provided after booking.
                             </p>
                         </div>
 
@@ -763,7 +846,7 @@ export default function SpaceDetail() {
                                                             <p className={`text-xs font-black ${selectedPricing === option.id ? "text-[#2F2BFF]" : "text-slate-900"}`}>{option.label}</p>
                                                             <p className="text-[10px] text-slate-500 font-bold">{option.refundable ? "Full refund if cancelled" : "No refund once confirmed"}</p>
                                                         </div>
-                                                        <p className="text-sm font-black text-slate-900">₹{option.price.toLocaleString()}</p>
+                                                        <p className="text-sm font-black text-slate-900">₹{option.pricing.totalGuestPrice.toLocaleString()}</p>
                                                     </button>
                                                 ))}
                                             </div>
@@ -775,44 +858,57 @@ export default function SpaceDetail() {
                                         const dayOfWeek = dateObj.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
                                         const dayAvailability = (space.availability || {})[dayOfWeek];
                                         const isOpen = dayAvailability?.open;
+                                        const currentPricing = (pricingOptions.find(o => o.id === selectedPricing) || pricingOptions[0])?.pricing;
 
                                         return (
-                                            <button 
-                                                onClick={handleBooking}
-                                                disabled={bookingLoading || !isOpen}
-                                                className={`w-full rounded-xl py-4 text-center font-black text-white transition-all shadow-lg transform active:scale-[0.98] flex items-center justify-center gap-2 ${
-                                                    isOpen 
-                                                    ? "bg-brand-gradient hover:brightness-110 shadow-[#2F2BFF]/30" 
-                                                    : "bg-slate-300 cursor-not-allowed shadow-none"
-                                                }`}
-                                            >
-                                                {bookingLoading ? (
-                                                    <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                                                ) : isOpen ? (
-                                                    "Request to Book"
-                                                ) : (
-                                                    "Not Available on this Day"
+                                            <>
+                                                <button 
+                                                    onClick={handleBooking}
+                                                    disabled={bookingLoading || !isOpen}
+                                                    className={`w-full rounded-xl py-4 text-center font-black text-white transition-all shadow-lg transform active:scale-[0.98] flex items-center justify-center gap-2 ${
+                                                        isOpen 
+                                                        ? "bg-brand-gradient hover:brightness-110 shadow-[#2F2BFF]/30" 
+                                                        : "bg-slate-300 cursor-not-allowed shadow-none"
+                                                    }`}
+                                                >
+                                                    {bookingLoading ? (
+                                                        <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                                                    ) : isOpen ? (
+                                                        "Request to Book"
+                                                    ) : (
+                                                        "Not Available on this Day"
+                                                    )}
+                                                </button>
+
+                                                {isOpen && currentPricing && (
+                                                    <div className="mt-6 space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                                                        <div className="flex justify-between items-center text-sm">
+                                                            <span className="text-slate-500 font-medium">₹{space.price_per_hour.toLocaleString()} x {duration} hrs</span>
+                                                            <span className="font-bold text-slate-900">₹{currentPricing.basePrice.toLocaleString()}</span>
+                                                        </div>
+                                                        <div className="flex justify-between items-center text-sm">
+                                                            <div className="flex items-center gap-1 group relative">
+                                                                <span className="text-slate-500 font-medium border-b border-dashed border-slate-300">Service fee</span>
+                                                                <span className="material-symbols-outlined text-[14px] text-slate-300 cursor-help">info</span>
+                                                            </div>
+                                                            <span className="font-bold text-slate-900">+ ₹{currentPricing.guestServiceFee.toLocaleString()}</span>
+                                                        </div>
+                                                        <div className="flex justify-between items-center text-sm">
+                                                            <div className="flex items-center gap-1">
+                                                                <span className="text-slate-500 font-medium border-b border-dashed border-slate-300">Taxes (GST)</span>
+                                                            </div>
+                                                            <span className="font-bold text-slate-900">+ ₹{currentPricing.hostGstAmount.toLocaleString()}</span>
+                                                        </div>
+                                                        <div className="h-px bg-slate-100 my-2"></div>
+                                                        <div className="flex justify-between items-center font-black text-xl text-slate-900">
+                                                            <span>Total</span>
+                                                            <span className="text-[#2F2BFF]">₹{currentPricing.totalGuestPrice.toLocaleString()}</span>
+                                                        </div>
+                                                    </div>
                                                 )}
-                                            </button>
+                                            </>
                                         );
                                     })()}
-                                    <p className="mt-4 text-center text-xs text-slate-500 font-bold">You won't be charged yet</p>
-
-                                    <div className="mt-6 space-y-3">
-                                        <div className="flex justify-between text-sm font-medium">
-                                            <span className="underline decoration-slate-300 text-slate-600">Rate: {pricingOptions.find(o => o.id === selectedPricing)?.label || "Standard"}</span>
-                                            <span className="font-bold text-slate-900">₹{(pricingOptions.find(o => o.id === selectedPricing)?.price || space.price_per_hour * duration).toLocaleString()}</span>
-                                        </div>
-                                        <div className="flex justify-between text-sm font-medium">
-                                            <span className="underline decoration-slate-300 text-slate-600">Service fee</span>
-                                            <span className="font-bold text-slate-900">₹{Math.round((pricingOptions.find(o => o.id === selectedPricing)?.price || space.price_per_hour * duration) * 0.1).toLocaleString()}</span>
-                                        </div>
-                                        <div className="h-px bg-slate-200 my-2"></div>
-                                        <div className="flex justify-between font-black text-xl text-slate-900">
-                                            <span>Total</span>
-                                            <span>₹{Math.round((pricingOptions.find(o => o.id === selectedPricing)?.price || space.price_per_hour * duration) * 1.1).toLocaleString()}</span>
-                                        </div>
-                                    </div>
 
                                     <div className="mt-8 flex items-center gap-4 p-4 rounded-xl bg-[#2F2BFF]/5 text-[#2F2BFF] border border-[#2F2BFF]/10">
                                         <span className="material-symbols-outlined font-bold">verified_user</span>

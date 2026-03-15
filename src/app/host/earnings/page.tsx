@@ -16,6 +16,9 @@ interface Booking {
     id: string;
     space_id: string;
     total_price: number;
+    base_price?: number;
+    host_payout_amount?: number;
+    platform_commission_from_host?: number;
     status: string;
     date: string;
     spaces: Space;
@@ -62,8 +65,11 @@ export default function HostEarnings() {
 
     if (!user) return null;
 
-    const totalEarnings = bookings.reduce((sum, b) => sum + b.total_price, 0);
-    const pendingPayout = bookings.filter(b => b.status === "confirmed").reduce((sum, b) => sum + b.total_price, 0);
+    // For new bookings we use host_payout_amount, for old ones we estimate (approx 90%)
+    const getHostNet = (b: Booking) => b.host_payout_amount ?? (b.total_price * 0.9);
+    
+    const totalEarnings = bookings.reduce((sum, b) => sum + getHostNet(b), 0);
+    const pendingPayout = bookings.filter(b => b.status === "confirmed").reduce((sum, b) => sum + getHostNet(b), 0);
 
     // Mock monthly data
     const monthlyData = [
@@ -208,7 +214,7 @@ export default function HostEarnings() {
                                                                 <td className="px-8 py-5 text-sm font-medium text-slate-500">{new Date(t.created_at).toLocaleDateString()}</td>
                                                                 <td className="px-8 py-5 text-sm font-bold text-slate-700">Booking Payment ({t.spaces.title})</td>
                                                                 <td className={`px-8 py-5 text-sm font-black text-right text-emerald-500`}>
-                                                                    +₹{t.total_price.toLocaleString()}
+                                                                    +₹{getHostNet(t).toLocaleString()}
                                                                 </td>
                                                             </tr>
                                                         ))

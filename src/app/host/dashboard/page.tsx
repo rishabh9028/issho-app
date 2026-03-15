@@ -62,7 +62,12 @@ export default function HostDashboard() {
                 .eq("host_id", user.id);
 
             if (spacesError) {
-                console.error("Error fetching spaces:", spacesError);
+                console.error("Error fetching spaces for user:", user.id, {
+                    message: spacesError.message,
+                    details: spacesError.details,
+                    hint: spacesError.hint,
+                    code: spacesError.code
+                });
             } else {
                 setMySpaces(spacesData || []);
                 
@@ -93,7 +98,7 @@ export default function HostDashboard() {
         fetchData();
     }, [user, router]);
 
-    const handleStatusUpdate = async (bookingId: string, status: 'confirmed' | 'cancelled') => {
+    const handleStatusUpdate = async (bookingId: string, status: 'confirmed' | 'cancelled' | 'completed') => {
         try {
             const { error } = await supabase
                 .from("bookings")
@@ -134,7 +139,8 @@ export default function HostDashboard() {
     }
 
     const pendingRequests = bookings.filter(b => b.status === "pending");
-    const upcomingBookings = bookings.filter(b => b.status === "confirmed");
+    const activeBookings = bookings.filter(b => b.status === "confirmed");
+    const completedBookings = bookings.filter(b => b.status === "completed");
     const totalEarnings = bookings
         .filter(b => b.status === "confirmed" || b.status === "completed")
         .reduce((sum, b) => sum + b.total_price, 0);
@@ -258,7 +264,7 @@ export default function HostDashboard() {
 
                                 <section>
                                     <div className="flex justify-between items-center mb-6">
-                                        <h2 className="text-2xl font-black text-slate-900 tracking-tight">Recent Reservations</h2>
+                                        <h2 className="text-2xl font-black text-slate-900 tracking-tight">Active Bookings</h2>
                                         <Link href="/host/bookings" className="text-[#2F2BFF] text-sm font-black hover:underline">Go to Bookings</Link>
                                     </div>
                                     <div className="bg-white rounded-[32px] overflow-hidden border border-slate-100 shadow-sm">
@@ -270,11 +276,12 @@ export default function HostDashboard() {
                                                         <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Space</th>
                                                         <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Schedule</th>
                                                         <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Revenue</th>
+                                                        <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Action</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody className="divide-y divide-slate-50">
-                                                    {upcomingBookings.length > 0 ? (
-                                                        upcomingBookings.map(b => (
+                                                    {activeBookings.length > 0 ? (
+                                                        activeBookings.map(b => (
                                                             <tr key={b.id} className="hover:bg-slate-50/30 transition-colors">
                                                                 <td className="px-8 py-5">
                                                                     <div className="flex items-center gap-3">
@@ -289,11 +296,64 @@ export default function HostDashboard() {
                                                                     {new Date(b.start_time).toLocaleDateString()} · <span className="text-xs italic">{new Date(b.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                                                                 </td>
                                                                 <td className="px-8 py-5 text-right font-black text-slate-900">₹{b.total_price.toLocaleString()}</td>
+                                                                <td className="px-8 py-5 text-right">
+                                                                    <button 
+                                                                        onClick={() => handleStatusUpdate(b.id, 'completed')}
+                                                                        className="text-[10px] font-black uppercase tracking-widest text-[#2F2BFF] hover:bg-[#2F2BFF]/5 px-3 py-1.5 rounded-lg transition-all"
+                                                                    >
+                                                                        Complete
+                                                                    </button>
+                                                                </td>
                                                             </tr>
                                                         ))
                                                     ) : (
                                                         <tr>
-                                                            <td colSpan={4} className="px-8 py-10 text-center text-slate-400 font-medium italic">No upcoming reservations yet.</td>
+                                                            <td colSpan={5} className="px-8 py-10 text-center text-slate-400 font-medium italic">No active reservations yet.</td>
+                                                        </tr>
+                                                    )}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </section>
+
+                                <section>
+                                    <div className="flex justify-between items-center mb-6">
+                                        <h2 className="text-2xl font-black text-slate-900 tracking-tight">Completed Bookings</h2>
+                                    </div>
+                                    <div className="bg-white rounded-[32px] overflow-hidden border border-slate-100 shadow-sm opacity-80">
+                                        <div className="overflow-x-auto">
+                                            <table className="w-full text-sm text-left border-collapse">
+                                                <thead className="bg-slate-50/50">
+                                                    <tr>
+                                                        <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Guest</th>
+                                                        <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Space</th>
+                                                        <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Ended On</th>
+                                                        <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Earnings</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-slate-50">
+                                                    {completedBookings.length > 0 ? (
+                                                        completedBookings.map(b => (
+                                                            <tr key={b.id} className="grayscale hover:grayscale-0 transition-all duration-500">
+                                                                <td className="px-8 py-5">
+                                                                    <div className="flex items-center gap-3">
+                                                                        <img src={getGuestAvatar(b)} alt="G" className="w-8 h-8 rounded-full border border-slate-100 shadow-sm" />
+                                                                        <span className="font-black text-slate-900">{getGuestName(b)}</span>
+                                                                    </div>
+                                                                </td>
+                                                                <td className="px-8 py-5">
+                                                                    <span className="font-bold text-slate-600">{b.spaces?.title}</span>
+                                                                </td>
+                                                                <td className="px-8 py-5 text-slate-400 font-bold">
+                                                                    {new Date(b.end_time).toLocaleDateString()}
+                                                                </td>
+                                                                <td className="px-8 py-5 text-right font-black text-emerald-600">₹{b.total_price.toLocaleString()}</td>
+                                                            </tr>
+                                                        ))
+                                                    ) : (
+                                                        <tr>
+                                                            <td colSpan={4} className="px-8 py-10 text-center text-slate-300 font-medium italic">Your history will appear here once bookings are completed.</td>
                                                         </tr>
                                                     )}
                                                 </tbody>
