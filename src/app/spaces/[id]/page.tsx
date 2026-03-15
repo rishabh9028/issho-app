@@ -835,41 +835,40 @@ export default function SpaceDetail() {
                                         </div>
                                     </div>
 
-                                    {/* Pricing Options UI */}
-                                    {pricingOptions.length > 0 && (
-                                        <div className="mb-6 space-y-3">
-                                            <p className="text-[10px] font-black uppercase text-slate-500">Choice of Rate</p>
-                                            <div className="flex flex-col gap-2">
-                                                {pricingOptions.map((option) => (
-                                                    <button
-                                                        key={option.id}
-                                                        onClick={() => setSelectedPricing(option.id)}
-                                                        className={`flex items-center justify-between p-3 rounded-xl border-2 transition-all ${
-                                                            selectedPricing === option.id
-                                                                ? "border-[#2F2BFF] bg-[#2F2BFF]/5"
-                                                                : "border-slate-100 hover:border-slate-200"
-                                                        }`}
-                                                    >
-                                                        <div className="text-left">
-                                                            <p className={`text-xs font-black ${selectedPricing === option.id ? "text-[#2F2BFF]" : "text-slate-900"}`}>{option.label}</p>
-                                                            <p className="text-[10px] text-slate-500 font-bold">{option.refundable ? "Full refund if cancelled" : "No refund once confirmed"}</p>
-                                                        </div>
-                                                        <p className="text-sm font-black text-slate-900">₹{option.pricing.totalGuestPrice.toLocaleString()}</p>
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-
                                     {(() => {
                                         const dateObj = new Date(checkInDate + 'T00:00:00');
                                         const dayOfWeek = dateObj.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
                                         const dayAvailability = (space.availability || {})[dayOfWeek];
-                                        const isOpen = dayAvailability?.open;
+                                        const isOpen = dayAvailability?.open && checkInTime !== "";
                                         const currentPricing = (pricingOptions.find(o => o.id === selectedPricing) || pricingOptions[0])?.pricing;
 
                                         return (
                                             <>
+                                                {/* Pricing Options UI */}
+                                                {isOpen && pricingOptions.length > 0 && (
+                                                    <div className="mb-6 space-y-3">
+                                                        <p className="text-[10px] font-black uppercase text-slate-500">Choice of Rate</p>
+                                                        <div className="flex flex-col gap-2">
+                                                            {pricingOptions.map((option) => (
+                                                                <button
+                                                                    key={option.id}
+                                                                    onClick={() => setSelectedPricing(option.id)}
+                                                                    className={`flex items-center justify-between p-3 rounded-xl border-2 transition-all ${
+                                                                        selectedPricing === option.id
+                                                                            ? "border-[#2F2BFF] bg-[#2F2BFF]/5"
+                                                                            : "border-slate-100 hover:border-slate-200"
+                                                                    }`}
+                                                                >
+                                                                    <div className="text-left">
+                                                                        <p className={`text-xs font-black ${selectedPricing === option.id ? "text-[#2F2BFF]" : "text-slate-900"}`}>{option.label}</p>
+                                                                        <p className="text-[10px] text-slate-500 font-bold">{option.refundable ? "Full refund if cancelled" : "No refund once confirmed"}</p>
+                                                                    </div>
+                                                                    <p className="text-sm font-black text-slate-900">₹{option.pricing.totalGuestPrice.toLocaleString()}</p>
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
                                                 <button 
                                                     onClick={handleBooking}
                                                     disabled={bookingLoading || !isOpen}
