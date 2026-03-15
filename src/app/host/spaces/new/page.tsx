@@ -1,8 +1,9 @@
 "use client";
 
+import { createBrowserClient } from "@supabase/ssr";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 
 export default function NewSpaceFlow() {
@@ -10,6 +11,9 @@ export default function NewSpaceFlow() {
     const router = useRouter();
     const [step, setStep] = useState(1);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [pinPos, setPinPos] = useState({ x: 50, y: 50 });
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
+    const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
 
     // Form State
     const [formData, setFormData] = useState({
@@ -31,7 +35,8 @@ export default function NewSpaceFlow() {
             friday: { open: true, start: "09:00 AM", end: "05:00 PM" },
             saturday: { open: false, start: "10:00 AM", end: "04:00 PM" },
             sunday: { open: false, start: "10:00 AM", end: "04:00 PM" },
-        }
+        },
+        images: [] as string[]
     });
 
     useEffect(() => {
@@ -41,29 +46,173 @@ export default function NewSpaceFlow() {
 
     if (!user) return null;
 
-    const nextStep = () => setStep(s => Math.min(s + 1, 5));
+    const nextStep = () => setStep(s => Math.min(s + 1, 6));
     const prevStep = () => setStep(s => Math.max(s - 1, 1));
+
+    const toggleDay = (day: string) => {
+        setFormData(prev => ({
+            ...prev,
+            availability: {
+                ...prev.availability,
+                [day]: {
+                    ...prev.availability[day as keyof typeof prev.availability],
+                    open: !prev.availability[day as keyof typeof prev.availability].open
+                }
+            }
+        }));
+    };
+
+    const updateHours = (day: string, type: 'start' | 'end', value: string) => {
+        setFormData(prev => ({
+            ...prev,
+            availability: {
+                ...prev.availability,
+                [day]: {
+                    ...prev.availability[day as keyof typeof prev.availability],
+                    [type]: value
+                }
+            }
+        }));
+    };
+
+    const timeSlots = [
+        "06:00 AM", "07:00 AM", "08:00 AM", "09:00 AM", "10:00 AM", "11:00 AM", "12:00 PM",
+        "01:00 PM", "02:00 PM", "03:00 PM", "04:00 PM", "05:00 PM", "06:00 PM", "07:00 PM",
+        "08:00 PM", "09:00 PM", "10:00 PM", "11:00 PM"
+    ];
 
     const handleSubmit = async () => {
         setIsSubmitting(true);
-        // Mock API call
-        await new Promise(r => setTimeout(r, 2000));
-        setIsSubmitting(false);
-        router.push("/host/dashboard");
+        try {
+            const supabase = createBrowserClient(
+                process.env.NEXT_PUBLIC_SUPABASE_URL!,
+                process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+            );
+            
+            const typeImages: { [key: string]: string[] } = {
+                villa: [
+                    "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=1475&auto=format&fit=crop",
+                    "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=1470&auto=format&fit=crop"
+                ],
+                studio: [
+                    "https://images.unsplash.com/photo-1554995207-c18c203602cb?q=80&w=1470&auto=format&fit=crop",
+                    "https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=1469&auto=format&fit=crop"
+                ],
+                cafe: [
+                    "https://images.unsplash.com/photo-1554118811-1e0d58224f24?q=80&w=1447&auto=format&fit=crop",
+                    "https://images.unsplash.com/photo-1497935586351-b67a49e012bf?q=80&w=1471&auto=format&fit=crop"
+                ],
+                rooftop: [
+                    "https://images.unsplash.com/photo-1533090161767-e6ffed986c88?q=80&w=1469&auto=format&fit=crop",
+                    "https://images.unsplash.com/photo-1511895426328-dc8714191300?q=80&w=1470&auto=format&fit=crop"
+                ]
+            };
+
+            const selectedType = formData.type.toLowerCase();
+            const spaceImages = typeImages[selectedType] || typeImages.studio;
+
+            // Upload actual files to Supabase Storage
+            const uploadImagesToSupabase = async (files: File[]) => {
+                const urls = [];
+                for (const file of files) {
+                    const fileExt = file.name.split('.').pop();
+                    const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
+                    const filePath = `${fileName}`;
+
+                    const { error: uploadError, data } = await supabase.storage
+                        .from('spaces')
+                        .upload(filePath, file);
+
+                    if (uploadError) {
+                        console.error('Upload error:', uploadError);
+                        continue;
+                    }
+
+                    const { data: { publicUrl } } = supabase.storage
+                        .from('spaces')
+                        .getPublicUrl(filePath);
+                    
+                    urls.push(publicUrl);
+                }
+                return urls;
+            };
+
+            const persistentImages = await uploadImagesToSupabase(uploadedFiles);
+
+            const { error } = await supabase
+                .from('spaces')
+                .insert({
+                    host_id: user?.id,
+                    title: formData.title,
+                    description: formData.description,
+                    price_per_hour: parseFloat(formData.price),
+                    location: `${formData.address}, ${formData.city}, ${formData.state} ${formData.zip}`,
+                    capacity: parseInt(formData.capacity),
+                    images: persistentImages.length > 0 ? persistentImages : spaceImages,
+                    type: formData.type.toLowerCase(),
+                    amenities: ['wifi', 'parking', 'kitchen'],
+                    availability: formData.availability
+                });
+
+            if (error) throw error;
+            router.push("/host/dashboard");
+        } catch (error) {
+            console.error("Error creating space:", error);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleMapClick = (e: React.MouseEvent<HTMLDivElement>) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        const x = ((e.clientX - rect.left) / rect.width) * 100;
+        const y = ((e.clientY - rect.top) / rect.height) * 100;
+        setPinPos({ x, y });
+        
+        // Populate mock data on map click
+        setFormData(prev => ({
+            ...prev,
+            address: "123 Ocean View Drive",
+            city: "Malibu",
+            state: "CA",
+            zip: "90265"
+        }));
+    };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files) {
+            const files = Array.from(e.target.files);
+            setUploadedFiles(prev => [...prev, ...files]);
+            
+            // Generate local preview URLs
+            const newImageUrls = files.map(file => URL.createObjectURL(file));
+            setFormData(prev => ({
+                ...prev,
+                images: [...prev.images, ...newImageUrls]
+            }));
+        }
+    };
+
+    const removeImage = (index: number) => {
+        setFormData(prev => ({
+            ...prev,
+            images: prev.images.filter((_, i) => i !== index)
+        }));
+        setUploadedFiles(prev => prev.filter((_, i) => i !== index));
     };
 
     const renderStepHeader = () => {
-        const stepTitles = ["Basics", "Location", "Pricing", "Photos", "Review"];
-        const progress = (step / 5) * 100;
+        const stepTitles = ["Basics", "Location", "Pricing", "Photos", "Availability", "Review"];
+        const progress = (step / 6) * 100;
 
         return (
             <div className="mb-12">
                 <div className="flex justify-between items-end mb-4">
-                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#1d1aff]">Step {step} of 5</span>
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#2F2BFF]">Step {step} of 6</span>
                     <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{stepTitles[step - 1]}: {Math.round(progress)}% Complete</span>
                 </div>
                 <div className="h-1 w-full bg-slate-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-[#1d1aff] transition-all duration-500 ease-out" style={{ width: `${progress}%` }}></div>
+                    <div className="h-full bg-brand-gradient transition-all duration-500 ease-out" style={{ width: `${progress}%` }}></div>
                 </div>
                 <div className="flex justify-between mt-4">
                     {stepTitles.map((t, i) => (
@@ -91,9 +240,10 @@ export default function NewSpaceFlow() {
                                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3 block">Space Title</label>
                                 <input
                                     type="text"
-                                    defaultValue={formData.title}
+                                    value={formData.title}
+                                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                                     placeholder="e.g. Modern Minimalist Loft in Shibuya"
-                                    className="w-full h-16 bg-white border border-slate-200 rounded-2xl px-6 text-base font-bold placeholder:font-medium placeholder:text-slate-300 focus:outline-none focus:border-[#1d1aff] focus:ring-4 focus:ring-[#1d1aff]/5 transition-all"
+                                    className="w-full h-16 bg-white border border-slate-200 rounded-2xl px-6 text-base font-bold placeholder:font-medium placeholder:text-slate-300 focus:outline-none focus:border-[#2F2BFF] focus:ring-4 focus:ring-[#2F2BFF]/5 transition-all"
                                 />
                                 <p className="mt-2 text-[10px] font-bold text-slate-400">Catchy titles work best. Limit to 50 characters.</p>
                             </div>
@@ -102,10 +252,14 @@ export default function NewSpaceFlow() {
                                 <div>
                                     <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3 block">Space Type</label>
                                     <div className="relative">
-                                        <select className="w-full h-16 bg-white border border-slate-200 rounded-2xl px-6 text-base font-bold appearance-none focus:outline-none focus:border-[#1d1aff] transition-all">
-                                            <option>Villa</option>
-                                            <option>Studio</option>
-                                            <option>Rooftop</option>
+                                        <select 
+                                            value={formData.type}
+                                            onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                                            className="w-full h-16 bg-white border border-slate-200 rounded-2xl px-6 text-base font-bold appearance-none focus:outline-none focus:border-[#2F2BFF] transition-all"
+                                        >
+                                            <option value="Villa">Villa</option>
+                                            <option value="Studio">Studio</option>
+                                            <option value="Rooftop">Rooftop</option>
                                         </select>
                                         <span className="material-symbols-outlined absolute right-6 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">expand_content</span>
                                     </div>
@@ -115,8 +269,9 @@ export default function NewSpaceFlow() {
                                     <div className="relative">
                                         <input
                                             type="number"
-                                            defaultValue={formData.capacity}
-                                            className="w-full h-16 bg-white border border-slate-200 rounded-2xl px-6 text-base font-bold focus:outline-none focus:border-[#1d1aff] transition-all"
+                                            value={formData.capacity}
+                                            onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
+                                            className="w-full h-16 bg-white border border-slate-200 rounded-2xl px-6 text-base font-bold focus:outline-none focus:border-[#2F2BFF] transition-all"
                                         />
                                         <span className="material-symbols-outlined absolute right-6 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">groups</span>
                                     </div>
@@ -127,8 +282,10 @@ export default function NewSpaceFlow() {
                                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3 block">Description</label>
                                 <textarea
                                     rows={5}
+                                    value={formData.description}
+                                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                     placeholder="What makes your space unique? Mention the neighborhood, special amenities, and the vibe."
-                                    className="w-full bg-white border border-slate-200 rounded-3xl p-6 text-base font-bold placeholder:font-medium placeholder:text-slate-300 focus:outline-none focus:border-[#1d1aff] transition-all resize-none"
+                                    className="w-full bg-white border border-slate-200 rounded-3xl p-6 text-base font-bold placeholder:font-medium placeholder:text-slate-300 focus:outline-none focus:border-[#2F2BFF] transition-all resize-none"
                                 ></textarea>
                             </div>
                         </div>
@@ -139,32 +296,39 @@ export default function NewSpaceFlow() {
                     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
                         <div>
                             <h1 className="text-4xl font-black text-slate-900 tracking-tight mb-3">Where's your space located?</h1>
-                            <p className="text-lg text-slate-500 font-medium">Your address is only shared with guests after they book.</p>
                         </div>
                         <div className="space-y-6">
-                            <div className="h-64 w-full bg-slate-100 rounded-[32px] overflow-hidden border border-slate-200 relative">
+                            <div 
+                                className="h-64 w-full bg-slate-100 rounded-[32px] overflow-hidden border border-slate-200 relative cursor-crosshair"
+                                onClick={handleMapClick}
+                            >
                                 <img src="https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=1474&auto=format&fit=crop" className="w-full h-full object-cover opacity-50 grayscale" alt="Map" />
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                    <div className="h-10 w-10 bg-[#1d1aff] rounded-full border-4 border-white shadow-xl"></div>
+                                <div 
+                                    className="absolute -translate-x-1/2 -translate-y-full transition-all duration-300 ease-out"
+                                    style={{ left: `${pinPos.x}%`, top: `${pinPos.y}%` }}
+                                >
+                                    <div className="h-10 w-10 bg-brand-gradient rounded-full border-4 border-white shadow-xl relative animate-bounce">
+                                        <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-r-[6px] border-t-[8px] border-l-transparent border-r-transparent border-t-[#2F2BFF]"></div>
+                                    </div>
                                 </div>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="md:col-span-2">
                                     <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3 block">Street Address</label>
-                                    <input type="text" defaultValue={formData.address} className="w-full h-16 bg-white border border-slate-200 rounded-2xl px-6 text-base font-bold focus:outline-none focus:border-[#1d1aff] transition-all" />
+                                    <input type="text" value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })} className="w-full h-16 bg-white border border-slate-200 rounded-2xl px-6 text-base font-bold focus:outline-none focus:border-[#2F2BFF] transition-all" />
                                 </div>
                                 <div>
                                     <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3 block">City</label>
-                                    <input type="text" defaultValue={formData.city} className="w-full h-16 bg-white border border-slate-200 rounded-2xl px-6 text-base font-bold focus:outline-none focus:border-[#1d1aff] transition-all" />
+                                    <input type="text" value={formData.city} onChange={(e) => setFormData({ ...formData, city: e.target.value })} className="w-full h-16 bg-white border border-slate-200 rounded-2xl px-6 text-base font-bold focus:outline-none focus:border-[#2F2BFF] transition-all" />
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3 block">State</label>
-                                        <input type="text" defaultValue={formData.state} className="w-full h-16 bg-white border border-slate-200 rounded-2xl px-6 text-base font-bold focus:outline-none focus:border-[#1d1aff] transition-all" />
+                                        <input type="text" value={formData.state} onChange={(e) => setFormData({ ...formData, state: e.target.value })} className="w-full h-16 bg-white border border-slate-200 rounded-2xl px-6 text-base font-bold focus:outline-none focus:border-[#2F2BFF] transition-all" />
                                     </div>
                                     <div>
                                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3 block">ZIP</label>
-                                        <input type="text" defaultValue={formData.zip} className="w-full h-16 bg-white border border-slate-200 rounded-2xl px-6 text-base font-bold focus:outline-none focus:border-[#1d1aff] transition-all" />
+                                        <input type="text" value={formData.zip} onChange={(e) => setFormData({ ...formData, zip: e.target.value })} className="w-full h-16 bg-white border border-slate-200 rounded-2xl px-6 text-base font-bold focus:outline-none focus:border-[#2F2BFF] transition-all" />
                                     </div>
                                 </div>
                             </div>
@@ -175,76 +339,40 @@ export default function NewSpaceFlow() {
                 return (
                     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
                         <div className="bg-white rounded-[32px] border border-slate-100 p-8 shadow-xl shadow-blue-500/5">
-                            <h2 className="text-3xl font-black text-slate-900 mb-3 tracking-tight">Set your pricing and photos</h2>
-                            <p className="text-base text-slate-500 font-medium mb-10">Help guests visualize your space and set a fair rate.</p>
+                            <h2 className="text-3xl font-black text-slate-900 mb-3 tracking-tight">Pricing</h2>
+                            <p className="text-base text-slate-500 font-medium mb-10">Set a fair hourly rate for your space.</p>
 
-                            <div className="space-y-10">
-                                <div>
-                                    <div className="flex justify-between items-center mb-4">
-                                        <label className="text-base font-black text-slate-900">Upload Photos</label>
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-[#1d1aff] bg-[#1d1aff]/5 px-2.5 py-1 rounded-md">Required</span>
-                                    </div>
-                                    <div className="border-2 border-dashed border-[#1d1aff]/20 rounded-[32px] p-16 flex flex-col items-center justify-center text-center bg-[#1d1aff]/[0.02] hover:bg-[#1d1aff]/[0.05] transition-all group cursor-pointer">
-                                        <div className="h-16 w-16 rounded-full bg-[#1d1aff] flex items-center justify-center text-white mb-6 shadow-lg shadow-blue-500/20 group-hover:scale-110 transition-transform">
-                                            <span className="material-symbols-outlined text-3xl font-black">cloud_upload</span>
+                            <div className="flex flex-col lg:flex-row gap-10">
+                                <div className="flex-1 space-y-6">
+                                    <div>
+                                        <label className="text-xs font-black text-slate-500 mb-3 block">Hourly Rate</label>
+                                        <div className="relative group">
+                                            <span className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 font-black text-lg group-focus-within:text-[#2F2BFF] transition-colors">₹</span>
+                                            <input
+                                                type="text"
+                                                value={formData.price}
+                                                onChange={e => setFormData({...formData, price: e.target.value})}
+                                                className="w-full h-16 bg-white border border-slate-200 rounded-2xl pl-12 pr-16 text-xl font-black text-slate-900 focus:outline-none focus:border-[#2F2BFF] transition-all"
+                                            />
+                                            <span className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">/ hr</span>
                                         </div>
-                                        <h3 className="text-xl font-black text-slate-900 mb-2">Drag and drop your photos here</h3>
-                                        <p className="max-w-xs text-sm text-slate-400 font-medium leading-relaxed mb-8">Upload at least 5 high-quality photos (JPG or PNG, max 10MB each) to attract more guests.</p>
-                                        <button className="bg-[#1d1aff] text-white px-8 py-3.5 rounded-2xl font-black text-sm shadow-xl shadow-blue-500/20 active:scale-95 transition-all">Browse Files</button>
                                     </div>
                                 </div>
-
-                                <div className="flex flex-col lg:flex-row gap-10">
-                                    <div className="flex-1 space-y-6">
-                                        <h3 className="text-xl font-black text-slate-900 mb-2">Pricing</h3>
-                                        <div>
-                                            <label className="text-xs font-black text-slate-500 mb-3 block">Hourly Rate</label>
-                                            <div className="relative group">
-                                                <span className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 font-black text-lg group-focus-within:text-[#1d1aff] transition-colors">$</span>
-                                                <input
-                                                    type="text"
-                                                    defaultValue={formData.price}
-                                                    className="w-full h-16 bg-white border border-slate-200 rounded-2xl pl-12 pr-16 text-xl font-black text-slate-900 focus:outline-none focus:border-[#1d1aff] transition-all"
-                                                />
-                                                <span className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">/ hr</span>
-                                            </div>
+                                <div className="w-full lg:w-80 bg-slate-50 rounded-3xl p-8 border border-slate-100">
+                                    <h4 className="text-base font-black text-slate-900 mb-6">Fee Breakdown</h4>
+                                    <div className="space-y-4">
+                                        <div className="flex justify-between text-sm font-bold text-slate-500">
+                                            <span>Your hourly rate</span>
+                                            <span className="text-slate-900">₹{formData.price}</span>
                                         </div>
-                                        <div className="bg-[#1d1aff]/5 p-6 rounded-[24px] border border-[#1d1aff]/10 flex items-center justify-between">
-                                            <div className="flex items-center gap-4">
-                                                <div className="h-10 w-10 rounded-xl bg-white flex items-center justify-center text-[#1d1aff] shadow-sm">
-                                                    <span className="material-symbols-outlined font-black">auto_awesome</span>
-                                                </div>
-                                                <div>
-                                                    <p className="text-sm font-black text-slate-900">Smart Pricing</p>
-                                                    <p className="text-[10px] font-bold text-slate-500 leading-tight">Automatically adjust your rates based on local demand.</p>
-                                                </div>
-                                            </div>
-                                            <label className="relative inline-flex items-center cursor-pointer">
-                                                <input type="checkbox" defaultChecked={formData.smartPricing} className="sr-only peer" />
-                                                <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#1d1aff]"></div>
-                                            </label>
+                                        <div className="flex justify-between text-sm font-bold text-slate-500">
+                                            <span>Service fee (3%)</span>
+                                            <span className="text-rose-400">-₹{(parseFloat(formData.price || "0") * 0.03).toFixed(2)}</span>
                                         </div>
-                                    </div>
-                                    <div className="w-full lg:w-80 bg-slate-50 rounded-3xl p-8 border border-slate-100">
-                                        <h4 className="text-base font-black text-slate-900 mb-6">Fee Breakdown</h4>
-                                        <div className="space-y-4">
-                                            <div className="flex justify-between text-sm font-bold text-slate-500">
-                                                <span>Your hourly rate</span>
-                                                <span className="text-slate-900">${formData.price}</span>
-                                            </div>
-                                            <div className="flex justify-between text-sm font-bold text-slate-500">
-                                                <span>Service fee (3%)</span>
-                                                <span className="text-rose-400">-${(parseFloat(formData.price) * 0.03).toFixed(2)}</span>
-                                            </div>
-                                            <div className="h-px bg-slate-200 my-4"></div>
-                                            <div className="flex justify-between items-end">
-                                                <span className="text-base font-black text-slate-900">You'll earn</span>
-                                                <span className="text-3xl font-black text-[#1d1aff]">${(parseFloat(formData.price) * 0.97).toFixed(2)}</span>
-                                            </div>
-                                        </div>
-                                        <div className="mt-8 flex gap-3">
-                                            <span className="material-symbols-outlined text-slate-400 text-sm">info</span>
-                                            <p className="text-[10px] font-bold text-slate-400 leading-relaxed">Isshō fees help us run the platform and provide support.</p>
+                                        <div className="h-px bg-slate-200 my-4"></div>
+                                        <div className="flex justify-between items-end">
+                                            <span className="text-base font-black text-slate-900">You'll earn</span>
+                                            <span className="text-3xl font-black text-[#2F2BFF]">₹{(parseFloat(formData.price || "0") * 0.97).toFixed(2)}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -253,6 +381,77 @@ export default function NewSpaceFlow() {
                     </div>
                 );
             case 4:
+                return (
+                    <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <div className="bg-white rounded-[32px] border border-slate-100 p-8 shadow-xl shadow-blue-500/5">
+                            <h2 className="text-3xl font-black text-slate-900 mb-3 tracking-tight">Photos</h2>
+                            <p className="text-base text-slate-500 font-medium mb-10">Help guests visualize your space with high-quality photos.</p>
+
+                            <div>
+                                <div className="flex justify-between items-center mb-4">
+                                    <label className="text-base font-black text-slate-900">Upload Photos</label>
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-[#2F2BFF] bg-[#2F2BFF]/5 px-2.5 py-1 rounded-md">Required</span>
+                                </div>
+                                <div 
+                                    className="border-2 border-dashed border-[#2F2BFF]/20 rounded-[32px] p-16 flex flex-col items-center justify-center text-center bg-[#2F2BFF]/[0.02] hover:bg-[#2F2BFF]/[0.05] transition-all group cursor-pointer"
+                                    onClick={() => fileInputRef.current?.click()}
+                                >
+                                    <div className="h-16 w-16 rounded-full bg-brand-gradient flex items-center justify-center text-white mb-6 shadow-lg shadow-blue-500/20 group-hover:scale-110 transition-transform">
+                                        <span className="material-symbols-outlined text-3xl font-black">cloud_upload</span>
+                                    </div>
+                                    <h3 className="text-xl font-black text-slate-900 mb-2">Drag and drop your photos here</h3>
+                                    <p className="max-w-xs text-sm text-slate-400 font-medium leading-relaxed mb-8">Upload beautiful photos to attract more guests.</p>
+                                    <input 
+                                        type="file" 
+                                        multiple 
+                                        accept="image/*" 
+                                        className="hidden" 
+                                        ref={fileInputRef}
+                                        onChange={handleFileChange}
+                                    />
+                                    <button className="bg-brand-gradient text-white px-8 py-3.5 rounded-2xl font-black text-sm shadow-xl shadow-blue-500/20 active:scale-95 transition-all">Browse Files</button>
+                                </div>
+
+                                {formData.images.length > 0 && (
+                                    <div className="mt-10">
+                                        <div className="flex justify-between items-center mb-4">
+                                            <h4 className="text-sm font-black text-slate-900 uppercase tracking-widest">Added Photos ({formData.images.length})</h4>
+                                            <button 
+                                                onClick={() => {
+                                                    setFormData(prev => ({ ...prev, images: [] }));
+                                                    setUploadedFiles([]);
+                                                }}
+                                                className="text-[10px] font-black text-rose-500 uppercase tracking-widest hover:underline"
+                                            >
+                                                Clear All
+                                            </button>
+                                        </div>
+                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                            {formData.images.map((img, i) => (
+                                                <div key={i} className="aspect-square rounded-2xl overflow-hidden border border-slate-100 relative group animate-in zoom-in-95 duration-300">
+                                                    <img src={img} className="w-full h-full object-cover transition-transform group-hover:scale-110" alt={`Preview ${i}`} />
+                                                    <button 
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            removeImage(i);
+                                                        }}
+                                                        className="absolute top-2 right-2 h-8 w-8 bg-black/50 text-white rounded-lg backdrop-blur-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    >
+                                                        <span className="material-symbols-outlined text-sm font-black">delete</span>
+                                                    </button>
+                                                    {i === 0 && (
+                                                        <div className="absolute bottom-2 left-2 px-2 py-1 bg-[#2F2BFF] text-white text-[8px] font-black uppercase tracking-widest rounded-md">Main</div>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                );
+            case 5:
                 return (
                     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
                         <div className="bg-white rounded-[32px] border border-slate-100 p-8 shadow-xl shadow-blue-500/5">
@@ -269,28 +468,48 @@ export default function NewSpaceFlow() {
                                     <div key={day} className={`flex items-center justify-between p-6 rounded-2xl border transition-all ${data.open ? "bg-white border-slate-200 shadow-sm" : "bg-slate-50 border-transparent opacity-60"}`}>
                                         <div className="flex items-center gap-6">
                                             <label className="relative inline-flex items-center cursor-pointer scale-110">
-                                                <input type="checkbox" defaultChecked={data.open} className="sr-only peer" />
-                                                <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#1d1aff]"></div>
+                                                <input 
+                                                    type="checkbox" 
+                                                    checked={data.open} 
+                                                    onChange={() => toggleDay(day)}
+                                                    className="sr-only peer" 
+                                                />
+                                                <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-gradient"></div>
                                             </label>
                                             <div>
                                                 <p className="text-base font-black text-slate-900 capitalize leading-tight">{day}</p>
-                                                <p className={`text-[10px] font-bold uppercase tracking-widest ${data.open ? "text-[#1d1aff]" : "text-slate-400"}`}>{data.open ? "Open" : "Closed"}</p>
+                                                <p className={`text-[10px] font-bold uppercase tracking-widest ${data.open ? "text-[#2F2BFF]" : "text-slate-400"}`}>{data.open ? "Open" : "Closed"}</p>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-4">
-                                            <div className="flex items-center gap-2">
-                                                <div className="h-10 px-4 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-center font-bold text-xs text-slate-900">{data.open ? data.start : "--:--"}</div>
-                                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">to</span>
-                                                <div className="h-10 px-4 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-center font-bold text-xs text-slate-900">{data.open ? data.end : "--:--"}</div>
-                                            </div>
+                                            {data.open && (
+                                                <div className="flex items-center gap-2">
+                                                    <select 
+                                                        value={data.start}
+                                                        onChange={(e) => updateHours(day, 'start', e.target.value)}
+                                                        className="h-10 px-3 bg-white border border-slate-200 rounded-xl text-[10px] font-black text-slate-900 focus:outline-none focus:border-[#2F2BFF]"
+                                                    >
+                                                        {timeSlots.map(t => <option key={t}>{t}</option>)}
+                                                    </select>
+                                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">to</span>
+                                                    <select 
+                                                        value={data.end}
+                                                        onChange={(e) => updateHours(day, 'end', e.target.value)}
+                                                        className="h-10 px-3 bg-white border border-slate-200 rounded-xl text-[10px] font-black text-slate-900 focus:outline-none focus:border-[#2F2BFF]"
+                                                    >
+                                                        {timeSlots.map(t => <option key={t}>{t}</option>)}
+                                                    </select>
+                                                </div>
+                                            )}
+                                            {!data.open && <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">Unavailable</span>}
                                         </div>
                                     </div>
                                 ))}
                             </div>
 
-                            <div className="mt-10 p-8 rounded-[32px] bg-[#1d1aff]/5 border border-[#1d1aff]/10 flex items-center justify-between group">
+                            <div className="mt-10 p-8 rounded-[32px] bg-[#2F2BFF]/5 border border-[#2F2BFF]/10 flex items-center justify-between group">
                                 <div className="flex items-center gap-6">
-                                    <div className="h-14 w-14 rounded-full bg-white flex items-center justify-center text-[#1d1aff] shadow-lg shadow-blue-500/5 group-hover:scale-110 transition-transform">
+                                    <div className="h-14 w-14 rounded-full bg-white flex items-center justify-center text-[#2F2BFF] shadow-lg shadow-blue-500/5 group-hover:scale-110 transition-transform">
                                         <span className="material-symbols-outlined text-2xl font-black">sync_alt</span>
                                     </div>
                                     <div>
@@ -303,7 +522,7 @@ export default function NewSpaceFlow() {
                         </div>
                     </div>
                 );
-            case 5:
+            case 6:
                 return (
                     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
                         <div>
@@ -312,105 +531,141 @@ export default function NewSpaceFlow() {
                         </div>
 
                         <div className="space-y-12">
-                            <section>
-                                <h3 className="text-xl font-black text-slate-900 mb-6">How guests will see it</h3>
-                                <div className="bg-white rounded-[40px] border border-slate-100 overflow-hidden shadow-2xl shadow-blue-500/5 flex flex-col md:flex-row group max-w-3xl mx-auto">
-                                    <div className="h-64 md:h-auto md:w-1/2 overflow-hidden shrink-0">
-                                        <img src="https://images.unsplash.com/photo-1618221118493-9cfa1a1c00da?q=80&w=1532&auto=format&fit=crop" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt="Preview" />
-                                    </div>
-                                    <div className="p-10 flex flex-col justify-between flex-1">
-                                        <div>
-                                            <span className="inline-block px-3 py-1 bg-[#1d1aff]/5 text-[#1d1aff] text-[10px] font-black uppercase tracking-[0.2em] rounded-md mb-4 border border-[#1d1aff]/10 shadow-sm">New Space</span>
-                                            <h3 className="text-2xl font-black text-slate-900">{formData.title}</h3>
-                                            <p className="text-sm font-bold text-slate-400">{formData.city}, {formData.state}</p>
-                                        </div>
-                                        <div className="mt-10 flex justify-between items-end">
-                                            <div>
-                                                <p className="text-2xl font-black text-slate-900 leading-none mb-1">${formData.price}<span className="text-sm font-bold text-slate-400 tracking-normal">/hour</span></p>
-                                                <p className="text-[10px] font-black text-amber-500 flex items-center gap-1">
-                                                    <span className="material-symbols-outlined text-xs filled-icon">star</span> New
-                                                </p>
+                            {/* Big Photo Preview Gallery */}
+                            <div className="rounded-[40px] overflow-hidden border border-white shadow-2xl shadow-blue-500/5 bg-white p-4">
+                                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 h-[500px]">
+                                    {/* Main Large Image */}
+                                    <div className="md:col-span-2 h-full rounded-[28px] overflow-hidden bg-slate-50 shadow-inner group relative">
+                                        {uploadedFiles.length > 0 ? (
+                                            <img src={URL.createObjectURL(uploadedFiles[0])} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt="Featured" />
+                                        ) : (
+                                            <div className="w-full h-full flex flex-col items-center justify-center text-slate-300">
+                                                <span className="material-symbols-outlined text-5xl mb-4">image</span>
+                                                <span className="text-xs font-black uppercase tracking-widest text-slate-400">No Photos</span>
                                             </div>
-                                            <button className="h-12 px-8 bg-[#1d1aff] text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-xl shadow-blue-500/20">Full Preview</button>
-                                        </div>
+                                        )}
+                                        <div className="absolute top-6 left-6 px-4 py-2 bg-black/50 backdrop-blur-md rounded-xl text-white text-[10px] font-black uppercase tracking-widest border border-white/20">Featured Cover</div>
+                                    </div>
+
+                                    {/* Secondary Grid */}
+                                    <div className="hidden md:grid grid-cols-1 gap-4 h-full">
+                                        {[1, 2].map((idx) => (
+                                            <div key={idx} className="h-full rounded-[24px] overflow-hidden bg-slate-50 shadow-inner group relative border border-slate-50">
+                                                {uploadedFiles[idx] ? (
+                                                    <img src={URL.createObjectURL(uploadedFiles[idx])} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={`Preview ${idx}`} />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center text-slate-200">
+                                                        <span className="material-symbols-outlined text-2xl opacity-40">add_photo_alternate</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="hidden md:grid grid-cols-1 gap-4 h-full">
+                                        {[3, 4].map((idx) => (
+                                            <div key={idx} className="h-full rounded-[24px] overflow-hidden bg-slate-50 shadow-inner group relative border border-slate-50">
+                                                {uploadedFiles[idx] ? (
+                                                    <>
+                                                        <img src={URL.createObjectURL(uploadedFiles[idx])} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={`Preview ${idx}`} />
+                                                        {idx === 4 && uploadedFiles.length > 5 && (
+                                                            <div className="absolute inset-0 bg-brand-gradient/80 backdrop-blur-sm flex flex-col items-center justify-center text-white">
+                                                                <span className="text-2xl font-black">+{uploadedFiles.length - 5}</span>
+                                                                <span className="text-[10px] font-black uppercase tracking-widest">Photos</span>
+                                                            </div>
+                                                        )}
+                                                    </>
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center text-slate-200">
+                                                        <span className="material-symbols-outlined text-2xl opacity-40">add_photo_alternate</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
-                            </section>
+                            </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
                                 <div className="bg-white rounded-[32px] p-8 border border-slate-100 shadow-sm relative group">
-                                    <button className="absolute top-6 right-8 text-[#1d1aff] font-black text-[10px] uppercase tracking-widest hover:underline flex items-center gap-1 group-hover:scale-105 transition-transform"><span className="material-symbols-outlined text-xs">edit</span> Edit</button>
+                                    <button onClick={() => setStep(1)} className="absolute top-6 right-8 text-[#2F2BFF] font-black text-[10px] uppercase tracking-widest hover:underline flex items-center gap-1 group-hover:scale-105 transition-transform"><span className="material-symbols-outlined text-xs">edit</span> Edit</button>
                                     <h4 className="text-base font-black text-slate-900 mb-6">Space Details</h4>
                                     <div className="space-y-5">
                                         <div>
                                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Type</p>
-                                            <p className="text-sm font-bold text-slate-900">Creative Studio / Workshop</p>
+                                            <p className="text-sm font-bold text-slate-900">{formData.type}</p>
                                         </div>
                                         <div>
                                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Capacity</p>
-                                            <p className="text-sm font-bold text-slate-900">Up to 12 people</p>
+                                            <p className="text-sm font-bold text-slate-900">Up to {formData.capacity} people</p>
                                         </div>
                                         <div>
                                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Description</p>
-                                            <p className="text-sm font-bold text-slate-900 line-clamp-2">A sun-drenched minimalist studio designed for focus and collaboration. Features high ceilings, industrial windows,...</p>
+                                            <p className="text-sm font-bold text-slate-900 line-clamp-2">{formData.description || "No description provided."}</p>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div className="bg-white rounded-[32px] p-8 border border-slate-100 shadow-sm relative group">
-                                    <button className="absolute top-6 right-8 text-[#1d1aff] font-black text-[10px] uppercase tracking-widest hover:underline flex items-center gap-1 group-hover:scale-105 transition-transform"><span className="material-symbols-outlined text-xs">edit</span> Edit</button>
+                                    <button onClick={() => setStep(2)} className="absolute top-6 right-8 text-[#2F2BFF] font-black text-[10px] uppercase tracking-widest hover:underline flex items-center gap-1 group-hover:scale-105 transition-transform"><span className="material-symbols-outlined text-xs">edit</span> Edit</button>
                                     <h4 className="text-base font-black text-slate-900 mb-6">Location</h4>
                                     <div className="space-y-4">
-                                        <p className="text-sm font-bold text-slate-900 flex items-center gap-2"><span className="material-symbols-outlined text-base text-[#1d1aff]">location_on</span> 482 Creative Lane, Suite 204, San Francisco, CA 94107</p>
+                                        <p className="text-sm font-bold text-slate-900 flex items-center gap-2"><span className="material-symbols-outlined text-base text-[#2F2BFF]">location_on</span> {formData.address}, {formData.city}, {formData.state} {formData.zip}</p>
                                         <div className="h-40 bg-slate-50 rounded-2xl overflow-hidden border border-slate-100 relative grayscale opacity-60">
                                             <img src="https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=1474&auto=format&fit=crop" className="w-full h-full object-cover" alt="Map Preview" />
                                             <div className="absolute inset-0 flex items-center justify-center">
-                                                <div className="h-8 w-8 bg-[#1d1aff] rounded-full border-2 border-white shadow-lg"></div>
+                                                <div className="h-8 w-8 bg-brand-gradient rounded-full border-2 border-white shadow-lg"></div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div className="bg-white rounded-[32px] p-8 border border-slate-100 shadow-sm relative group">
-                                    <button className="absolute top-6 right-8 text-[#1d1aff] font-black text-[10px] uppercase tracking-widest hover:underline flex items-center gap-1 group-hover:scale-105 transition-transform"><span className="material-symbols-outlined text-xs">edit</span> Edit</button>
+                                    <button onClick={() => setStep(3)} className="absolute top-6 right-8 text-[#2F2BFF] font-black text-[10px] uppercase tracking-widest hover:underline flex items-center gap-1 group-hover:scale-105 transition-transform"><span className="material-symbols-outlined text-xs">edit</span> Edit</button>
                                     <h4 className="text-base font-black text-slate-900 mb-6">Pricing & Media</h4>
                                     <div className="space-y-6">
-                                        <div className="p-4 bg-[#1d1aff]/5 rounded-2xl border border-[#1d1aff]/10 flex items-center justify-between">
+                                        <div className="p-4 bg-[#2F2BFF]/5 rounded-2xl border border-[#2F2BFF]/10 flex items-center justify-between">
                                             <div>
-                                                <p className="text-[10px] font-black text-[#1d1aff] uppercase tracking-widest mb-0.5">Standard Rate</p>
-                                                <p className="text-xl font-black text-slate-900">${formData.price}/hr</p>
+                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Hourly Rate</p>
+                                                <p className="text-sm font-bold text-slate-900">₹{formData.price}/hr</p>
                                             </div>
-                                            <span className="material-symbols-outlined text-2xl text-[#1d1aff] font-black">payments</span>
+                                            <button onClick={() => setStep(3)} className="text-[10px] font-black uppercase tracking-widest text-[#2F2BFF]">Edit</button>
                                         </div>
-                                        <div className="flex flex-wrap gap-2">
-                                            <div className="h-10 w-10 rounded-lg overflow-hidden border border-slate-100"><img src="https://images.unsplash.com/photo-1590490360182-c33d57733427?q=80&w=1374&auto=format&fit=crop" className="w-full h-full object-cover" alt="p" /></div>
-                                            <div className="h-10 w-10 rounded-lg overflow-hidden border border-slate-100"><img src="https://images.unsplash.com/photo-1578683010236-d716f9a3f461?q=80&w=1470&auto=format&fit=crop" className="w-full h-full object-cover" alt="p" /></div>
-                                            <div className="h-10 w-10 rounded-lg overflow-hidden border border-slate-100"><img src="https://images.unsplash.com/photo-1618221118493-9cfa1a1c00da?q=80&w=1532&auto=format&fit=crop" className="w-full h-full object-cover" alt="p" /></div>
-                                            <div className="h-10 w-10 rounded-lg bg-slate-50 flex items-center justify-center text-[10px] font-black text-slate-400 border border-slate-100">+5</div>
-                                            <span className="text-[10px] font-black text-slate-400 self-center ml-2 uppercase tracking-widest">8 Photos total</span>
+                                        <div className="p-4 bg-[#2F2BFF]/5 rounded-2xl border border-[#2F2BFF]/10 space-y-4">
+                                            <div className="flex items-center justify-between">
+                                                <div>
+                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Photos</p>
+                                                    <p className="text-sm font-bold text-slate-900">{uploadedFiles.length} photos uploaded</p>
+                                                </div>
+                                                <button onClick={() => setStep(4)} className="text-[10px] font-black uppercase tracking-widest text-[#2F2BFF]">Edit</button>
+                                            </div>
+                                            {uploadedFiles.length > 0 && (
+                                                <div className="flex gap-2 overflow-hidden">
+                                                    {uploadedFiles.slice(0, 4).map((file, i) => (
+                                                        <div key={i} className="h-12 w-12 rounded-lg overflow-hidden border border-white shadow-sm flex-shrink-0 relative">
+                                                            <img src={URL.createObjectURL(file)} className="w-full h-full object-cover" alt="Preview" />
+                                                            {i === 3 && uploadedFiles.length > 4 && (
+                                                                <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                                                                    <span className="text-[10px] font-black text-white">+{uploadedFiles.length - 4}</span>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
 
                                 <div className="bg-white rounded-[32px] p-8 border border-slate-100 shadow-sm relative group">
-                                    <button className="absolute top-6 right-8 text-[#1d1aff] font-black text-[10px] uppercase tracking-widest hover:underline flex items-center gap-1 group-hover:scale-105 transition-transform"><span className="material-symbols-outlined text-xs">edit</span> Edit</button>
+                                    <button onClick={() => setStep(5)} className="absolute top-6 right-8 text-[#2F2BFF] font-black text-[10px] uppercase tracking-widest hover:underline flex items-center gap-1 group-hover:scale-105 transition-transform"><span className="material-symbols-outlined text-xs">edit</span> Edit</button>
                                     <h4 className="text-base font-black text-slate-900 mb-6">Availability</h4>
-                                    <div className="space-y-3">
-                                        <div className="flex justify-between items-center text-xs">
-                                            <span className="font-bold text-slate-500">Mon - Fri</span>
-                                            <span className="font-black text-slate-900">08:00 AM - 08:00 PM</span>
-                                        </div>
-                                        <div className="flex justify-between items-center text-xs">
-                                            <span className="font-bold text-slate-500">Saturday</span>
-                                            <span className="font-black text-slate-900">10:00 AM - 04:00 PM</span>
-                                        </div>
-                                        <div className="flex justify-between items-center text-xs opacity-40">
-                                            <span className="font-bold text-slate-500">Sunday</span>
-                                            <span className="font-black text-slate-900 italic">Unavailable</span>
-                                        </div>
-                                        <div className="mt-4 p-3 bg-slate-50 rounded-xl border border-slate-100">
-                                            <p className="text-[10px] font-bold text-slate-400 text-center italic">"Auto-approve requests from verified guests enabled."</p>
-                                        </div>
+                                    <div className="space-y-4">
+                                        {Object.entries(formData.availability).map(([day, data]) => (
+                                            <div key={day} className="flex justify-between items-center">
+                                                <p className="text-sm font-bold text-slate-900 capitalize">{day}</p>
+                                                <p className="text-sm font-bold text-slate-500">{data.open ? `${data.start} - ${data.end}` : "Closed"}</p>
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
                             </div>
@@ -421,22 +676,7 @@ export default function NewSpaceFlow() {
     };
 
     return (
-        <div className="bg-[#f8f6f6] min-h-screen pb-20 overflow-hidden relative">
-            {/* Nav Header */}
-            <header className="sticky top-0 z-50 w-full bg-[#f8f6f6]/80 backdrop-blur-lg px-8 py-5 border-b border-white flex justify-between items-center">
-                <div className="flex items-center gap-3 group cursor-pointer" onClick={() => router.push("/host/dashboard")}>
-                    <div className="bg-[#1d1aff] rounded-xl p-2.5 shadow-lg shadow-blue-500/20 group-hover:scale-110 transition-transform">
-                        <span className="material-symbols-outlined text-white text-xl font-black">corporate_fare</span>
-                    </div>
-                    <span className="text-2xl font-black text-slate-900 tracking-tighter">Isshō <span className="text-slate-400 font-bold ml-px">Host</span></span>
-                </div>
-                <div className="flex items-center gap-8">
-                    <button onClick={() => router.push("/host/dashboard")} className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-slate-900 transition-colors">Save & Exit</button>
-                    <div className="h-10 w-10 rounded-full border border-white shadow-sm overflow-hidden shrink-0">
-                        <img src={user?.avatar || "https://lh3.googleusercontent.com/aida-public/AB6AXuBdfPNMucMuSUNyDYhe7_lidlIxF3soI4WtCAt-b-PdtD4zRJyMcIcueyUuRBCjhKyUGNaozNOiMKqY5CfZype_fWp9wV18HYPgIl2cBXI9R62ScAAcbfkl19fVp1HEQSD0PLECtOpYc5q-sdoGOAXxEb3fNt6LjLoIEw4062phXaRA5v8rDlCW5NvCJnmQeiKBTHxDI3WWNIitEoSooW7TQS_CRR_kqQp-6KAuhRe7HC00gS9lD-DmBdAaXMcP7AMUssYLNqLafQ"} alt="U" className="w-full h-full object-cover" />
-                    </div>
-                </div>
-            </header>
+        <div className="bg-[#F8FAFF] min-h-screen pb-20 overflow-hidden relative">
 
             <div className="max-w-4xl mx-auto px-6 py-12">
                 {renderStepHeader()}
@@ -446,7 +686,7 @@ export default function NewSpaceFlow() {
                 </div>
 
                 {/* Footer Nav */}
-                <div className="fixed bottom-0 left-0 right-0 bg-[#f8f6f6]/80 backdrop-blur-lg border-t border-white py-6 z-50">
+                <div className="fixed bottom-0 left-0 right-0 bg-[#F8FAFF]/80 backdrop-blur-lg border-t border-white py-6 z-50">
                     <div className="max-w-4xl mx-auto px-6 flex justify-between items-center">
                         <button
                             onClick={prevStep}
@@ -457,22 +697,21 @@ export default function NewSpaceFlow() {
                             Back
                         </button>
 
-                        {step < 5 ? (
+                        {step < 6 ? (
                             <button
                                 onClick={nextStep}
-                                className="bg-[#1d1aff] text-white h-14 px-10 rounded-2xl font-black text-sm shadow-xl shadow-blue-500/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-3 group"
+                                className="bg-brand-gradient text-white h-14 px-10 rounded-2xl font-black text-sm shadow-xl shadow-blue-500/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-3 group"
                             >
-                                Continue to {step === 1 ? "Location" : step === 2 ? "Pricing" : step === 3 ? "Availability" : "Review"}
+                                Continue to {step === 1 ? "Location" : step === 2 ? "Pricing" : step === 3 ? "Photos" : step === 4 ? "Availability" : "Review"}
                                 <span className="material-symbols-outlined font-black text-lg group-hover:translate-x-1 transition-transform">arrow_forward</span>
                             </button>
                         ) : (
                             <button
                                 onClick={handleSubmit}
                                 disabled={isSubmitting}
-                                className="bg-[#1d1aff] text-white h-14 px-12 rounded-2xl font-black text-sm shadow-xl shadow-blue-500/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-3 disabled:opacity-70"
+                                className="bg-brand-gradient text-white h-14 px-12 rounded-2xl font-black text-sm shadow-xl shadow-blue-500/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-3 disabled:opacity-70"
                             >
                                 {isSubmitting ? "Publishing..." : "Publish Listing"}
-                                {!isSubmitting && <span className="material-symbols-outlined font-black text-lg">rocket_launch</span>}
                             </button>
                         )}
                     </div>

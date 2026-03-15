@@ -28,9 +28,8 @@ interface Booking {
     end_time: string;
     total_price: number;
     status: string;
-    date: string;
     spaces: Space;
-    profiles: Profile;
+    profiles: Profile | Profile[];
 }
 
 export default function HostBookingDetails() {
@@ -70,6 +69,27 @@ export default function HostBookingDetails() {
         };
 
         fetchBooking();
+
+        // Real-time listener for this specific booking
+        const channel = supabase
+            .channel(`host_booking_detail_${params.id}`)
+            .on(
+                'postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'bookings',
+                    filter: `id=eq.${params.id}`
+                },
+                () => {
+                    fetchBooking();
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
     }, [user, params.id]);
 
     const updateStatus = async (newStatus: string) => {
@@ -86,7 +106,7 @@ export default function HostBookingDetails() {
 
     if (loading) return (
         <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1d1aff]"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2F2BFF]"></div>
         </div>
     );
 
@@ -94,7 +114,7 @@ export default function HostBookingDetails() {
         return (
             <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center gap-6">
                 <h1 className="text-2xl font-black text-slate-900">Booking not found</h1>
-                <Link href="/host/bookings" className="text-[#1d1aff] font-black hover:underline">Back to bookings</Link>
+                <Link href="/host/bookings" className="text-[#2F2BFF] font-black hover:underline">Back to bookings</Link>
             </div>
         );
     }
@@ -117,7 +137,7 @@ export default function HostBookingDetails() {
     };
 
     return (
-        <div className="w-full bg-[#f8f6f6] min-h-screen">
+        <div className="w-full bg-[#F8FAFF] min-h-screen">
             <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
                 <div className="flex flex-col gap-8 md:flex-row">
                     <HostSidebar user={user!} currentPage="bookings" />
@@ -174,12 +194,18 @@ export default function HostBookingDetails() {
                                     <h2 className="text-2xl font-black text-slate-900 tracking-tight mb-8">Guest Personal Details</h2>
                                     <div className="flex items-center gap-8 mb-10 pb-10 border-b border-slate-50">
                                         <div className="h-24 w-24 rounded-[32px] overflow-hidden shadow-inner border border-slate-100 shrink-0">
-                                            <img src={booking.profiles.avatar_url || `https://i.pravatar.cc/150?u=${booking.user_id}`} alt="Guest" className="w-full h-full object-cover" />
+                                            {(() => {
+                                                const profile = Array.isArray(booking.profiles) ? booking.profiles[0] : booking.profiles;
+                                                const avatarUrl = profile?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${booking.user_id}&backgroundColor=b6e3f4,c0aede,d1d4f9`;
+                                                return (
+                                                    <img src={avatarUrl} alt="Guest" className="w-full h-full object-cover" />
+                                                );
+                                            })()}
                                         </div>
                                         <div>
-                                            <h3 className="text-2xl font-black text-slate-900 mb-1">{booking.profiles.full_name || "Guest User"}</h3>
+                                            <h3 className="text-2xl font-black text-slate-900 mb-1">{(Array.isArray(booking.profiles) ? booking.profiles[0] : booking.profiles)?.full_name || "Guest User"}</h3>
                                             <p className="text-slate-500 font-bold flex items-center gap-2">
-                                                <span className="px-2 py-0.5 bg-[#1d1aff]/5 text-[#1d1aff] text-[10px] font-black uppercase tracking-widest rounded-md">Verified Account</span>
+                                                <span className="px-2 py-0.5 bg-[#2F2BFF]/5 text-[#2F2BFF] text-[10px] font-black uppercase tracking-widest rounded-md">Verified Account</span>
                                                 <span className="h-1 w-1 bg-slate-300 rounded-full"></span>
                                                 Member since 2024
                                             </p>
@@ -216,7 +242,7 @@ export default function HostBookingDetails() {
                                                     <p className="font-bold text-slate-900">12 successfully completed stays</p>
                                                 </div>
                                             </div>
-                                            <button className="h-11 w-full rounded-2xl bg-slate-50 border border-slate-100 text-xs font-black text-slate-600 hover:bg-[#1d1aff]/5 hover:text-[#1d1aff] hover:border-[#1d1aff]/10 transition-all">Send Message to Guest</button>
+                                            <button className="h-11 w-full rounded-2xl bg-slate-50 border border-slate-100 text-xs font-black text-slate-600 hover:bg-[#2F2BFF]/5 hover:text-[#2F2BFF] hover:border-[#2F2BFF]/10 transition-all">Send Message to Guest</button>
                                         </div>
                                     </div>
                                 </section>
@@ -231,7 +257,7 @@ export default function HostBookingDetails() {
                                             <p className="text-slate-500 font-medium max-w-md">This booking is currently pending your approval. Guests appreciate quick responses.</p>
                                         </div>
                                         <div className="flex gap-4 w-full max-w-sm">
-                                            <button onClick={() => updateStatus("confirmed")} className="flex-1 h-14 rounded-[20px] bg-[#1d1aff] text-white font-black shadow-xl shadow-blue-500/20 active:scale-95 transition-all">Approve Booking</button>
+                                            <button onClick={() => updateStatus("confirmed")} className="flex-1 h-14 rounded-[20px] bg-brand-gradient text-white font-black shadow-xl shadow-blue-500/20 active:scale-95 transition-all">Approve Booking</button>
                                             <button onClick={() => updateStatus("cancelled")} className="flex-1 h-14 rounded-[20px] bg-white border border-slate-200 text-rose-500 font-black hover:bg-rose-50 active:scale-95 transition-all">Decline</button>
                                         </div>
                                     </section>
@@ -256,7 +282,7 @@ export default function HostBookingDetails() {
                                         <div className="h-px bg-white/10 w-full my-4"></div>
                                         <div className="flex justify-between items-end">
                                             <div className="flex flex-col gap-1">
-                                                <span className="text-[10px] font-black uppercase tracking-widest text-[#1d1aff]">Net Payout</span>
+                                                <span className="text-[10px] font-black uppercase tracking-widest text-[#2F2BFF]">Net Payout</span>
                                                 <span className="text-3xl font-black leading-none text-white">₹{booking.total_price.toLocaleString()}</span>
                                             </div>
                                             <span className="px-3 py-1 bg-emerald-500/10 text-emerald-400 text-[10px] font-black uppercase tracking-widest rounded-full border border-emerald-500/20">Secured</span>

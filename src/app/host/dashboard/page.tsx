@@ -13,6 +13,7 @@ interface Space {
     location: string;
     price_per_hour: number;
     images: string[];
+    type: string;
 }
 
 interface Booking {
@@ -26,7 +27,10 @@ interface Booking {
     profiles?: {
         full_name: string;
         avatar_url: string;
-    };
+    } | {
+        full_name: string;
+        avatar_url: string;
+    }[];
     spaces?: {
         title: string;
     };
@@ -70,13 +74,8 @@ export default function HostDashboard() {
                         .from("bookings")
                         .select(`
                             *,
-                            profiles:user_id (
-                                full_name,
-                                avatar_url
-                            ),
-                            spaces:space_id (
-                                title
-                            )
+                            profiles:user_id (*),
+                            spaces:space_id (*)
                         `)
                         .in("space_id", spaceIds)
                         .order("created_at", { ascending: false });
@@ -94,10 +93,42 @@ export default function HostDashboard() {
         fetchData();
     }, [user, router]);
 
+    const handleStatusUpdate = async (bookingId: string, status: 'confirmed' | 'cancelled') => {
+        try {
+            const { error } = await supabase
+                .from("bookings")
+                .update({ status })
+                .eq("id", bookingId);
+
+            if (error) {
+                console.error("Error updating booking status:", error);
+                alert("Could not update status: " + error.message);
+            } else {
+                // Optimistically update local state
+                setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status } : b));
+            }
+        } catch (err: any) {
+            console.error("Fatal error updating status:", err);
+            alert("An error occurred: " + err.message);
+        }
+    };
+
+    const getGuestAvatar = (booking: Booking) => {
+        const profile = Array.isArray(booking.profiles) ? booking.profiles[0] : booking.profiles;
+        if (profile?.avatar_url) return profile.avatar_url;
+        // Fallback to stylized DiceBear avatar
+        return `https://api.dicebear.com/7.x/avataaars/svg?seed=${booking.user_id}&backgroundColor=b6e3f4,c0aede,d1d4f9`;
+    };
+
+    const getGuestName = (booking: Booking) => {
+        const profile = Array.isArray(booking.profiles) ? booking.profiles[0] : booking.profiles;
+        return profile?.full_name || 'Guest Request';
+    };
+
     if (!user || loading) {
         return (
             <div className="flex items-center justify-center min-h-screen">
-                <div className="w-10 h-10 border-4 border-[#1d1aff]/20 border-t-[#1d1aff] rounded-full animate-spin" />
+                <div className="w-10 h-10 border-4 border-[#2F2BFF]/20 border-t-[#2F2BFF] rounded-full animate-spin" />
             </div>
         );
     }
@@ -109,7 +140,7 @@ export default function HostDashboard() {
         .reduce((sum, b) => sum + b.total_price, 0);
 
     return (
-        <div className="w-full bg-[#f8f6f6] min-h-screen pb-24 md:pb-0">
+        <div className="w-full bg-[#F8FAFF] min-h-screen pb-24 md:pb-0">
             <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
                 <div className="flex flex-col gap-8 md:flex-row">
                     <HostSidebar user={user} currentPage="overview" />
@@ -124,7 +155,7 @@ export default function HostDashboard() {
                             <div className="flex gap-3">
                                 <Link
                                     href="/host/spaces/new"
-                                    className="flex items-center gap-2 rounded-2xl bg-[#1d1aff] px-6 py-3.5 text-sm font-black text-white hover:brightness-110 shadow-xl shadow-blue-500/20 active:scale-95 transition-all"
+                                    className="flex items-center gap-2 rounded-2xl bg-brand-gradient px-6 py-3.5 text-sm font-black text-white hover:brightness-110 shadow-xl shadow-blue-500/20 active:scale-95 transition-all"
                                 >
                                     <span className="material-symbols-outlined font-black">add_circle</span>
                                     Add New Space
@@ -171,7 +202,7 @@ export default function HostDashboard() {
                                 <section>
                                     <div className="flex justify-between items-center mb-6">
                                         <h2 className="text-2xl font-black text-slate-900 tracking-tight">Booking Requests</h2>
-                                        <Link href="/host/bookings" className="text-[#1d1aff] text-sm font-black hover:underline">View all</Link>
+                                        <Link href="/host/bookings" className="text-[#2F2BFF] text-sm font-black hover:underline">View all</Link>
                                     </div>
 
                                     {pendingRequests.length > 0 ? (
@@ -181,22 +212,32 @@ export default function HostDashboard() {
                                                 return (
                                                     <div key={b.id} className="bg-white rounded-[32px] p-6 border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-500 flex flex-col sm:flex-row items-center gap-6">
                                                         <div className="h-20 w-20 rounded-2xl overflow-hidden shadow-inner border border-slate-100 bg-slate-50 shrink-0">
-                                                            <img src={b.profiles?.avatar_url || `https://i.pravatar.cc/150?u=${b.user_id}`} alt="Guest" className="w-full h-full object-cover" />
+                                                            <img src={getGuestAvatar(b)} alt="Guest" className="w-full h-full object-cover" />
                                                         </div>
                                                         <div className="flex-1 text-center sm:text-left">
                                                             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-1">
-                                                                <h4 className="font-black text-slate-900 leading-tight">{b.profiles?.full_name || 'Guest Request'} · {b.spaces?.title}</h4>
+                                                                <h4 className="font-black text-slate-900 leading-tight">{getGuestName(b)} · {b.spaces?.title}</h4>
                                                                 <span className="px-2 py-0.5 bg-rose-50 text-rose-500 text-[10px] font-black uppercase tracking-widest rounded-full border border-rose-100">New</span>
                                                             </div>
                                                             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 text-xs font-bold text-slate-500">
                                                                 <span className="flex items-center gap-1.5"><span className="material-symbols-outlined text-[16px]">calendar_today</span> {new Date(b.start_time).toLocaleDateString()}</span>
                                                                 <span className="flex items-center gap-1.5"><span className="material-symbols-outlined text-[16px]">schedule</span> {new Date(b.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                                                                <span className="font-black text-[#1d1aff] text-sm">₹{b.total_price.toLocaleString()}</span>
+                                                                <span className="font-black text-[#2F2BFF] text-sm">₹{b.total_price.toLocaleString()}</span>
                                                             </div>
                                                         </div>
                                                         <div className="flex gap-2 shrink-0">
-                                                            <button className="h-10 px-6 rounded-xl bg-[#1d1aff] text-white text-xs font-black shadow-lg shadow-blue-500/20 active:scale-95 transition-all">Approve</button>
-                                                            <button className="h-10 px-6 rounded-xl bg-slate-50 text-slate-400 text-xs font-black border border-slate-100 hover:bg-rose-50 hover:text-rose-500 hover:border-rose-100 transition-all">Decline</button>
+                                                            <button 
+                                                                onClick={() => handleStatusUpdate(b.id, 'confirmed')}
+                                                                className="h-10 px-6 rounded-xl bg-brand-gradient text-white text-xs font-black shadow-lg shadow-blue-500/20 active:scale-95 transition-all"
+                                                            >
+                                                                Approve
+                                                            </button>
+                                                            <button 
+                                                                onClick={() => handleStatusUpdate(b.id, 'cancelled')}
+                                                                className="h-10 px-6 rounded-xl bg-slate-50 text-slate-400 text-xs font-black border border-slate-100 hover:bg-rose-50 hover:text-rose-500 hover:border-rose-100 transition-all"
+                                                            >
+                                                                Decline
+                                                            </button>
                                                         </div>
                                                     </div>
                                                 );
@@ -218,7 +259,7 @@ export default function HostDashboard() {
                                 <section>
                                     <div className="flex justify-between items-center mb-6">
                                         <h2 className="text-2xl font-black text-slate-900 tracking-tight">Recent Reservations</h2>
-                                        <Link href="/host/bookings" className="text-[#1d1aff] text-sm font-black hover:underline">Go to Bookings</Link>
+                                        <Link href="/host/bookings" className="text-[#2F2BFF] text-sm font-black hover:underline">Go to Bookings</Link>
                                     </div>
                                     <div className="bg-white rounded-[32px] overflow-hidden border border-slate-100 shadow-sm">
                                         <div className="overflow-x-auto">
@@ -237,8 +278,8 @@ export default function HostDashboard() {
                                                             <tr key={b.id} className="hover:bg-slate-50/30 transition-colors">
                                                                 <td className="px-8 py-5">
                                                                     <div className="flex items-center gap-3">
-                                                                        <img src={b.profiles?.avatar_url || `https://i.pravatar.cc/150?u=${b.user_id}`} alt="G" className="w-8 h-8 rounded-full border border-slate-100 shadow-sm" />
-                                                                        <span className="font-black text-slate-900">{b.profiles?.full_name || 'Guest User'}</span>
+                                                                        <img src={getGuestAvatar(b)} alt="G" className="w-8 h-8 rounded-full border border-slate-100 shadow-sm" />
+                                                                        <span className="font-black text-slate-900">{getGuestName(b)}</span>
                                                                     </div>
                                                                 </td>
                                                                 <td className="px-8 py-5">
@@ -267,20 +308,40 @@ export default function HostDashboard() {
                                 <section>
                                     <div className="flex justify-between items-center mb-6">
                                         <h2 className="text-xl font-black text-slate-900 tracking-tight">Active Listings</h2>
-                                        <Link href="/host/spaces" className="text-[#1d1aff] text-[10px] font-black uppercase tracking-widest">Edit all</Link>
+                                        <Link href="/host/spaces" className="text-[#2F2BFF] text-[10px] font-black uppercase tracking-widest">Edit all</Link>
                                     </div>
                                     {mySpaces.length > 0 ? (
                                         <div className="space-y-4">
                                             {mySpaces.map(s => (
                                                 <div key={s.id} className="bg-white rounded-[24px] p-3 border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-500 group flex items-center gap-4">
-                                                    <div className="h-20 w-20 rounded-2xl overflow-hidden shrink-0 shadow-inner">
-                                                        <img src={s.images[0]} alt={s.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                                                    <div className="h-20 w-20 rounded-2xl overflow-hidden shrink-0 shadow-inner bg-slate-100 border border-slate-100">
+                                                        {(() => {
+                                                            const typeFallbacks: { [key: string]: string } = {
+                                                                villa: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c",
+                                                                studio: "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d",
+                                                                cafe: "https://images.unsplash.com/photo-1554118811-1e0d58224f24",
+                                                                rooftop: "https://images.unsplash.com/photo-1533090161767-e6ffed986c88",
+                                                                default: "https://images.unsplash.com/photo-1497366216548-37526070297c"
+                                                            };
+                                                            const fallback = (typeFallbacks[s.type.toLowerCase()] || typeFallbacks.default) + "?q=80&w=200&auto=format&fit=crop";
+                                                            const displayImg = (s.images && s.images.length > 0 && !s.images[0].startsWith('blob:')) 
+                                                                ? s.images[0] 
+                                                                : fallback;
+                                                            return (
+                                                                <img 
+                                                                    src={displayImg} 
+                                                                    alt={s.title} 
+                                                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
+                                                                    onError={(e) => { (e.target as HTMLImageElement).src = fallback; }}
+                                                                />
+                                                            );
+                                                        })()}
                                                     </div>
                                                     <div className="flex-1 py-1 pr-2">
                                                         <h4 className="font-black text-sm text-slate-900 line-clamp-1 mb-1">{s.title}</h4>
                                                         <p className="text-[10px] font-bold text-slate-500 flex items-center gap-1"><span className="material-symbols-outlined text-[12px]">location_on</span> {s.location}</p>
                                                         <div className="flex items-center justify-between mt-2">
-                                                            <p className="text-xs font-black text-[#1d1aff]">₹{s.price_per_hour}/hr</p>
+                                                            <p className="text-xs font-black text-[#2F2BFF]">₹{s.price_per_hour}/hr</p>
                                                             <span className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
                                                         </div>
                                                     </div>
@@ -291,7 +352,7 @@ export default function HostDashboard() {
                                         <div className="rounded-[24px] border-2 border-dashed border-slate-200 p-8 text-center flex flex-col items-center gap-4">
                                             <span className="material-symbols-outlined text-4xl text-slate-200 font-thin">corporate_fare</span>
                                             <p className="text-xs font-black text-slate-400 leading-tight">You haven't listed any spaces yet.</p>
-                                            <Link href="/host/spaces/new" className="bg-[#1d1aff] text-white px-6 py-2.5 rounded-xl font-black text-xs shadow-lg shadow-blue-500/10 active:scale-95 transition-all">Create Listing</Link>
+                                            <Link href="/host/spaces/new" className="bg-brand-gradient text-white px-6 py-2.5 rounded-xl font-black text-xs shadow-lg shadow-blue-500/10 active:scale-95 transition-all">Create Listing</Link>
                                         </div>
                                     )}
                                 </section>

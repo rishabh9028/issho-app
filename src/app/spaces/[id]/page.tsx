@@ -18,11 +18,11 @@ interface Space {
     images: string[];
     rating: number;
     reviews_count: number;
-    host_id: string;
     profiles?: {
         full_name: string;
         avatar_url: string;
-    }
+    };
+    availability?: any;
 }
 
 export default function SpaceDetail() {
@@ -36,6 +36,8 @@ export default function SpaceDetail() {
     const [bookingSuccess, setBookingSuccess] = useState(false);
     const [checkInDate, setCheckInDate] = useState(new Date().toISOString().split('T')[0]);
     const [duration, setDuration] = useState(4);
+    const [checkInTime, setCheckInTime] = useState("10:00 AM");
+
 
     const [reviews, setReviews] = useState<any[]>([]);
     const [reviewRating, setReviewRating] = useState(5);
@@ -108,6 +110,42 @@ export default function SpaceDetail() {
         };
     }, [spaceId]);
 
+    // Handle time reset when date changes
+    useEffect(() => {
+        if (!space) return;
+        
+        // Robust date parsing to avoid timezone shifts (checkInDate is YYYY-MM-DD)
+        const [year, month, day] = checkInDate.split('-').map(Number);
+        const dateObj = new Date(year, month - 1, day);
+        const dayOfWeek = dateObj.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+        
+        const availability = space.availability || {};
+        const dayAvailability = availability[dayOfWeek];
+        
+        if (dayAvailability?.open) {
+            // Helper to parse time
+            const parseTime = (t: string) => {
+                const [time, period] = t.split(' ');
+                let [h] = time.split(':').map(Number);
+                if (period === 'PM' && h !== 12) h += 12;
+                if (period === 'AM' && h === 12) h = 0;
+                return h;
+            };
+
+            const startH = parseTime(dayAvailability.start);
+            const formatTime = (h: number) => {
+                const period = h >= 12 ? 'PM' : 'AM';
+                let displayH = h % 12;
+                if (displayH === 0) displayH = 12;
+                return `${displayH.toString().padStart(2, '0')}:00 ${period}`;
+            };
+            
+            setCheckInTime(formatTime(startH));
+        } else {
+            setCheckInTime("");
+        }
+    }, [checkInDate, space?.availability]);
+
     const handleBooking = async () => {
         if (!user) {
             router.push("/auth/login");
@@ -115,28 +153,60 @@ export default function SpaceDetail() {
         }
 
         if (!space) return;
+        if (!checkInTime) {
+            alert("Please select a valid time.");
+            return;
+        }
 
         setBookingLoading(true);
-        const startTime = new Date(`${checkInDate}T10:00:00`); // Mocking 10 AM start for now
-        const endTime = new Date(startTime.getTime() + duration * 60 * 60 * 1000);
+        
+        try {
+            // Parse the selected check-in time
+            const parts = checkInTime.split(' ');
+            if (parts.length < 2) throw new Error("Invalid time format");
+            
+            const [time, period] = parts;
+            let [hours, minutes] = time.split(':').map(Number);
+            
+            if (period === 'PM' && hours !== 12) hours += 12;
+            if (period === 'AM' && hours === 12) hours = 0;
 
-        const { error } = await supabase
-            .from("bookings")
-            .insert([
-                {
-                    space_id: space.id,
-                    user_id: user.id,
-                    start_time: startTime.toISOString(),
-                    end_time: endTime.toISOString(),
-                    total_price: space.price_per_hour * duration,
-                    status: 'pending'
-                }
-            ]);
+            const startTime = new Date(`${checkInDate}T${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:00`);
+            
+            // Check if booking is in the past
+            if (startTime.getTime() < new Date().getTime()) {
+                alert("You cannot book a time in the past. Please select a future time.");
+                setBookingLoading(false);
+                return;
+            }
 
-        if (!error) {
-            setBookingSuccess(true);
+            const endTime = new Date(startTime.getTime() + duration * 60 * 60 * 1000);
+
+            const { error } = await supabase
+                .from("bookings")
+                .insert([
+                    {
+                        space_id: space.id,
+                        user_id: user.id,
+                        start_time: startTime.toISOString(),
+                        end_time: endTime.toISOString(),
+                        total_price: space.price_per_hour * duration,
+                        status: 'pending'
+                    }
+                ]);
+
+            if (error) {
+                console.error("Booking error:", error);
+                alert("Could not process booking: " + error.message);
+            } else {
+                setBookingSuccess(true);
+            }
+        } catch (err: any) {
+            console.error("Booking fatal error:", err);
+            alert("An error occurred: " + err.message);
+        } finally {
+            setBookingLoading(false);
         }
-        setBookingLoading(false);
     };
 
     const handleReviewSubmit = async (e: React.FormEvent) => {
@@ -168,7 +238,7 @@ export default function SpaceDetail() {
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-screen">
-                <div className="w-10 h-10 border-4 border-[#1d1aff]/20 border-t-[#1d1aff] rounded-full animate-spin" />
+                <div className="w-10 h-10 border-4 border-[#2F2BFF]/20 border-t-[#2F2BFF] rounded-full animate-spin" />
             </div>
         );
     }
@@ -177,39 +247,60 @@ export default function SpaceDetail() {
         return (
             <div className="flex flex-col items-center justify-center min-h-screen text-center px-4">
                 <h1 className="text-2xl font-black mb-4">Space not found</h1>
-                <Link href="/search" className="text-[#1d1aff] font-bold hover:underline">Back to search</Link>
+                <Link href="/search" className="text-[#2F2BFF] font-bold hover:underline">Back to search</Link>
             </div>
         );
     }
     return (
-        <div className="bg-[#f8f6f6] min-h-screen text-slate-900">
+        <div className="bg-[#F8FAFF] min-h-screen text-slate-900">
             <main className="mx-auto w-full max-w-7xl px-6 md:px-10 lg:px-20 py-8">
                 {/* Hero Section / Image Gallery */}
                 <section className="mb-10 grid grid-cols-1 md:grid-cols-4 md:grid-rows-2 gap-4 h-[500px]">
-                    <div className="md:col-span-2 md:row-span-2 relative overflow-hidden rounded-xl bg-slate-200">
-                        {space.images[0] && (
-                            <img
-                                className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
-                                alt={space.title}
-                                src={space.images[0]}
-                            />
-                        )}
-                        <button className="absolute bottom-4 left-4 flex items-center gap-2 rounded-lg bg-white/90 px-4 py-2 text-sm font-bold text-slate-900 shadow-sm hover:bg-white transition-colors">
-                            <span className="material-symbols-outlined text-sm">grid_view</span> View all photos
-                        </button>
-                    </div>
-                    {space.images.slice(1, 5).map((img, idx) => (
-                        <div key={idx} className="hidden md:block overflow-hidden rounded-xl bg-slate-200">
-                            <img 
-                                className="h-full w-full object-cover transition-transform duration-500 hover:scale-105" 
-                                alt={`${space.title} ${idx + 2}`} 
-                                src={img} 
-                            />
-                        </div>
-                    ))}
-                    {Array.from({ length: Math.max(0, 4 - space.images.length + 1) }).map((_, idx) => (
-                        <div key={`placeholder-${idx}`} className="hidden md:block overflow-hidden rounded-xl bg-slate-100 border border-slate-200" />
-                    ))}
+                    {(() => {
+                        const typeFallbacks: { [key: string]: string } = {
+                            villa: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c",
+                            studio: "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d",
+                            cafe: "https://images.unsplash.com/photo-1554118811-1e0d58224f24",
+                            rooftop: "https://images.unsplash.com/photo-1533090161767-e6ffed986c88",
+                            default: "https://images.unsplash.com/photo-1497366216548-37526070297c"
+                        };
+                        const fallback = (typeFallbacks[space.type.toLowerCase()] || typeFallbacks.default) + "?q=80&w=1000&auto=format&fit=crop";
+                        
+                        // Main Image
+                        const mainImg = (space.images && space.images.length > 0 && !space.images[0].startsWith('blob:')) 
+                            ? space.images[0] 
+                            : fallback;
+
+                        // Grid Images (up to 4 more)
+                        const gridImages = (space.images || []).slice(1, 5).filter(img => !img.startsWith('blob:'));
+                        const hasMoreImages = gridImages.length > 0;
+                        
+                        return (
+                            <>
+                                <div className={`${hasMoreImages ? 'md:col-span-2' : 'md:col-span-4'} md:row-span-2 relative overflow-hidden rounded-xl bg-slate-200`}>
+                                    <img
+                                        className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
+                                        alt={space.title}
+                                        src={mainImg}
+                                        onError={(e) => { (e.target as HTMLImageElement).src = fallback; }}
+                                    />
+                                    <button className="absolute bottom-4 left-4 flex items-center gap-2 rounded-lg bg-white/90 px-4 py-2 text-sm font-bold text-slate-900 shadow-sm hover:bg-white transition-colors">
+                                        <span className="material-symbols-outlined text-sm">grid_view</span> View all photos
+                                    </button>
+                                </div>
+                                {gridImages.length > 0 && gridImages.map((img, idx) => (
+                                    <div key={idx} className="hidden md:block overflow-hidden rounded-xl bg-slate-200">
+                                        <img 
+                                            className="h-full w-full object-cover transition-transform duration-500 hover:scale-105" 
+                                            alt={`${space.title} ${idx + 2}`} 
+                                            src={img}
+                                            onError={(e) => { (e.target as HTMLImageElement).src = fallback; }}
+                                        />
+                                    </div>
+                                ))}
+                            </>
+                        );
+                    })()}
                 </section>
 
                 <div className="flex flex-col lg:flex-row gap-12">
@@ -218,13 +309,13 @@ export default function SpaceDetail() {
                         <div className="mb-8">
                             <div className="flex items-center justify-between mb-2">
                                 <h1 className="text-3xl md:text-4xl font-black tracking-tight text-slate-900">{space.title}</h1>
-                                <button className="p-2 rounded-full hover:bg-[#1d1aff]/10 border border-slate-200 transition-colors">
+                                <button className="p-2 rounded-full hover:bg-[#2F2BFF]/10 border border-slate-200 transition-colors">
                                     <span className="material-symbols-outlined">share</span>
                                 </button>
                             </div>
                             <div className="flex flex-wrap items-center gap-4 text-sm font-medium text-slate-600">
                                 <span className="flex items-center gap-1">
-                                    <span className="material-symbols-outlined text-[#1d1aff] text-lg fill-1">star</span> {Number(space.rating).toFixed(1)} · {space.reviews_count} reviews
+                                    <span className="material-symbols-outlined text-[#2F2BFF] text-lg fill-1">star</span> {Number(space.rating).toFixed(1)} · {space.reviews_count} reviews
                                 </span>
                                 <span>·</span>
                                 <span className="flex items-center gap-1">
@@ -238,16 +329,24 @@ export default function SpaceDetail() {
                         {/* Host Section */}
                         <div className="flex items-center gap-4 mb-8">
                             <div
-                                className="h-14 w-14 rounded-full bg-cover bg-center border border-slate-100 shadow-sm bg-slate-100"
-                                style={{ backgroundImage: `url('${space.profiles?.avatar_url || 'https://i.pravatar.cc/150'}')` }}
-                            ></div>
+                                className="h-14 w-14 rounded-full bg-cover bg-center border border-slate-100 shadow-sm bg-slate-100 overflow-hidden"
+                            >
+                                <img 
+                                    src={
+                                        (Array.isArray(space.profiles) ? space.profiles[0]?.avatar_url : space.profiles?.avatar_url) || 
+                                        `https://api.dicebear.com/7.x/avataaars/svg?seed=${(Array.isArray(space.profiles) ? space.profiles[0]?.full_name : space.profiles?.full_name) || 'Host'}`
+                                    } 
+                                    alt={(Array.isArray(space.profiles) ? space.profiles[0]?.full_name : space.profiles?.full_name) || 'Host'}
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => { 
+                                        (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${(Array.isArray(space.profiles) ? space.profiles[0]?.full_name : space.profiles?.full_name) || 'Host'}`; 
+                                    }}
+                                />
+                            </div>
                             <div>
-                                <p className="text-lg font-bold text-slate-900">Hosted by {space.profiles?.full_name || 'Host'}</p>
+                                <p className="text-lg font-bold text-slate-900">Hosted by {(Array.isArray(space.profiles) ? space.profiles[0]?.full_name : space.profiles?.full_name) || 'Host'}</p>
                                 <p className="text-sm text-slate-500 font-medium">Joined in 2024</p>
                             </div>
-                            <button className="ml-auto rounded-xl border-2 border-[#1d1aff] px-5 py-2 text-sm font-bold text-[#1d1aff] hover:bg-[#1d1aff] hover:text-white transition-all transform active:scale-95">
-                                Message Host
-                            </button>
                         </div>
 
                         {/* Description */}
@@ -257,25 +356,14 @@ export default function SpaceDetail() {
                             </p>
                         </div>
 
-                        {/* Amenities Section */}
-                        <div className="mb-10">
-                            <h3 className="text-xl font-bold text-slate-900 mb-6">What this space offers</h3>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-6">
-                                {space.amenities.map((amenity) => (
-                                    <div key={amenity} className="flex items-center gap-4 group">
-                                        <span className="material-symbols-outlined text-[#1d1aff] text-2xl group-hover:scale-110 transition-transform">check_circle</span>
-                                        <span className="text-slate-700 font-bold">{amenity}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
+
 
                         <div className="h-px w-full bg-slate-200 my-8"></div>
 
                         {/* Reviews Section */}
                         <div className="mb-10">
                             <div className="flex items-center gap-2 mb-8">
-                                <span className="material-symbols-outlined text-[#1d1aff] text-2xl fill-1">star</span>
+                                <span className="material-symbols-outlined text-[#2F2BFF] text-2xl fill-1">star</span>
                                 <h3 className="text-2xl font-black text-slate-900 tracking-tight">{Number(space.rating).toFixed(1)} · {space.reviews_count} reviews</h3>
                             </div>
 
@@ -302,13 +390,13 @@ export default function SpaceDetail() {
                                             value={reviewComment}
                                             onChange={(e) => setReviewComment(e.target.value)}
                                             placeholder="Tell us about your experience..."
-                                            className="w-full rounded-xl border-slate-200 focus:ring-[#1d1aff] focus:border-[#1d1aff] min-h-[100px] mb-4 text-sm font-medium"
+                                            className="w-full rounded-xl border-slate-200 focus:ring-[#2F2BFF] focus:border-[#2F2BFF] min-h-[100px] mb-4 text-sm font-medium"
                                             required
                                         ></textarea>
                                         <button
                                             type="submit"
                                             disabled={submittingReview}
-                                            className="bg-slate-900 text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-[#1d1aff] transition-colors disabled:opacity-50"
+                                            className="bg-slate-900 text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-brand-gradient transition-colors disabled:opacity-50"
                                         >
                                             {submittingReview ? "Submitting..." : "Submit Review"}
                                         </button>
@@ -351,7 +439,7 @@ export default function SpaceDetail() {
 
                     {/* Sticky Booking Widget */}
                     <aside className="w-full lg:w-96">
-                        <div className="sticky top-28 rounded-2xl border border-slate-200 bg-white p-6 shadow-xl shadow-[#1d1aff]/5">
+                        <div className="sticky top-28 rounded-2xl border border-slate-200 bg-white p-6 shadow-xl shadow-[#2F2BFF]/5">
                             {bookingSuccess ? (
                                 <div className="text-center py-8 animate-in fade-in zoom-in duration-500">
                                     <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 text-green-600">
@@ -361,7 +449,7 @@ export default function SpaceDetail() {
                                     <p className="text-slate-500 font-medium mb-8">The host has been notified. You can track your request in your dashboard.</p>
                                     <Link 
                                         href="/guest/dashboard" 
-                                        className="inline-block w-full py-4 bg-slate-900 text-white font-black rounded-xl hover:bg-slate-800 transition-all"
+                                        className="inline-block w-full py-4 bg-brand-gradient text-white font-black rounded-xl hover:opacity-90 active:scale-95 shadow-lg shadow-[#2F2BFF]/20 transition-all text-center"
                                     >
                                         Go to Dashboard
                                     </Link>
@@ -369,7 +457,7 @@ export default function SpaceDetail() {
                             ) : (
                                 <>
                                     <div className="flex items-end gap-1 mb-6">
-                                        <span className="text-3xl font-black text-[#1d1aff]">₹{space.price_per_hour.toLocaleString()}</span>
+                                        <span className="text-3xl font-black text-[#2F2BFF]">₹{space.price_per_hour.toLocaleString()}</span>
                                         <span className="text-slate-500 font-bold mb-1">/ hour</span>
                                     </div>
 
@@ -381,45 +469,129 @@ export default function SpaceDetail() {
                                                     className="w-full border-none p-0 text-sm font-bold bg-transparent focus:ring-0 text-slate-900" 
                                                     type="date" 
                                                     value={checkInDate}
+                                                    min={new Date().toISOString().split('T')[0]}
                                                     onChange={(e) => setCheckInDate(e.target.value)}
                                                 />
                                             </div>
                                             <div className="p-3 hover:bg-slate-50 transition-colors">
                                                 <label className="block text-[10px] font-black uppercase text-slate-500 mb-1">Start Time</label>
-                                                <select className="w-full border-none p-0 text-sm font-bold bg-transparent focus:ring-0 text-slate-900">
-                                                    <option>10:00 AM</option>
-                                                    <option>11:00 AM</option>
-                                                    <option>12:00 PM</option>
-                                                    <option>01:00 PM</option>
-                                                    <option>02:00 PM</option>
-                                                </select>
+                                                {(() => {
+                                                    const [y, m, d] = checkInDate.split('-').map(Number);
+                                                    const dateObj = new Date(y, m - 1, d);
+                                                    const dayOfWeek = dateObj.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+                                                    
+                                                    const availability = space.availability || {};
+                                                    const dayAvailability = availability[dayOfWeek];
+                                                    
+                                                    if (!dayAvailability || !dayAvailability.open) {
+                                                        return <div className="text-sm font-bold text-red-500 italic">Closed for bookings</div>;
+                                                    }
+
+                                                    // Generate time slots between start and end
+                                                    const slots = [];
+                                                    
+                                                    // Simple time incrementor (hour by hour)
+                                                    const parseTime = (t: string) => {
+                                                        const [time, period] = t.split(' ');
+                                                        let [h, m] = time.split(':').map(Number);
+                                                        if (period === 'PM' && h !== 12) h += 12;
+                                                        if (period === 'AM' && h === 12) h = 0;
+                                                        return h;
+                                                    };
+
+                                                    const formatTime = (h: number) => {
+                                                        const period = h >= 12 ? 'PM' : 'AM';
+                                                        let displayH = h % 12;
+                                                        if (displayH === 0) displayH = 12;
+                                                        return `${displayH.toString().padStart(2, '0')}:00 ${period}`;
+                                                    };
+
+                                                    const startH = parseTime(dayAvailability.start);
+                                                    const endH = parseTime(dayAvailability.end);
+                                                    
+                                                    const now = new Date();
+                                                    const todayStr = now.toISOString().split('T')[0];
+                                                    const currentH = now.getHours();
+
+                                                    const availableSlots = [];
+                                                    for (let h = startH; h < endH; h++) {
+                                                        // If today, only show future hours
+                                                        if (checkInDate === todayStr && h <= currentH) continue;
+                                                        availableSlots.push(formatTime(h));
+                                                    }
+
+                                                    if (availableSlots.length === 0) {
+                                                        return <div className="text-sm font-bold text-red-500 italic">No slots available</div>;
+                                                    }
+
+                                                    return (
+                                                        <select 
+                                                            className="w-full border-none p-0 text-sm font-bold bg-transparent focus:ring-0 text-slate-900"
+                                                            value={checkInTime}
+                                                            onChange={(e) => setCheckInTime(e.target.value)}
+                                                        >
+                                                            {availableSlots.map(slot => (
+                                                                <option key={slot} value={slot}>{slot}</option>
+                                                            ))}
+                                                        </select>
+                                                    );
+                                                })()}
                                             </div>
                                         </div>
-                                        <div className="p-3 hover:bg-slate-50 transition-colors">
-                                            <label className="block text-[10px] font-black uppercase text-slate-500 mb-1">Duration</label>
-                                            <select 
-                                                className="w-full border-none p-0 text-sm font-bold bg-transparent focus:ring-0 text-slate-900"
-                                                value={duration}
-                                                onChange={(e) => setDuration(Number(e.target.value))}
-                                            >
-                                                {[1, 2, 3, 4, 5, 6, 7, 8].map(h => (
-                                                    <option key={h} value={h}>{h} {h === 1 ? 'hour' : 'hours'}</option>
-                                                ))}
-                                            </select>
-                                        </div>
+                                        {(() => {
+                                            const [y, m, d] = checkInDate.split('-').map(Number);
+                                            const dateObj = new Date(y, m - 1, d);
+                                            const dayOfWeek = dateObj.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+                                            
+                                            const dayAvailability = (space.availability || {})[dayOfWeek];
+                                            if (dayAvailability?.open) {
+                                                return (
+                                                    <div className="p-3 hover:bg-slate-50 transition-colors">
+                                                        <label className="block text-[10px] font-black uppercase text-slate-500 mb-1">Duration</label>
+                                                        <select 
+                                                            className="w-full border-none p-0 text-sm font-bold bg-transparent focus:ring-0 text-slate-900"
+                                                            value={duration}
+                                                            onChange={(e) => setDuration(Number(e.target.value))}
+                                                        >
+                                                            {[1, 2, 3, 4, 5, 6, 7, 8].map(h => {
+                                                                return <option key={h} value={h}>{h} {h === 1 ? 'hour' : 'hours'}</option>;
+                                                            })}
+                                                        </select>
+                                                    </div>
+                                                );
+                                            }
+                                            return null;
+                                        })()}
                                     </div>
 
-                                    <button 
-                                        onClick={handleBooking}
-                                        disabled={bookingLoading}
-                                        className="w-full rounded-xl bg-[#1d1aff] py-4 text-center font-black text-white hover:brightness-110 disabled:opacity-70 transition-all shadow-lg shadow-[#1d1aff]/30 transform active:scale-[0.98] flex items-center justify-center gap-2"
-                                    >
-                                        {bookingLoading ? (
-                                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                        ) : (
-                                            "Request to Book"
-                                        )}
-                                    </button>
+                                    {(() => {
+                                        const [y, m, d] = checkInDate.split('-').map(Number);
+                                        const dateObj = new Date(y, m - 1, d);
+                                        const dayOfWeek = dateObj.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+                                        
+                                        const dayAvailability = (space.availability || {})[dayOfWeek];
+                                        const isOpen = dayAvailability?.open;
+
+                                        return (
+                                            <button 
+                                                onClick={handleBooking}
+                                                disabled={bookingLoading || !isOpen}
+                                                className={`w-full rounded-xl py-4 text-center font-black text-white transition-all shadow-lg transform active:scale-[0.98] flex items-center justify-center gap-2 ${
+                                                    isOpen 
+                                                    ? "bg-brand-gradient hover:brightness-110 shadow-[#2F2BFF]/30" 
+                                                    : "bg-slate-300 cursor-not-allowed shadow-none"
+                                                }`}
+                                            >
+                                                {bookingLoading ? (
+                                                    <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                                                ) : isOpen ? (
+                                                    "Request to Book"
+                                                ) : (
+                                                    "Not Available on this Day"
+                                                )}
+                                            </button>
+                                        );
+                                    })()}
                                     <p className="mt-4 text-center text-xs text-slate-500 font-bold">You won't be charged yet</p>
 
                                     <div className="mt-6 space-y-3">
@@ -438,7 +610,7 @@ export default function SpaceDetail() {
                                         </div>
                                     </div>
 
-                                    <div className="mt-8 flex items-center gap-4 p-4 rounded-xl bg-[#1d1aff]/5 text-[#1d1aff] border border-[#1d1aff]/10">
+                                    <div className="mt-8 flex items-center gap-4 p-4 rounded-xl bg-[#2F2BFF]/5 text-[#2F2BFF] border border-[#2F2BFF]/10">
                                         <span className="material-symbols-outlined font-bold">verified_user</span>
                                         <span className="text-xs font-bold leading-tight">Isshō Guarantee: We protect your booking against cancellations.</span>
                                     </div>

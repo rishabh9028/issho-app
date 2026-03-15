@@ -12,6 +12,7 @@ interface Space {
     title: string;
     location: string;
     images: string[];
+    type: string;
 }
 
 interface Booking {
@@ -44,8 +45,8 @@ export default function GuestBookings() {
     useEffect(() => {
         if (!user) return;
         
-        const fetchBookings = async () => {
-            setLoading(true);
+        const fetchBookings = async (silent = false) => {
+            if (!silent) setLoading(true);
             const { data, error } = await supabase
                 .from("bookings")
                 .select(`
@@ -54,7 +55,8 @@ export default function GuestBookings() {
                         id,
                         title,
                         location,
-                        images
+                        images,
+                        type
                     )
                 `)
                 .eq("user_id", user.id)
@@ -63,7 +65,7 @@ export default function GuestBookings() {
             if (!error && data) {
                 setBookings(data as any);
             }
-            setLoading(false);
+            if (!silent) setLoading(false);
         };
 
         fetchBookings();
@@ -80,7 +82,7 @@ export default function GuestBookings() {
                     filter: `user_id=eq.${user.id}`
                 },
                 () => {
-                    fetchBookings();
+                    fetchBookings(true);
                 }
             )
             .subscribe();
@@ -98,7 +100,7 @@ export default function GuestBookings() {
     });
 
     return (
-        <div className="w-full bg-[#f8f6f6] min-h-screen pb-24 md:pb-0">
+        <div className="w-full bg-[#F8FAFF] min-h-screen pb-24 md:pb-0">
             <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
                 <div className="flex flex-col gap-8 md:flex-row">
                     <GuestSidebar user={user} currentPage="bookings" />
@@ -115,19 +117,20 @@ export default function GuestBookings() {
                             {[
                                 { id: "all", label: `All Stays (${bookings.length})` },
                                 { id: "confirmed", label: `Confirmed (${bookings.filter(b => b.status === 'confirmed').length})` },
-                                { id: "pending", label: `Pending (${bookings.filter(b => b.status === 'pending').length})` }
+                                { id: "pending", label: `Pending (${bookings.filter(b => b.status === 'pending').length})` },
+                                { id: "cancelled", label: `Cancelled (${bookings.filter(b => b.status === 'cancelled').length})` }
                             ].map((tab) => (
                                 <button
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id)}
                                     className={`pb-4 px-1 text-sm font-bold transition-all relative ${activeTab === tab.id
-                                        ? "text-[#1d1aff]"
+                                        ? "text-[#2F2BFF]"
                                         : "text-slate-400 hover:text-slate-600"
                                         }`}
                                 >
                                     {tab.label}
                                     {activeTab === tab.id && (
-                                        <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#1d1aff] rounded-full" />
+                                        <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-brand-gradient rounded-full" />
                                     )}
                                 </button>
                             ))}
@@ -148,13 +151,30 @@ export default function GuestBookings() {
                                         <div key={booking.id} className="flex flex-col lg:flex-row bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-sm transition-all hover:shadow-md group">
                                             {/* Image Column */}
                                             <div className="relative w-full lg:w-[320px] aspect-[4/3] lg:aspect-auto overflow-hidden">
-                                                <img
-                                                    src={space?.images[0] || "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&q=80&w=1000"}
-                                                    alt={space?.title || "Space"}
-                                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                                                />
+                                                {(() => {
+                                                    const typeFallbacks: { [key: string]: string } = {
+                                                        villa: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c",
+                                                        studio: "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d",
+                                                        cafe: "https://images.unsplash.com/photo-1554118811-1e0d58224f24",
+                                                        rooftop: "https://images.unsplash.com/photo-1533090161767-e6ffed986c88",
+                                                        default: "https://images.unsplash.com/photo-1497366216548-37526070297c"
+                                                    };
+                                                    const fallback = (typeFallbacks[space?.type?.toLowerCase() || ''] || typeFallbacks.default) + "?q=80&w=400&auto=format&fit=crop";
+                                                    const displayImg = (space?.images && space.images.length > 0 && !space.images[0].startsWith('blob:')) 
+                                                        ? space.images[0] 
+                                                        : fallback;
+                                                    return (
+                                                        <img
+                                                            src={displayImg}
+                                                            alt={space?.title || "Space"}
+                                                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                                            onError={(e) => { (e.target as HTMLImageElement).src = fallback; }}
+                                                        />
+                                                    );
+                                                })()}
                                                 <div className={`absolute top-4 left-4 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider shadow-sm 
-                                                    ${booking.status === 'confirmed' ? 'bg-green-500 text-white' : 'bg-yellow-400 text-black'}`}>
+                                                    ${booking.status === 'confirmed' ? 'bg-green-500 text-white' : 
+                                                      booking.status === 'cancelled' ? 'bg-slate-500 text-white' : 'bg-yellow-400 text-black'}`}>
                                                     {booking.status}
                                                 </div>
                                             </div>
@@ -174,7 +194,7 @@ export default function GuestBookings() {
 
                                                 <div className="flex flex-wrap gap-x-8 gap-y-2 items-center text-sm font-bold text-slate-600">
                                                     <div className="flex items-center gap-2">
-                                                        <span className="material-symbols-outlined text-[#1d1aff] font-bold">calendar_today</span>
+                                                        <span className="material-symbols-outlined text-[#2F2BFF] font-bold">calendar_today</span>
                                                         {new Date(booking.start_time).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
                                                     </div>
                                                     <div className="flex items-center gap-2 font-bold text-slate-400">
@@ -186,7 +206,7 @@ export default function GuestBookings() {
                                                 <div className="flex flex-col sm:flex-row gap-3">
                                                     <Link
                                                         href={`/guest/bookings/${booking.id}`}
-                                                        className="flex-1 flex items-center justify-center bg-[#1d1aff] hover:bg-blue-700 text-white py-3.5 px-6 rounded-2xl font-black text-sm transition-all shadow-lg shadow-blue-500/20 active:scale-[0.98]"
+                                                        className="flex-1 flex items-center justify-center bg-brand-gradient hover:bg-blue-700 text-white py-3.5 px-6 rounded-2xl font-black text-sm transition-all shadow-lg shadow-blue-500/20 active:scale-[0.98]"
                                                     >
                                                         Manage Booking
                                                     </Link>
@@ -210,7 +230,7 @@ export default function GuestBookings() {
                                         <h3 className="text-xl font-black text-slate-900 mb-2">No stays found</h3>
                                         <p className="text-slate-400 text-sm font-medium">You don't have any bookings matching this criteria yet.</p>
                                     </div>
-                                    <button onClick={() => setActiveTab("all")} className="text-[#1d1aff] font-black text-sm hover:underline">View all bookings</button>
+                                    <button onClick={() => setActiveTab("all")} className="text-[#2F2BFF] font-black text-sm hover:underline">View all bookings</button>
                                 </div>
                             )}
                         </div>

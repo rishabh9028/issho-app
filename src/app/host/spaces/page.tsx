@@ -14,6 +14,7 @@ interface Space {
     price_per_hour: number;
     capacity: number;
     images: string[];
+    type: string;
     status?: string;
 }
 
@@ -66,7 +67,7 @@ export default function HostSpaces() {
     if (!user || loading) {
         return (
             <div className="flex items-center justify-center min-h-screen">
-                <div className="w-10 h-10 border-4 border-[#1d1aff]/20 border-t-[#1d1aff] rounded-full animate-spin" />
+                <div className="w-10 h-10 border-4 border-[#2F2BFF]/20 border-t-[#2F2BFF] rounded-full animate-spin" />
             </div>
         );
     }
@@ -87,8 +88,27 @@ export default function HostSpaces() {
         ? (spaces.reduce((sum, s) => sum + (Number(s.rating) || 0), 0) / spaces.length).toFixed(2)
         : "0.00";
 
+    const handleDelete = async (spaceId: string) => {
+        if (!window.confirm("Are you sure you want to delete this listing? This action cannot be undone.")) return;
+
+        try {
+            const { error } = await supabase
+                .from("spaces")
+                .delete()
+                .eq("id", spaceId);
+
+            if (error) throw error;
+
+            // Optimistic Update
+            setSpaces(spaces.filter(s => s.id !== spaceId));
+        } catch (error) {
+            console.error("Error deleting space:", error);
+            alert("Failed to delete the space. Please try again.");
+        }
+    };
+
     return (
-        <div className="w-full bg-[#f8f6f6] min-h-screen pb-24 md:pb-0">
+        <div className="w-full bg-[#F8FAFF] min-h-screen pb-24 md:pb-0">
             <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
                 <div className="flex flex-col gap-8 md:flex-row">
                     <HostSidebar user={user} currentPage="spaces" />
@@ -102,7 +122,7 @@ export default function HostSpaces() {
                             </div>
                             <Link
                                 href="/host/spaces/new"
-                                className="inline-flex items-center gap-2 rounded-2xl bg-[#1d1aff] px-8 py-4 text-sm font-black text-white hover:brightness-110 shadow-xl shadow-blue-500/20 active:scale-95 transition-all"
+                                className="inline-flex items-center gap-2 rounded-2xl bg-brand-gradient px-8 py-4 text-sm font-black text-white hover:brightness-110 shadow-xl shadow-blue-500/20 active:scale-95 transition-all"
                             >
                                 <span className="material-symbols-outlined font-black">add</span>
                                 Add New Listing
@@ -119,11 +139,11 @@ export default function HostSpaces() {
                                 <button
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id)}
-                                    className={`pb-4 text-sm font-black transition-all relative ${activeTab === tab.id ? "text-[#1d1aff]" : "text-slate-400 hover:text-slate-600"
+                                    className={`pb-4 text-sm font-black transition-all relative ${activeTab === tab.id ? "text-[#2F2BFF]" : "text-slate-400 hover:text-slate-600"
                                         }`}
                                 >
                                     {tab.label} <span className="ml-1 opacity-50 text-[10px] bg-slate-100 px-1.5 py-0.5 rounded-full font-bold">{tab.count}</span>
-                                    {activeTab === tab.id && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1d1aff]"></div>}
+                                    {activeTab === tab.id && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-gradient"></div>}
                                 </button>
                             ))}
                         </div>
@@ -146,8 +166,28 @@ export default function HostSpaces() {
                                             <tr key={space.id} className="group hover:bg-slate-50/30 transition-colors">
                                                 <td className="px-8 py-6">
                                                     <div className="flex items-center gap-4">
-                                                        <div className="h-16 w-16 rounded-2xl overflow-hidden shrink-0 shadow-inner">
-                                                            <img src={space.images[0]} alt={space.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                                                        <div className="h-20 w-32 rounded-2xl overflow-hidden shrink-0 shadow-inner bg-slate-100 border border-slate-100">
+                                                            {(() => {
+                                                                const typeFallbacks: { [key: string]: string } = {
+                                                                    villa: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c",
+                                                                    studio: "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d",
+                                                                    cafe: "https://images.unsplash.com/photo-1554118811-1e0d58224f24",
+                                                                    rooftop: "https://images.unsplash.com/photo-1533090161767-e6ffed986c88",
+                                                                    default: "https://images.unsplash.com/photo-1497366216548-37526070297c"
+                                                                };
+                                                                const fallback = (typeFallbacks[space.type?.toLowerCase()] || typeFallbacks.default) + "?q=80&w=400&auto=format&fit=crop";
+                                                                const displayImg = (space.images && space.images.length > 0 && !space.images[0].startsWith('blob:')) 
+                                                                    ? space.images[0] 
+                                                                    : fallback;
+                                                                return (
+                                                                    <img 
+                                                                        src={displayImg} 
+                                                                        alt={space.title} 
+                                                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
+                                                                        onError={(e) => { (e.target as HTMLImageElement).src = fallback; }}
+                                                                    />
+                                                                );
+                                                            })()}
                                                         </div>
                                                         <div className="text-left">
                                                             <h4 className="font-black text-slate-900 text-base leading-tight mb-1">{space.title}</h4>
@@ -164,7 +204,7 @@ export default function HostSpaces() {
                                                     </span>
                                                 </td>
                                                 <td className="px-8 py-6">
-                                                    <span className="font-black text-slate-900">₹{space.price_per_hour.toLocaleString()}</span>
+                                                    <span className="font-black text-slate-900">₹{space.price_per_hour?.toLocaleString() || "0"}</span>
                                                 </td>
                                                 <td className="px-8 py-6">
                                                     <span className="text-sm font-bold text-slate-500">{space.capacity} guests</span>
@@ -173,16 +213,25 @@ export default function HostSpaces() {
                                                     <div className="flex items-center justify-end gap-2">
                                                         <Link
                                                             href={`/host/spaces/${space.id}/edit`}
-                                                            className="h-10 w-10 flex items-center justify-center rounded-xl hover:bg-slate-100 text-slate-400 hover:text-[#1d1aff] transition-all"
+                                                            className="h-10 w-10 flex items-center justify-center rounded-xl hover:bg-slate-100 text-slate-400 hover:text-[#2F2BFF] transition-all"
+                                                            title="Edit Space"
                                                         >
                                                             <span className="material-symbols-outlined text-xl">edit</span>
                                                         </Link>
                                                         <Link
                                                             href={`/spaces/${space.id}`}
-                                                            className="h-10 w-10 flex items-center justify-center rounded-xl hover:bg-slate-100 text-slate-400 hover:text-[#1d1aff] transition-all"
+                                                            className="h-10 w-10 flex items-center justify-center rounded-xl hover:bg-slate-100 text-slate-400 hover:text-[#2F2BFF] transition-all"
+                                                            title="View Public Listing"
                                                         >
                                                             <span className="material-symbols-outlined text-xl">visibility</span>
                                                         </Link>
+                                                        <button
+                                                            onClick={() => handleDelete(space.id)}
+                                                            className="h-10 w-10 flex items-center justify-center rounded-xl hover:bg-rose-50 text-slate-400 hover:text-rose-500 transition-all"
+                                                            title="Delete Listing"
+                                                        >
+                                                            <span className="material-symbols-outlined text-xl">delete</span>
+                                                        </button>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -229,7 +278,7 @@ export default function HostSpaces() {
                 </div>
             </main>
             <footer className="mt-20 border-t border-slate-200 py-8 text-center px-4">
-                <p className="text-slate-400 text-xs font-bold">© 2024 Isshō Host. All rights reserved.</p>
+                <p className="text-slate-400 text-xs font-bold">© 2024 Isshō. All rights reserved.</p>
             </footer>
         </div>
     );

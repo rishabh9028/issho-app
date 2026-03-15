@@ -97,7 +97,7 @@ function CalendarMonth({
                                 <div className={`absolute inset-y-1 ${isStart ? "left-1/2 right-0" :
                                     isEnd ? "left-0 right-1/2" :
                                         "left-0 right-0"
-                                    } ${isStartOfWeek && !isStart ? "rounded-l-full" : ""} ${isEndOfWeek && !isEnd ? "rounded-r-full" : ""} bg-[#1d1aff]/10`} />
+                                    } ${isStartOfWeek && !isStart ? "rounded-l-full" : ""} ${isEndOfWeek && !isEnd ? "rounded-r-full" : ""} bg-[#2F2BFF]/10`} />
                             )}
                             <button
                                 disabled={isPast}
@@ -107,9 +107,9 @@ function CalendarMonth({
                                 className={`relative z-10 h-11 w-full flex items-center justify-center text-sm rounded-full transition-all
                                     ${isPast ? "text-slate-300 cursor-not-allowed" : ""}
                                     ${isStart || isEnd
-                                        ? "bg-[#1d1aff] text-white font-black shadow-lg shadow-[#1d1aff]/30 scale-110"
+                                        ? "bg-brand-gradient text-white font-black shadow-lg shadow-[#2F2BFF]/30 scale-110"
                                         : inRange
-                                            ? "text-[#1d1aff] font-bold hover:bg-[#1d1aff]/20"
+                                            ? "text-[#2F2BFF] font-bold hover:bg-[#2F2BFF]/20"
                                             : isPast ? "" : "text-slate-900 font-medium hover:bg-slate-100"
                                     }`}
                             >
@@ -209,7 +209,7 @@ export default function DateRangePicker({ value, onChange, onClose }: Props) {
                             key={v}
                             onClick={() => setFlexibility(v)}
                             className={`px-5 py-2.5 text-xs font-black rounded-full border transition-all ${flexibility === v
-                                ? "border-[#1d1aff] text-[#1d1aff] bg-[#1d1aff]/5 shadow-sm"
+                                ? "border-[#2F2BFF] text-[#2F2BFF] bg-[#2F2BFF]/5 shadow-sm"
                                 : "border-slate-200 text-slate-500 hover:bg-white"
                                 }`}
                         >
@@ -224,7 +224,7 @@ export default function DateRangePicker({ value, onChange, onClose }: Props) {
                     </button>
                     <button
                         onClick={handleApply}
-                        className="bg-[#1d1aff] hover:bg-[#1614cc] text-white px-10 py-3 rounded-2xl text-base font-black shadow-xl shadow-[#1d1aff]/20 active:scale-95 transition-all"
+                        className="bg-brand-gradient hover:bg-[#1614cc] text-white px-10 py-3 rounded-2xl text-base font-black shadow-xl shadow-[#2F2BFF]/20 active:scale-95 transition-all"
                     >
                         Apply
                     </button>

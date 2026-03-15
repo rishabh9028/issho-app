@@ -22,7 +22,7 @@ export default function GuestPayments() {
     ];
 
     return (
-        <div className="w-full bg-[#f8f6f6] min-h-screen">
+        <div className="w-full bg-[#F8FAFF] min-h-screen">
             <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
                 <div className="flex flex-col gap-8 md:flex-row">
                     <GuestSidebar user={user} currentPage="payments" />
@@ -36,10 +36,10 @@ export default function GuestPayments() {
                         <div className="flex flex-col lg:flex-row gap-8">
                             <div className="flex-1 space-y-8">
                                 <section className="bg-white rounded-[40px] p-10 border border-slate-100 shadow-sm relative overflow-hidden group">
-                                    <div className="absolute -right-20 -top-20 h-64 w-64 bg-[#1d1aff]/5 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000"></div>
+                                    <div className="absolute -right-20 -top-20 h-64 w-64 bg-[#2F2BFF]/5 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000"></div>
                                     <div className="flex justify-between items-center mb-8 relative z-10">
                                         <h2 className="text-2xl font-black text-slate-900 tracking-tight">Payment Methods</h2>
-                                        <button className="text-[#1d1aff] text-[10px] font-black uppercase tracking-widest hover:underline">+ Add New</button>
+                                        <button className="text-[#2F2BFF] text-[10px] font-black uppercase tracking-widest hover:underline">+ Add New</button>
                                     </div>
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
@@ -67,7 +67,7 @@ export default function GuestPayments() {
                                 <section>
                                     <div className="flex justify-between items-center mb-6">
                                         <h2 className="text-2xl font-black text-slate-900 tracking-tight">Recent Activity</h2>
-                                        <button className="text-[#1d1aff] text-[10px] font-black uppercase tracking-widest hover:underline">View All</button>
+                                        <button className="text-[#2F2BFF] text-[10px] font-black uppercase tracking-widest hover:underline">View All</button>
                                     </div>
                                     <div className="bg-white rounded-[40px] border border-slate-100 shadow-sm overflow-hidden">
                                         <div className="overflow-x-auto">
@@ -97,10 +97,10 @@ export default function GuestPayments() {
                             </div>
 
                             <aside className="w-full lg:w-80 space-y-6">
-                                <div className="bg-[#1d1aff]/5 rounded-[40px] p-8 border border-[#1d1aff]/10">
+                                <div className="bg-[#2F2BFF]/5 rounded-[40px] p-8 border border-[#2F2BFF]/10">
                                     <h4 className="text-lg font-black text-slate-900 mb-4">Refund Policy</h4>
                                     <p className="text-xs font-medium text-slate-500 leading-relaxed mb-6">Learn more about our flexible cancellation options and how we protect your bookings.</p>
-                                    <button className="text-[#1d1aff] text-[10px] font-black uppercase tracking-widest hover:underline flex items-center gap-2">Read Policy <span className="material-symbols-outlined text-xs">arrow_forward</span></button>
+                                    <button className="text-[#2F2BFF] text-[10px] font-black uppercase tracking-widest hover:underline flex items-center gap-2">Read Policy <span className="material-symbols-outlined text-xs">arrow_forward</span></button>
                                 </div>
                             </aside>
                         </div>

@@ -10,7 +10,7 @@ export default function HelpCenter() {
     const isHost = user?.role === "host";
 
     return (
-        <div className="w-full bg-[#f8f6f6] min-h-screen">
+        <div className="w-full bg-[#F8FAFF] min-h-screen">
             <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
                 <div className="flex flex-col gap-8 md:flex-row">
                     {isHost ? (
@@ -28,7 +28,7 @@ export default function HelpCenter() {
                                 <input
                                     type="text"
                                     placeholder="Search for 'cancellation policy' or 'payouts'..."
-                                    className="w-full h-16 bg-white border border-slate-100 rounded-[28px] pl-16 pr-8 text-sm font-bold shadow-xl shadow-slate-200/50 focus:outline-none focus:border-[#1d1aff] transition-all"
+                                    className="w-full h-16 bg-white border border-slate-100 rounded-[28px] pl-16 pr-8 text-sm font-bold shadow-xl shadow-slate-200/50 focus:outline-none focus:border-[#2F2BFF] transition-all"
                                 />
                             </div>
                         </header>
@@ -43,7 +43,7 @@ export default function HelpCenter() {
                                 { title: "Troubleshooting", icon: "build", count: 6 },
                             ].map(cat => (
                                 <button key={cat.title} className="bg-white rounded-[32px] p-8 border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 text-left group text-red">
-                                    <div className="h-14 w-14 rounded-2xl bg-[#1d1aff]/5 flex items-center justify-center mb-6 group-hover:bg-[#1d1aff] group-hover:text-white transition-all">
+                                    <div className="h-14 w-14 rounded-2xl bg-[#2F2BFF]/5 flex items-center justify-center mb-6 group-hover:bg-brand-gradient group-hover:text-white transition-all">
                                         <span className="material-symbols-outlined text-3xl">{cat.icon}</span>
                                     </div>
                                     <h3 className="text-xl font-black text-slate-900 mb-2">{cat.title}</h3>
@@ -52,20 +52,21 @@ export default function HelpCenter() {
                             ))}
                         </div>
 
-                        <section className="bg-slate-900 rounded-[40px] p-12 text-white relative overflow-hidden">
-                            <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-white/10 to-transparent"></div>
-                            <div className="relative z-10 max-w-xl">
+                        <div className="container-custom py-12">
+                        <section className="bg-brand-gradient rounded-[40px] p-12 text-white relative overflow-hidden">
+                            <div className="relative z-10 max-w-2xl">
                                 <h2 className="text-3xl font-black mb-4">Still need assistance?</h2>
                                 <p className="text-slate-400 font-medium mb-8">Out support specialists are available 24/7 to help you with any issues or questions about your Ishhō experience.</p>
                                 <div className="flex flex-wrap gap-4">
-                                    <button className="bg-[#1d1aff] text-white px-8 py-4 rounded-2xl font-black text-xs shadow-xl shadow-blue-500/20 hover:brightness-110 transition-all">Chat with Support</button>
+                                    <button className="bg-brand-gradient text-white px-8 py-4 rounded-2xl font-black text-xs shadow-xl shadow-blue-500/20 hover:brightness-110 transition-all">Chat with Support</button>
                                     <button className="bg-white/10 text-white px-8 py-4 rounded-2xl font-black text-xs border border-white/10 hover:bg-white/20 transition-all">Contact us by Phone</button>
                                 </div>
                             </div>
                         </section>
                     </div>
                 </div>
-            </main>
+            </div>
+        </main>
         </div>
     );
 }

@@ -17,6 +17,8 @@ export default function HostSettings() {
     const [bio, setBio] = useState("");
     const [savingProfile, setSavingProfile] = useState(false);
     const [profileMsg, setProfileMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
+    const [uploadingAvatar, setUploadingAvatar] = useState(false);
+    const [avatarUrl, setAvatarUrl] = useState("");
 
     // Security fields
     const [currentPassword, setCurrentPassword] = useState("");
@@ -42,13 +44,50 @@ export default function HostSettings() {
         
         supabase
             .from("profiles")
-            .select("bio")
+            .select("bio, avatar_url")
             .eq("id", user.id)
             .single()
             .then(({ data }) => {
                 if (data?.bio) setBio(data.bio);
+                if (data?.avatar_url) setAvatarUrl(data.avatar_url);
             });
     }, [user]);
+
+    const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !user) return;
+
+        setUploadingAvatar(true);
+        try {
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${user.id}-${Math.random()}.${fileExt}`;
+            const filePath = `avatars/${fileName}`;
+
+            const { error: uploadError } = await supabase.storage
+                .from('spaces')
+                .upload(filePath, file);
+
+            if (uploadError) throw uploadError;
+
+            const { data: { publicUrl } } = supabase.storage
+                .from('spaces')
+                .getPublicUrl(filePath);
+
+            const { error: updateError } = await supabase
+                .from('profiles')
+                .update({ avatar_url: publicUrl })
+                .eq('id', user.id);
+
+            if (updateError) throw updateError;
+
+            setAvatarUrl(publicUrl);
+            setProfileMsg({ type: "success", text: "Avatar updated successfully!" });
+        } catch (error: any) {
+            setProfileMsg({ type: "error", text: error.message });
+        } finally {
+            setUploadingAvatar(false);
+        }
+    };
 
     if (!user) return null;
 
@@ -97,7 +136,7 @@ export default function HostSettings() {
     };
 
     return (
-        <div className="w-full bg-[#f8f6f6] min-h-screen pb-24 md:pb-0">
+        <div className="w-full bg-[#F8FAFF] min-h-screen pb-24 md:pb-0">
             <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
                 <div className="flex flex-col gap-8 md:flex-row">
                     <HostSidebar user={user} currentPage="settings" />
@@ -118,7 +157,7 @@ export default function HostSettings() {
                                     <button
                                         key={tab.id}
                                         onClick={() => setActiveTab(tab.id)}
-                                        className={`w-full flex items-center gap-3 px-6 py-4 rounded-2xl text-sm font-black transition-all ${activeTab === tab.id ? "bg-[#1d1aff] text-white shadow-xl shadow-blue-500/20" : "bg-white text-slate-500 hover:bg-slate-50 hover:text-slate-900"}`}
+                                        className={`w-full flex items-center gap-3 px-6 py-4 rounded-2xl text-sm font-black transition-all ${activeTab === tab.id ? "bg-brand-gradient text-white shadow-xl shadow-blue-500/20" : "bg-white text-slate-500 hover:bg-slate-50 hover:text-slate-900"}`}
                                     >
                                         <span className={`material-symbols-outlined text-lg ${activeTab === tab.id ? "filled-icon font-black" : "text-slate-400"}`}>{tab.icon}</span>
                                         {tab.label}
@@ -139,36 +178,51 @@ export default function HostSettings() {
                                         )}
 
                                         <div className="flex items-center gap-8 pb-10 border-b border-slate-50">
-                                            <div className="h-24 w-24 rounded-full overflow-hidden border-4 border-white shadow-xl bg-slate-100 relative group/avatar">
+                                            <div className="h-24 w-24 rounded-full overflow-hidden border-4 border-white shadow-xl bg-slate-100 relative group/avatar cursor-pointer">
                                                 <img 
-                                                    src={user.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`} 
-                                                    className="w-full h-full object-cover" 
+                                                    src={avatarUrl || user.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`} 
+                                                    className="w-full h-full object-cover transition-opacity group-hover/avatar:opacity-50" 
                                                     alt="Avatar" 
                                                 />
+                                                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity">
+                                                    <span className="material-symbols-outlined text-white text-2xl">photo_camera</span>
+                                                </div>
+                                                <input 
+                                                    type="file" 
+                                                    className="absolute inset-0 opacity-0 cursor-pointer" 
+                                                    accept="image/*"
+                                                    onChange={handleAvatarUpload}
+                                                    disabled={uploadingAvatar}
+                                                />
+                                                {uploadingAvatar && (
+                                                    <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                                                        <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                    </div>
+                                                )}
                                             </div>
                                             <div>
                                                 <h3 className="text-lg font-black text-slate-900">{user.name}</h3>
-                                                <p className="text-sm font-bold text-slate-400">{user.email}</p>
+                                                <p className="text-sm font-bold text-slate-400">Click to change avatar</p>
                                             </div>
                                         </div>
 
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                             <div>
-                                                <label className="text-[10px] font-black uppercase tracking-widest text-[#1d1aff] mb-3 block">First Name</label>
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-[#2F2BFF] mb-3 block">First Name</label>
                                                 <input
                                                     type="text"
                                                     value={firstName}
                                                     onChange={e => setFirstName(e.target.value)}
-                                                    className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-6 text-sm font-black text-slate-900 focus:outline-none focus:border-[#1d1aff] transition-all"
+                                                    className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-6 text-sm font-black text-slate-900 focus:outline-none focus:border-[#2F2BFF] transition-all"
                                                 />
                                             </div>
                                             <div>
-                                                <label className="text-[10px] font-black uppercase tracking-widest text-[#1d1aff] mb-3 block">Last Name</label>
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-[#2F2BFF] mb-3 block">Last Name</label>
                                                 <input
                                                     type="text"
                                                     value={lastName}
                                                     onChange={e => setLastName(e.target.value)}
-                                                    className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-6 text-sm font-black text-slate-900 focus:outline-none focus:border-[#1d1aff] transition-all"
+                                                    className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-6 text-sm font-black text-slate-900 focus:outline-none focus:border-[#2F2BFF] transition-all"
                                                 />
                                             </div>
                                             <div className="md:col-span-2">
@@ -177,7 +231,7 @@ export default function HostSettings() {
                                                     rows={4}
                                                     value={bio}
                                                     onChange={e => setBio(e.target.value)}
-                                                    className="w-full bg-slate-50 border border-slate-100 rounded-3xl p-6 text-sm font-bold text-slate-900 focus:outline-none focus:border-[#1d1aff] transition-all resize-none"
+                                                    className="w-full bg-slate-50 border border-slate-100 rounded-3xl p-6 text-sm font-bold text-slate-900 focus:outline-none focus:border-[#2F2BFF] transition-all resize-none"
                                                     placeholder="Tell creators a little about yourself and your hosting style..."
                                                 />
                                             </div>
@@ -198,7 +252,7 @@ export default function HostSettings() {
                                             <button
                                                 onClick={handleSaveProfile}
                                                 disabled={savingProfile}
-                                                className="bg-[#1d1aff] text-white px-10 py-3.5 rounded-2xl font-black text-xs shadow-xl shadow-blue-500/20 active:scale-95 transition-all disabled:opacity-60 flex items-center gap-2"
+                                                className="bg-brand-gradient text-white px-10 py-3.5 rounded-2xl font-black text-xs shadow-xl shadow-blue-500/20 active:scale-95 transition-all disabled:opacity-60 flex items-center gap-2"
                                             >
                                                 {savingProfile ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : null}
                                                 Save Changes
@@ -228,27 +282,27 @@ export default function HostSettings() {
                                                     value={currentPassword}
                                                     onChange={e => setCurrentPassword(e.target.value)}
                                                     placeholder="Enter current password"
-                                                    className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-6 text-sm font-black text-slate-900 focus:outline-none focus:border-[#1d1aff] transition-all"
+                                                    className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-6 text-sm font-black text-slate-900 focus:outline-none focus:border-[#2F2BFF] transition-all"
                                                 />
                                             </div>
                                             <div>
-                                                <label className="text-[10px] font-black uppercase tracking-widest text-[#1d1aff] mb-3 block">New Password</label>
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-[#2F2BFF] mb-3 block">New Password</label>
                                                 <input
                                                     type="password"
                                                     value={newPassword}
                                                     onChange={e => setNewPassword(e.target.value)}
                                                     placeholder="Min. 8 characters"
-                                                    className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-6 text-sm font-black text-slate-900 focus:outline-none focus:border-[#1d1aff] transition-all"
+                                                    className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-6 text-sm font-black text-slate-900 focus:outline-none focus:border-[#2F2BFF] transition-all"
                                                 />
                                             </div>
                                             <div>
-                                                <label className="text-[10px] font-black uppercase tracking-widest text-[#1d1aff] mb-3 block">Confirm New Password</label>
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-[#2F2BFF] mb-3 block">Confirm New Password</label>
                                                 <input
                                                     type="password"
                                                     value={confirmPassword}
                                                     onChange={e => setConfirmPassword(e.target.value)}
                                                     placeholder="Re-enter new password"
-                                                    className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-6 text-sm font-black text-slate-900 focus:outline-none focus:border-[#1d1aff] transition-all"
+                                                    className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-6 text-sm font-black text-slate-900 focus:outline-none focus:border-[#2F2BFF] transition-all"
                                                 />
                                             </div>
                                         </div>
@@ -257,7 +311,7 @@ export default function HostSettings() {
                                             <button
                                                 onClick={handleUpdatePassword}
                                                 disabled={savingPassword}
-                                                className="bg-[#1d1aff] text-white px-10 py-3.5 rounded-2xl font-black text-xs shadow-xl shadow-blue-500/20 active:scale-95 transition-all disabled:opacity-60 flex items-center gap-2"
+                                                className="bg-brand-gradient text-white px-10 py-3.5 rounded-2xl font-black text-xs shadow-xl shadow-blue-500/20 active:scale-95 transition-all disabled:opacity-60 flex items-center gap-2"
                                             >
                                                 {savingPassword ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : null}
                                                 Update Password
@@ -271,7 +325,7 @@ export default function HostSettings() {
                 </div>
             </main>
             <footer className="mt-20 border-t border-slate-200 py-8 text-center px-4">
-                <p className="text-slate-400 text-xs font-bold">© 2025 Isshō Host. All rights reserved.</p>
+                <p className="text-slate-400 text-xs font-bold">© 2025 Isshō. All rights reserved.</p>
             </footer>
         </div>
     );

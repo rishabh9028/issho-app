@@ -11,15 +11,21 @@
   /* 80px side padding on large screens like Airbnb */
   --container-max: 1280px;
 
-  /* Primary: Isshō Blue */
-  --color-primary: #1d1aff;
-  --color-primary-light: #4543ff;
-  --color-primary-dark: #1614cc;
+  /* Primary: Isshō Brand Blue */
+  --color-primary: #2F2BFF;
+  --color-primary-light: #5A57FF;
+  --color-primary-dark: #1E1BCC;
 
-  --color-background-light: #f8f6f6;
-  --color-background-dark: #211511;
-  --color-foreground: #222222;
-  /* Slightly softer black like Airbnb */
+  /* Gradient: Brand Gradient */
+  --color-brand-gradient-start: #2F2BFF;
+  --color-brand-gradient-end: #7C3AED;
+
+  /* Backgrounds & Surfaces */
+  --color-background-light: #F8FAFF;
+  --color-background-dark: #0F172A;
+  --color-foreground: #0F172A;
+  --color-card: #FFFFFF;
+  --color-accent: #60A5FA;
 
   --radius-sm: 0.5rem;
   --radius-md: 0.75rem;
@@ -31,6 +37,8 @@
   :root {
     --background: var(--color-background-light);
     --foreground: var(--color-foreground);
+    --card: var(--color-card);
+    --accent: var(--color-accent);
   }
 }
 
@@ -79,11 +87,12 @@
   }
 
   .btn-airbnb-primary {
-    @apply h-[44px] px-6 rounded-lg font-semibold text-sm transition-all flex items-center justify-center active:scale-95 bg-[#1d1aff] text-white hover:bg-[#1614cc];
+    @apply h-[44px] px-6 rounded-lg font-semibold text-sm transition-all flex items-center justify-center active:scale-95 text-white hover:opacity-90 shadow-lg shadow-[#2F2BFF]/20;
+    background: linear-gradient(135deg, var(--color-brand-gradient-start) 0%, var(--color-brand-gradient-end) 100%);
   }
 
   .btn-airbnb-outline {
-    @apply h-[44px] px-6 rounded-lg font-semibold text-sm transition-all flex items-center justify-center active:scale-95 border border-slate-200 bg-white text-[#222222] hover:border-[#222222] hover:bg-slate-50;
+    @apply h-[44px] px-6 rounded-lg font-semibold text-sm transition-all flex items-center justify-center active:scale-95 border border-slate-200 bg-white text-[var(--color-foreground)] hover:border-[var(--color-foreground)] hover:bg-slate-50;
   }
 
   .glass {
@@ -91,7 +100,11 @@
   }
 
   .card-premium {
-    @apply rounded-xl bg-white shadow-[0_8px_30px_#0000000a] dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 transition-all hover:shadow-[0_8px_30px_#00000014];
+    @apply rounded-xl bg-[var(--color-card)] shadow-[0_8px_30px_#0000000a] dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 transition-all hover:shadow-[0_8px_30px_#00000014];
+  }
+
+  .bg-brand-gradient {
+    background: linear-gradient(135deg, var(--color-brand-gradient-start) 0%, var(--color-brand-gradient-end) 100%);
   }
 
   .material-symbols-outlined {

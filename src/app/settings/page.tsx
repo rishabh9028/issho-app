@@ -94,7 +94,7 @@ export default function GuestSettings() {
     };
 
     return (
-        <div className="w-full bg-[#f8f6f6] min-h-screen">
+        <div className="w-full bg-[#F8FAFF] min-h-screen">
             <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
                 <div className="flex flex-col gap-8 md:flex-row">
                     <GuestSidebar user={user} currentPage="settings" />
@@ -115,7 +115,7 @@ export default function GuestSettings() {
                                     <button
                                         key={tab.id}
                                         onClick={() => setActiveTab(tab.id)}
-                                        className={`w-full flex items-center gap-3 px-6 py-4 rounded-2xl text-sm font-black transition-all ${activeTab === tab.id ? "bg-[#1d1aff] text-white shadow-xl shadow-blue-500/20" : "bg-white text-slate-500 hover:bg-slate-50 hover:text-slate-900"}`}
+                                        className={`w-full flex items-center gap-3 px-6 py-4 rounded-2xl text-sm font-black transition-all ${activeTab === tab.id ? "bg-brand-gradient text-white shadow-xl shadow-blue-500/20" : "bg-white text-slate-500 hover:bg-slate-50 hover:text-slate-900"}`}
                                     >
                                         <span className={`material-symbols-outlined text-lg ${activeTab === tab.id ? "filled-icon font-black" : "text-slate-400"}`}>{tab.icon}</span>
                                         {tab.label}
@@ -153,21 +153,21 @@ export default function GuestSettings() {
                                         {/* Fields */}
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                             <div>
-                                                <label className="text-[10px] font-black uppercase tracking-widest text-[#1d1aff] mb-3 block">First Name</label>
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-[#2F2BFF] mb-3 block">First Name</label>
                                                 <input
                                                     type="text"
                                                     value={firstName}
                                                     onChange={e => setFirstName(e.target.value)}
-                                                    className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-6 text-sm font-black text-slate-900 focus:outline-none focus:border-[#1d1aff] transition-all"
+                                                    className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-6 text-sm font-black text-slate-900 focus:outline-none focus:border-[#2F2BFF] transition-all"
                                                 />
                                             </div>
                                             <div>
-                                                <label className="text-[10px] font-black uppercase tracking-widest text-[#1d1aff] mb-3 block">Last Name</label>
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-[#2F2BFF] mb-3 block">Last Name</label>
                                                 <input
                                                     type="text"
                                                     value={lastName}
                                                     onChange={e => setLastName(e.target.value)}
-                                                    className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-6 text-sm font-black text-slate-900 focus:outline-none focus:border-[#1d1aff] transition-all"
+                                                    className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-6 text-sm font-black text-slate-900 focus:outline-none focus:border-[#2F2BFF] transition-all"
                                                 />
                                             </div>
                                             <div className="md:col-span-2">
@@ -176,7 +176,7 @@ export default function GuestSettings() {
                                                     rows={4}
                                                     value={bio}
                                                     onChange={e => setBio(e.target.value)}
-                                                    className="w-full bg-slate-50 border border-slate-100 rounded-3xl p-6 text-sm font-bold text-slate-900 focus:outline-none focus:border-[#1d1aff] transition-all resize-none"
+                                                    className="w-full bg-slate-50 border border-slate-100 rounded-3xl p-6 text-sm font-bold text-slate-900 focus:outline-none focus:border-[#2F2BFF] transition-all resize-none"
                                                     placeholder="Tell hosts a little about yourself..."
                                                 />
                                             </div>
@@ -197,7 +197,7 @@ export default function GuestSettings() {
                                             <button
                                                 onClick={handleSaveProfile}
                                                 disabled={savingProfile}
-                                                className="bg-[#1d1aff] text-white px-10 py-3.5 rounded-2xl font-black text-xs shadow-xl shadow-blue-500/20 active:scale-95 transition-all disabled:opacity-60 flex items-center gap-2"
+                                                className="bg-brand-gradient text-white px-10 py-3.5 rounded-2xl font-black text-xs shadow-xl shadow-blue-500/20 active:scale-95 transition-all disabled:opacity-60 flex items-center gap-2"
                                             >
                                                 {savingProfile ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : null}
                                                 Save Changes
@@ -228,27 +228,27 @@ export default function GuestSettings() {
                                                     value={currentPassword}
                                                     onChange={e => setCurrentPassword(e.target.value)}
                                                     placeholder="Enter current password"
-                                                    className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-6 text-sm font-black text-slate-900 focus:outline-none focus:border-[#1d1aff] transition-all"
+                                                    className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-6 text-sm font-black text-slate-900 focus:outline-none focus:border-[#2F2BFF] transition-all"
                                                 />
                                             </div>
                                             <div>
-                                                <label className="text-[10px] font-black uppercase tracking-widest text-[#1d1aff] mb-3 block">New Password</label>
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-[#2F2BFF] mb-3 block">New Password</label>
                                                 <input
                                                     type="password"
                                                     value={newPassword}
                                                     onChange={e => setNewPassword(e.target.value)}
                                                     placeholder="Min. 8 characters"
-                                                    className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-6 text-sm font-black text-slate-900 focus:outline-none focus:border-[#1d1aff] transition-all"
+                                                    className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-6 text-sm font-black text-slate-900 focus:outline-none focus:border-[#2F2BFF] transition-all"
                                                 />
                                             </div>
                                             <div>
-                                                <label className="text-[10px] font-black uppercase tracking-widest text-[#1d1aff] mb-3 block">Confirm New Password</label>
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-[#2F2BFF] mb-3 block">Confirm New Password</label>
                                                 <input
                                                     type="password"
                                                     value={confirmPassword}
                                                     onChange={e => setConfirmPassword(e.target.value)}
                                                     placeholder="Re-enter new password"
-                                                    className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-6 text-sm font-black text-slate-900 focus:outline-none focus:border-[#1d1aff] transition-all"
+                                                    className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-6 text-sm font-black text-slate-900 focus:outline-none focus:border-[#2F2BFF] transition-all"
                                                 />
                                             </div>
                                         </div>
@@ -257,7 +257,7 @@ export default function GuestSettings() {
                                             <button
                                                 onClick={handleUpdatePassword}
                                                 disabled={savingPassword}
-                                                className="bg-[#1d1aff] text-white px-10 py-3.5 rounded-2xl font-black text-xs shadow-xl shadow-blue-500/20 active:scale-95 transition-all disabled:opacity-60 flex items-center gap-2"
+                                                className="bg-brand-gradient text-white px-10 py-3.5 rounded-2xl font-black text-xs shadow-xl shadow-blue-500/20 active:scale-95 transition-all disabled:opacity-60 flex items-center gap-2"
                                             >
                                                 {savingPassword ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : null}
                                                 Update Password

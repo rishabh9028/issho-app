@@ -60,7 +60,7 @@ function MessagingContent() {
     if (!user) return null;
 
     return (
-        <div className="w-full bg-[#f8f6f6] min-h-screen">
+        <div className="w-full bg-[#F8FAFF] min-h-screen">
             <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
                 <div className="flex flex-col gap-8 md:flex-row h-[calc(100vh-160px)]">
                     {isHostView ? (
@@ -79,7 +79,7 @@ function MessagingContent() {
                                     <input
                                         type="text"
                                         placeholder="Search conversations..."
-                                        className="w-full h-11 bg-slate-50 border border-slate-100 rounded-xl pl-12 pr-4 text-sm font-medium focus:outline-none focus:border-[#1d1aff] transition-all"
+                                        className="w-full h-11 bg-slate-50 border border-slate-100 rounded-xl pl-12 pr-4 text-sm font-medium focus:outline-none focus:border-[#2F2BFF] transition-all"
                                     />
                                 </div>
                             </div>
@@ -88,7 +88,7 @@ function MessagingContent() {
                                     <button
                                         key={chat.id}
                                         onClick={() => setActiveChat(chat)}
-                                        className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all ${activeChat.id === chat.id ? "bg-[#1d1aff]/5 border border-[#1d1aff]/10 shadow-sm" : "hover:bg-slate-50 border border-transparent"}`}
+                                        className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all ${activeChat.id === chat.id ? "bg-[#2F2BFF]/5 border border-[#2F2BFF]/10 shadow-sm" : "hover:bg-slate-50 border border-transparent"}`}
                                     >
                                         <div className="relative shrink-0">
                                             <div className="h-12 w-12 rounded-full overflow-hidden border border-slate-100 bg-slate-50">
@@ -106,7 +106,7 @@ function MessagingContent() {
                                             <p className={`text-xs truncate ${chat.unread ? "font-black text-slate-900" : "font-medium text-slate-500"}`}>{chat.lastMessage}</p>
                                         </div>
                                         {chat.unread && (
-                                            <div className="h-2 w-2 bg-[#1d1aff] rounded-full shadow-[0_0_8px_rgba(29,26,255,0.4)]"></div>
+                                            <div className="h-2 w-2 bg-brand-gradient rounded-full shadow-[0_0_8px_rgba(29,26,255,0.4)]"></div>
                                         )}
                                     </button>
                                 ))}
@@ -127,7 +127,7 @@ function MessagingContent() {
                                     </div>
                                 </div>
                                 <div className="flex gap-2">
-                                    <button className="h-10 w-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 hover:text-[#1d1aff] transition-all"><span className="material-symbols-outlined text-lg">call</span></button>
+                                    <button className="h-10 w-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 hover:text-[#2F2BFF] transition-all"><span className="material-symbols-outlined text-lg">call</span></button>
                                     <button className="h-10 w-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 hover:text-slate-900 transition-all"><span className="material-symbols-outlined text-lg">more_horiz</span></button>
                                 </div>
                             </div>
@@ -138,7 +138,7 @@ function MessagingContent() {
                                     <div key={msg.id} className={`flex ${msg.sender === "me" ? "justify-end" : "justify-start"}`}>
                                         <div className={`max-w-[70%] group`}>
                                             <div className={`px-6 py-4 rounded-3xl text-sm font-medium shadow-sm transition-all ${msg.sender === "me"
-                                                    ? "bg-[#1d1aff] text-white rounded-tr-none hover:shadow-lg hover:shadow-blue-500/10"
+                                                    ? "bg-brand-gradient text-white rounded-tr-none hover:shadow-lg hover:shadow-blue-500/10"
                                                     : "bg-slate-100 text-slate-700 rounded-tl-none hover:bg-slate-200"
                                                 }`}>
                                                 {msg.text}
@@ -151,14 +151,14 @@ function MessagingContent() {
 
                             {/* Chat Input */}
                             <div className="p-6 border-t border-slate-50 bg-white">
-                                <div className="flex items-end gap-4 bg-slate-50 rounded-[28px] p-2 border border-slate-100 focus-within:border-[#1d1aff] focus-within:ring-4 focus-within:ring-[#1d1aff]/5 transition-all">
+                                <div className="flex items-end gap-4 bg-slate-50 rounded-[28px] p-2 border border-slate-100 focus-within:border-[#2F2BFF] focus-within:ring-4 focus-within:ring-[#2F2BFF]/5 transition-all">
                                     <button className="h-12 w-12 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-900 transition-all shrink-0"><span className="material-symbols-outlined">add</span></button>
                                     <textarea
                                         rows={1}
                                         placeholder="Type your message..."
                                         className="flex-1 bg-transparent border-none focus:ring-0 text-sm font-medium py-3 px-2 resize-none"
                                     ></textarea>
-                                    <button className="h-12 w-12 rounded-full bg-[#1d1aff] flex items-center justify-center text-white shadow-lg shadow-blue-500/20 active:scale-90 transition-all shrink-0">
+                                    <button className="h-12 w-12 rounded-full bg-brand-gradient flex items-center justify-center text-white shadow-lg shadow-blue-500/20 active:scale-90 transition-all shrink-0">
                                         <span className="material-symbols-outlined filled-icon text-lg">send</span>
                                     </button>
                                 </div>
@@ -173,7 +173,7 @@ function MessagingContent() {
 
 export default function MessagingPage() {
     return (
-        <Suspense fallback={<div className="min-h-screen bg-[#f8f6f6] flex items-center justify-center"><p className="text-slate-400 font-bold">Loading messages...</p></div>}>
+        <Suspense fallback={<div className="min-h-screen bg-[#F8FAFF] flex items-center justify-center"><p className="text-slate-400 font-bold">Loading messages...</p></div>}>
             <MessagingContent />
         </Suspense>
     );

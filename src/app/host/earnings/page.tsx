@@ -73,7 +73,7 @@ export default function HostEarnings() {
     ];
 
     return (
-        <div className="w-full bg-[#f8f6f6] min-h-screen">
+        <div className="w-full bg-[#F8FAFF] min-h-screen">
             <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
                 <div className="flex flex-col gap-8 md:flex-row">
                     <HostSidebar user={user} currentPage="earnings" />
@@ -86,7 +86,7 @@ export default function HostEarnings() {
                                 <p className="text-slate-500 text-lg font-medium">Track your revenue, payouts, and financial performance over time.</p>
                             </div>
                             <div className="flex gap-3">
-                                <button className="flex items-center gap-2 rounded-2xl bg-[#1d1aff] px-8 py-4 text-sm font-black text-white hover:brightness-110 shadow-xl shadow-blue-500/20 active:scale-95 transition-all">
+                                <button className="flex items-center gap-2 rounded-2xl bg-brand-gradient px-8 py-4 text-sm font-black text-white hover:brightness-110 shadow-xl shadow-blue-500/20 active:scale-95 transition-all">
                                     <span className="material-symbols-outlined font-black">account_balance_wallet</span>
                                     Withdraw Funds
                                 </button>
@@ -96,9 +96,9 @@ export default function HostEarnings() {
                         {/* Top Stats Cards */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
                             <div className="bg-white rounded-[32px] p-8 border border-slate-100 shadow-sm relative overflow-hidden group">
-                                <div className="absolute -right-6 -bottom-6 h-28 w-28 rounded-full bg-[#1d1aff]/5 group-hover:scale-125 transition-transform duration-700"></div>
+                                <div className="absolute -right-6 -bottom-6 h-28 w-28 rounded-full bg-[#2F2BFF]/5 group-hover:scale-125 transition-transform duration-700"></div>
                                 <div className="flex flex-col gap-4 relative z-10 text-left">
-                                    <h4 className="text-[10px] font-black uppercase tracking-widest text-[#1d1aff]">Available for Payout</h4>
+                                    <h4 className="text-[10px] font-black uppercase tracking-widest text-[#2F2BFF]">Available for Payout</h4>
                                     {loading ? (
                                         <div className="h-10 w-32 bg-slate-100 animate-pulse rounded-lg"></div>
                                     ) : (
@@ -153,7 +153,7 @@ export default function HostEarnings() {
                                         {[40, 65, 45, 90, 55, 100, 75, 60, 85, 40, 70, 95].map((h, i) => (
                                             <div key={i} className="flex-1 group relative">
                                                 <div
-                                                    className="w-full bg-[#1d1aff]/10 group-hover:bg-[#1d1aff] rounded-t-lg transition-all duration-300"
+                                                    className="w-full bg-[#2F2BFF]/10 group-hover:bg-brand-gradient rounded-t-lg transition-all duration-300"
                                                     style={{ height: `${h}%` }}
                                                 ></div>
                                                 <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] font-bold px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
@@ -181,7 +181,7 @@ export default function HostEarnings() {
                                 <section>
                                     <div className="flex justify-between items-center mb-6">
                                         <h2 className="text-2xl font-black text-slate-900 tracking-tight">Recent Transactions</h2>
-                                        <button className="text-[#1d1aff] text-[10px] font-black uppercase tracking-widest hover:underline">Download all</button>
+                                        <button className="text-[#2F2BFF] text-[10px] font-black uppercase tracking-widest hover:underline">Download all</button>
                                     </div>
                                     <div className="bg-white rounded-[32px] overflow-hidden border border-slate-100 shadow-sm">
                                         <div className="overflow-x-auto">
@@ -225,11 +225,11 @@ export default function HostEarnings() {
                             </div>
 
                             <aside className="w-full lg:w-80 space-y-6">
-                                <div className="bg-[#1d1aff] rounded-[40px] p-8 text-white shadow-2xl shadow-blue-500/20 relative overflow-hidden group">
+                                <div className="bg-brand-gradient rounded-[40px] p-8 text-white shadow-2xl shadow-blue-500/20 relative overflow-hidden group">
                                     <div className="absolute -right-10 -top-10 h-40 w-40 bg-white/10 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700"></div>
                                     <h4 className="text-xl font-black mb-2 relative z-10">Isshō Pro Host</h4>
                                     <p className="text-sm font-medium opacity-80 mb-8 relative z-10">Unlock premium withdrawal rates and detailed tax reporting.</p>
-                                    <button className="w-full py-4 rounded-2xl bg-white text-[#1d1aff] text-[10px] font-black uppercase tracking-widest hover:brightness-110 transition-all relative z-10">Upgrade Now</button>
+                                    <button className="w-full py-4 rounded-2xl bg-white text-[#2F2BFF] text-[10px] font-black uppercase tracking-widest hover:brightness-110 transition-all relative z-10">Upgrade Now</button>
                                 </div>
 
                                 <div className="bg-white rounded-[32px] p-8 border border-slate-100 shadow-sm">
@@ -238,7 +238,7 @@ export default function HostEarnings() {
                                         <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
                                             <div className="flex items-center gap-3">
                                                 <div className="h-10 w-10 bg-white rounded-xl flex items-center justify-center border border-slate-100">
-                                                    <span className="material-symbols-outlined text-[#1d1aff] font-black">account_balance</span>
+                                                    <span className="material-symbols-outlined text-[#2F2BFF] font-black">account_balance</span>
                                                 </div>
                                                 <div>
                                                     <p className="text-xs font-black text-slate-900">Bank ·•• 4821</p>
@@ -263,7 +263,7 @@ export default function HostEarnings() {
                 </div>
             </main>
             <footer className="mt-20 border-t border-slate-200 py-8 text-center px-4">
-                <p className="text-slate-400 text-xs font-bold">© 2024 Isshō Host. All rights reserved.</p>
+                <p className="text-slate-400 text-xs font-bold">© 2024 Isshō. All rights reserved.</p>
             </footer>
         </div>
     );

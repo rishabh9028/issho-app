@@ -28,9 +28,8 @@ interface Booking {
     end_time: string;
     total_price: number;
     status: string;
-    date: string;
     spaces: Space;
-    profiles: Profile;
+    profiles: Profile | Profile[];
 }
 
 export default function HostBookings() {
@@ -131,7 +130,7 @@ export default function HostBookings() {
     };
 
     return (
-        <div className="w-full bg-[#f8f6f6] min-h-screen pb-24 md:pb-0">
+        <div className="w-full bg-[#F8FAFF] min-h-screen pb-24 md:pb-0">
             <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
                 <div className="flex flex-col gap-8 md:flex-row">
                     <HostSidebar user={user} currentPage="bookings" />
@@ -162,11 +161,11 @@ export default function HostBookings() {
                                 <button
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id)}
-                                    className={`pb-4 text-sm font-black transition-all relative ${activeTab === tab.id ? "text-[#1d1aff]" : "text-slate-400 hover:text-slate-600"
+                                    className={`pb-4 text-sm font-black transition-all relative ${activeTab === tab.id ? "text-[#2F2BFF]" : "text-slate-400 hover:text-slate-600"
                                         }`}
                                 >
                                     {tab.label} <span className="ml-1 opacity-50 text-[10px] bg-slate-100 px-1.5 py-0.5 rounded-full font-bold">{tab.count}</span>
-                                    {activeTab === tab.id && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1d1aff]"></div>}
+                                    {activeTab === tab.id && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-gradient"></div>}
                                 </button>
                             ))}
                         </div>
@@ -195,11 +194,19 @@ export default function HostBookings() {
                                             {/* Guest Info */}
                                             <div className="flex items-center gap-6 shrink-0">
                                                 <div className="h-20 w-20 rounded-[24px] overflow-hidden shadow-inner border border-slate-100 bg-slate-50 relative group-hover:scale-105 transition-transform duration-700">
-                                                    <img src={guest?.avatar_url || `https://i.pravatar.cc/150?u=${b.user_id}`} alt="Guest" className="w-full h-full object-cover" />
+                                                    {(() => {
+                                                        const profile = Array.isArray(guest) ? guest[0] : guest;
+                                                        const avatarUrl = profile?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${b.user_id}&backgroundColor=b6e3f4,c0aede,d1d4f9`;
+                                                        return (
+                                                            <img src={avatarUrl} alt="Guest" className="w-full h-full object-cover" />
+                                                        );
+                                                    })()}
                                                 </div>
                                                 <div className="text-left">
-                                                    <h4 className="font-black text-xl text-slate-900 leading-tight mb-1">{guest?.full_name || "Guest User"}</h4>
-                                                    <p className="text-[10px] font-black text-[#1d1aff] uppercase tracking-widest bg-[#1d1aff]/5 px-2 py-0.5 rounded-md inline-block">Verified Guest</p>
+                                                    <h4 className="font-black text-xl text-slate-900 leading-tight mb-1">
+                                                        {(Array.isArray(guest) ? guest[0] : guest)?.full_name || "Guest User"}
+                                                    </h4>
+                                                    <p className="text-[10px] font-black text-[#2F2BFF] uppercase tracking-widest bg-[#2F2BFF]/5 px-2 py-0.5 rounded-md inline-block">Verified Guest</p>
                                                 </div>
                                             </div>
 
@@ -232,7 +239,7 @@ export default function HostBookings() {
                                                     <>
                                                         <button 
                                                             onClick={() => updateBookingStatus(b.id, "confirmed")}
-                                                            className="h-12 px-8 rounded-xl bg-[#1d1aff] text-white text-xs font-black shadow-lg shadow-blue-500/20 active:scale-95 transition-all"
+                                                            className="h-12 px-8 rounded-xl bg-brand-gradient text-white text-xs font-black shadow-lg shadow-blue-500/20 active:scale-95 transition-all"
                                                         >
                                                             Approve
                                                         </button>
@@ -245,7 +252,7 @@ export default function HostBookings() {
                                                     </>
                                                 ) : (
                                                     <>
-                                                        <button className="h-12 px-8 rounded-xl bg-slate-900 text-white text-xs font-black hover:bg-[#1d1aff] transition-colors active:scale-95">Message Guest</button>
+                                                        <button className="h-12 px-8 rounded-xl bg-slate-900 text-white text-xs font-black hover:bg-brand-gradient transition-colors active:scale-95">Message Guest</button>
                                                         <Link href={`/host/bookings/${b.id}`} className="h-12 px-8 rounded-xl bg-white border border-slate-200 text-slate-600 text-xs font-black hover:bg-slate-50 transition-all flex items-center justify-center">View Details</Link>
                                                     </>
                                                 )}
@@ -262,7 +269,7 @@ export default function HostBookings() {
                                         <h3 className="text-xl font-black text-slate-900 mb-2">No bookings found</h3>
                                         <p className="text-slate-400 text-sm font-medium">There are no bookings matching this criteria yet.</p>
                                     </div>
-                                    <button onClick={() => setActiveTab("all")} className="text-[#1d1aff] font-black text-sm hover:underline">Clear all filters</button>
+                                    <button onClick={() => setActiveTab("all")} className="text-[#2F2BFF] font-black text-sm hover:underline">Clear all filters</button>
                                 </div>
                             )}
                         </div>
@@ -270,7 +277,7 @@ export default function HostBookings() {
                 </div>
             </main>
             <footer className="mt-20 border-t border-slate-200 py-8 text-center px-4">
-                <p className="text-slate-400 text-xs font-bold">© 2024 Isshō Host. All rights reserved.</p>
+                <p className="text-slate-400 text-xs font-bold">© 2024 Isshō. All rights reserved.</p>
             </footer>
         </div>
     );

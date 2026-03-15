@@ -65,14 +65,14 @@ export default function GuestPicker({ value, onChange, onClose }: Props) {
                     <button
                         onClick={() => updateCount('adults', -1)}
                         disabled={localGuests.adults <= 1 && (localGuests.children > 0 || localGuests.infants > 0)}
-                        className="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center text-slate-600 hover:border-[#1d1aff] hover:text-[#1d1aff] transition-all active:scale-90 disabled:opacity-20 disabled:cursor-not-allowed"
+                        className="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center text-slate-600 hover:border-[#2F2BFF] hover:text-[#2F2BFF] transition-all active:scale-90 disabled:opacity-20 disabled:cursor-not-allowed"
                     >
                         <Minus className="w-5 h-5" />
                     </button>
                     <span className="w-6 text-center font-black text-slate-900 text-lg">{localGuests.adults}</span>
                     <button
                         onClick={() => updateCount('adults', 1)}
-                        className="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center text-slate-600 hover:border-[#1d1aff] hover:text-[#1d1aff] transition-all active:scale-90"
+                        className="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center text-slate-600 hover:border-[#2F2BFF] hover:text-[#2F2BFF] transition-all active:scale-90"
                     >
                         <Plus className="w-5 h-5" />
                     </button>
@@ -91,14 +91,14 @@ export default function GuestPicker({ value, onChange, onClose }: Props) {
                     <button
                         onClick={() => updateCount('children', -1)}
                         disabled={localGuests.children === 0}
-                        className="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center text-slate-600 hover:border-[#1d1aff] hover:text-[#1d1aff] transition-all active:scale-90 disabled:opacity-20 disabled:cursor-not-allowed"
+                        className="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center text-slate-600 hover:border-[#2F2BFF] hover:text-[#2F2BFF] transition-all active:scale-90 disabled:opacity-20 disabled:cursor-not-allowed"
                     >
                         <Minus className="w-5 h-5" />
                     </button>
                     <span className="w-6 text-center font-black text-slate-900 text-lg">{localGuests.children}</span>
                     <button
                         onClick={() => updateCount('children', 1)}
-                        className="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center text-slate-600 hover:border-[#1d1aff] hover:text-[#1d1aff] transition-all active:scale-90"
+                        className="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center text-slate-600 hover:border-[#2F2BFF] hover:text-[#2F2BFF] transition-all active:scale-90"
                     >
                         <Plus className="w-5 h-5" />
                     </button>
@@ -117,14 +117,14 @@ export default function GuestPicker({ value, onChange, onClose }: Props) {
                     <button
                         onClick={() => updateCount('infants', -1)}
                         disabled={localGuests.infants === 0}
-                        className="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center text-slate-600 hover:border-[#1d1aff] hover:text-[#1d1aff] transition-all active:scale-90 disabled:opacity-20 disabled:cursor-not-allowed"
+                        className="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center text-slate-600 hover:border-[#2F2BFF] hover:text-[#2F2BFF] transition-all active:scale-90 disabled:opacity-20 disabled:cursor-not-allowed"
                     >
                         <Minus className="w-5 h-5" />
                     </button>
                     <span className="w-6 text-center font-black text-slate-900 text-lg">{localGuests.infants}</span>
                     <button
                         onClick={() => updateCount('infants', 1)}
-                        className="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center text-slate-600 hover:border-[#1d1aff] hover:text-[#1d1aff] transition-all active:scale-90"
+                        className="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center text-slate-600 hover:border-[#2F2BFF] hover:text-[#2F2BFF] transition-all active:scale-90"
                     >
                         <Plus className="w-5 h-5" />
                     </button>
@@ -140,7 +140,7 @@ export default function GuestPicker({ value, onChange, onClose }: Props) {
                 </button>
                 <button
                     onClick={handleApply}
-                    className="bg-[#1d1aff] hover:bg-[#1614cc] text-white px-10 py-3 rounded-2xl text-base font-black shadow-xl shadow-[#1d1aff]/20 active:scale-95 transition-all"
+                    className="bg-brand-gradient hover:bg-[#1614cc] text-white px-10 py-3 rounded-2xl text-base font-black shadow-xl shadow-[#2F2BFF]/20 active:scale-95 transition-all"
                 >
                     Apply
                 </button>

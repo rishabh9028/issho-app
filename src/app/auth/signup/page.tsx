@@ -48,8 +48,8 @@ export default function SignupPage() {
     };
 
     return (
-        <div className="flex-grow flex items-center justify-center px-4 py-12 bg-[#f8f6f6] min-h-screen flex-col">
-            <div className="w-full max-w-[480px] bg-white shadow-xl border border-[#1d1aff]/10 overflow-hidden rounded-xl">
+        <div className="flex-grow flex items-center justify-center px-4 py-12 bg-[#F8FAFF] min-h-screen flex-col">
+            <div className="w-full max-w-[480px] bg-white shadow-xl border border-[#2F2BFF]/10 overflow-hidden rounded-xl">
 
                 {/* Main Card Body */}
                 <div className="p-8 pb-4">
@@ -108,14 +108,14 @@ export default function SignupPage() {
                                     <button
                                         type="button"
                                         onClick={() => setRole("host")}
-                                        className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${role === "host" ? "bg-white shadow-sm text-[#1d1aff]" : "text-slate-500 hover:text-slate-700"}`}
+                                        className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${role === "host" ? "bg-white shadow-sm text-[#2F2BFF]" : "text-slate-500 hover:text-slate-700"}`}
                                     >
                                         Host
                                     </button>
                                     <button
                                         type="button"
                                         onClick={() => setRole("guest")}
-                                        className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${role === "guest" ? "bg-white shadow-sm text-[#1d1aff]" : "text-slate-500 hover:text-slate-700"}`}
+                                        className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${role === "guest" ? "bg-white shadow-sm text-[#2F2BFF]" : "text-slate-500 hover:text-slate-700"}`}
                                     >
                                         Guest
                                     </button>
@@ -130,7 +130,7 @@ export default function SignupPage() {
                                             required
                                             value={name}
                                             onChange={(e) => setName(e.target.value)}
-                                            className="w-full px-4 h-12 border border-slate-200 bg-white focus:ring-2 focus:ring-[#1d1aff] focus:border-[#1d1aff] outline-none transition-all placeholder:text-slate-400 rounded-lg text-sm font-medium"
+                                            className="w-full px-4 h-12 border border-slate-200 bg-white focus:ring-2 focus:ring-[#2F2BFF] focus:border-[#2F2BFF] outline-none transition-all placeholder:text-slate-400 rounded-lg text-sm font-medium"
                                             placeholder="John Doe"
                                         />
                                     </div>
@@ -141,7 +141,7 @@ export default function SignupPage() {
                                             required
                                             value={email}
                                             onChange={(e) => setEmail(e.target.value)}
-                                            className="w-full px-4 h-12 border border-slate-200 bg-white focus:ring-2 focus:ring-[#1d1aff] focus:border-[#1d1aff] outline-none transition-all placeholder:text-slate-400 rounded-lg text-sm font-medium"
+                                            className="w-full px-4 h-12 border border-slate-200 bg-white focus:ring-2 focus:ring-[#2F2BFF] focus:border-[#2F2BFF] outline-none transition-all placeholder:text-slate-400 rounded-lg text-sm font-medium"
                                             placeholder="name@company.com"
                                         />
                                     </div>
@@ -153,7 +153,7 @@ export default function SignupPage() {
                                                 required
                                                 value={password}
                                                 onChange={(e) => setPassword(e.target.value)}
-                                                className="w-full px-4 h-12 border border-slate-200 bg-white focus:ring-2 focus:ring-[#1d1aff] focus:border-[#1d1aff] outline-none transition-all placeholder:text-slate-400 pr-12 rounded-lg text-sm font-medium"
+                                                className="w-full px-4 h-12 border border-slate-200 bg-white focus:ring-2 focus:ring-[#2F2BFF] focus:border-[#2F2BFF] outline-none transition-all placeholder:text-slate-400 pr-12 rounded-lg text-sm font-medium"
                                                 placeholder="Min. 8 characters"
                                             />
                                             <button
@@ -177,13 +177,13 @@ export default function SignupPage() {
                                             type="checkbox"
                                             checked={agreed}
                                             onChange={(e) => setAgreed(e.target.checked)}
-                                            className="mt-1 rounded border-slate-300 text-[#1d1aff] focus:ring-[#1d1aff] h-4 w-4"
+                                            className="mt-1 rounded border-slate-300 text-[#2F2BFF] focus:ring-[#2F2BFF] h-4 w-4"
                                         />
                                         <label htmlFor="terms" className="text-sm text-slate-500 leading-tight">
                                             I agree to the{" "}
-                                            <a href="#" className="text-[#1d1aff] hover:underline">Terms of Service</a>
+                                            <a href="#" className="text-[#2F2BFF] hover:underline">Terms of Service</a>
                                             {" "}and{" "}
-                                            <a href="#" className="text-[#1d1aff] hover:underline">Privacy Policy</a>.
+                                            <a href="#" className="text-[#2F2BFF] hover:underline">Privacy Policy</a>.
                                         </label>
                                     </div>
 
@@ -191,7 +191,7 @@ export default function SignupPage() {
                                     <button
                                         type="submit"
                                         disabled={!agreed || loading}
-                                        className="w-full h-12 bg-[#1d1aff] hover:bg-[#1614cc] disabled:opacity-60 text-white font-bold shadow-lg shadow-[#1d1aff]/20 transition-all active:scale-[0.98] rounded-lg flex items-center justify-center"
+                                        className="w-full h-12 bg-brand-gradient hover:bg-[#1614cc] disabled:opacity-60 text-white font-bold shadow-lg shadow-[#2F2BFF]/20 transition-all active:scale-[0.98] rounded-lg flex items-center justify-center"
                                     >
                                         {loading ? (
                                             <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -210,7 +210,7 @@ export default function SignupPage() {
                 <div className="bg-slate-50 p-6 text-center border-t border-slate-100 mt-4">
                     <p className="text-sm text-slate-600">
                         Already have an account?{" "}
-                        <Link href="/auth/login" className="font-bold text-[#1d1aff] hover:underline">Log in</Link>
+                        <Link href="/auth/login" className="font-bold text-[#2F2BFF] hover:underline">Log in</Link>
                     </p>
                 </div>
             </div>

@@ -44,7 +44,7 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="flex-1 flex flex-col items-center justify-center px-4 py-16 bg-[#f8f6f6] min-h-[calc(100vh-73px)]">
+        <div className="flex-1 flex flex-col items-center justify-center px-4 py-16 bg-[#F8FAFF] min-h-[calc(100vh-73px)]">
             <div className="w-full max-w-md bg-white rounded-[40px] shadow-2xl shadow-blue-500/5 border border-slate-100 p-12">
 
                 {/* Header */}
@@ -64,7 +64,7 @@ export default function LoginPage() {
                     )}
                     <div className="space-y-2">
                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Email Address</label>
-                        <div className="flex items-center gap-3 px-6 py-4 rounded-2xl border border-slate-200 bg-white focus-within:border-[#1d1aff] focus-within:ring-4 focus-within:ring-[#1d1aff]/5 transition-all">
+                        <div className="flex items-center gap-3 px-6 py-4 rounded-2xl border border-slate-200 bg-white focus-within:border-[#2F2BFF] focus-within:ring-4 focus-within:ring-[#2F2BFF]/5 transition-all">
                             <span className="material-symbols-outlined text-slate-300 text-xl font-black">mail</span>
                             <input
                                 type="email"
@@ -79,7 +79,7 @@ export default function LoginPage() {
 
                     <div className="space-y-2">
                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-4">Password</label>
-                        <div className="flex items-center gap-3 px-6 py-4 rounded-2xl border border-slate-200 bg-white focus-within:border-[#1d1aff] focus-within:ring-4 focus-within:ring-[#1d1aff]/5 transition-all">
+                        <div className="flex items-center gap-3 px-6 py-4 rounded-2xl border border-slate-200 bg-white focus-within:border-[#2F2BFF] focus-within:ring-4 focus-within:ring-[#2F2BFF]/5 transition-all">
                             <span className="material-symbols-outlined text-slate-300 text-xl font-black">lock</span>
                             <input
                                 type="password"
@@ -93,7 +93,7 @@ export default function LoginPage() {
                     </div>
 
                     <div className="flex justify-end pr-2">
-                        <a href="#" className="text-xs text-[#1d1aff] font-black uppercase tracking-widest hover:underline">
+                        <a href="#" className="text-xs text-[#2F2BFF] font-black uppercase tracking-widest hover:underline">
                             Forgot?
                         </a>
                     </div>
@@ -101,7 +101,7 @@ export default function LoginPage() {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full bg-[#1d1aff] hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 text-white font-black py-4 rounded-2xl transition-all flex items-center justify-center gap-3 mt-6 shadow-xl shadow-blue-500/20"
+                        className="w-full bg-brand-gradient hover:opacity-90 active:scale-[0.98] disabled:opacity-70 text-white font-black py-4 rounded-2xl transition-all flex items-center justify-center gap-3 mt-6 shadow-xl shadow-[#2F2BFF]/20"
                     >
                         {loading ? (
                             <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -130,7 +130,7 @@ export default function LoginPage() {
                 {/* Footer */}
                 <p className="mt-10 text-center text-sm text-slate-400 font-medium">
                     New to Isshō?{" "}
-                    <Link href="/auth/signup" className="text-[#1d1aff] font-black hover:underline uppercase tracking-widest text-xs ml-1">
+                    <Link href="/auth/signup" className="text-[#2F2BFF] font-black hover:underline uppercase tracking-widest text-xs ml-1">
                         Sign up free
                     </Link>
                 </p>

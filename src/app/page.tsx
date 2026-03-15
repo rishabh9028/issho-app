@@ -47,7 +47,7 @@ export default function Home() {
   }, []);
 
   return (
-    <main className="flex-1 bg-[#f8f6f6]">
+    <main className="flex-1 bg-[#F8FAFF]">
 
       {/* ─── Hero Section ─── */}
       <section className="relative section-spacing">
@@ -79,7 +79,7 @@ export default function Home() {
                 <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
                   <Link 
                     href="/search" 
-                    className="px-8 py-4 bg-white text-slate-900 font-bold rounded-2xl hover:bg-slate-50 transition-all shadow-lg active:scale-95 text-base"
+                    className="px-8 py-4 bg-brand-gradient text-white font-bold rounded-2xl hover:opacity-90 transition-all shadow-lg shadow-[#2F2BFF]/25 active:scale-95 text-base"
                   >
                     Find/Book your Space
                   </Link>
@@ -128,9 +128,9 @@ export default function Home() {
               </div>
 
               {/* Content Block */}
-              <div className="bg-white p-10 md:p-14 rounded-[32px] shadow-xl border border-[#1d1aff]/5 flex flex-col justify-between h-full">
+              <div className="bg-white p-10 md:p-14 rounded-[32px] shadow-xl border border-[#2F2BFF]/5 flex flex-col justify-between h-full">
                 <div>
-                  <div className="w-14 h-14 bg-[#1d1aff] rounded-2xl flex items-center justify-center text-white mb-8">
+                  <div className="w-14 h-14 bg-brand-gradient rounded-2xl flex items-center justify-center text-white mb-8">
                     <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
                     </svg>
@@ -144,14 +144,14 @@ export default function Home() {
                       { num: "3", title: "Enjoy", desc: "Enjoy your curated environment." },
                     ].map((step) => (
                       <div key={step.num} className="flex flex-col gap-3">
-                        <span className="w-10 h-10 rounded-full bg-[#1d1aff]/10 text-[#1d1aff] flex items-center justify-center font-bold">{step.num}</span>
+                        <span className="w-10 h-10 rounded-full bg-[#2F2BFF]/10 text-[#2F2BFF] flex items-center justify-center font-bold">{step.num}</span>
                         <p className="font-bold text-slate-800 text-sm">{step.title}</p>
                         <p className="text-slate-500 text-xs leading-relaxed">{step.desc}</p>
                       </div>
                     ))}
                   </div>
                 </div>
-                <Link href="/search" className="mt-12 w-full sm:w-fit px-12 py-4 rounded-2xl bg-[#1d1aff] text-white font-bold hover:bg-[#1614cc] transition-all text-center shadow-lg shadow-[#1d1aff]/20 active:scale-95">
+                <Link href="/search" className="mt-12 w-full sm:w-fit px-12 py-4 rounded-2xl bg-brand-gradient text-white font-bold hover:opacity-90 transition-all text-center shadow-lg shadow-[#2F2BFF]/20 active:scale-95">
                   Start Exploring
                 </Link>
               </div>
@@ -162,7 +162,7 @@ export default function Home() {
               {/* Content Block (Left on Desktop) */}
               <div className="bg-white p-10 md:p-14 rounded-[32px] shadow-xl border border-slate-100 flex flex-col justify-between h-full order-2 lg:order-1">
                 <div>
-                  <div className="w-14 h-14 bg-slate-900 rounded-2xl flex items-center justify-center text-white mb-8">
+                  <div className="w-14 h-14 bg-brand-gradient shadow-lg shadow-blue-500/20 rounded-2xl flex items-center justify-center text-white mb-8">
                     <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                     </svg>
@@ -176,14 +176,14 @@ export default function Home() {
                       { num: "3", title: "Earn", desc: "Get paid directly for each booking." },
                     ].map((step) => (
                       <div key={step.num} className="flex flex-col gap-3">
-                        <span className="w-10 h-10 rounded-full bg-slate-900 text-white flex items-center justify-center font-bold">{step.num}</span>
+                        <span className="w-10 h-10 rounded-full bg-brand-gradient text-white flex items-center justify-center font-bold">{step.num}</span>
                         <p className="font-bold text-slate-800 text-sm">{step.title}</p>
                         <p className="text-slate-500 text-xs leading-relaxed">{step.desc}</p>
                       </div>
                     ))}
                   </div>
                 </div>
-                <Link href="/auth/signup" className="mt-12 w-full sm:w-fit px-12 py-4 rounded-2xl bg-slate-900 text-white font-bold hover:bg-slate-800 transition-all text-center shadow-lg shadow-slate-900/10 active:scale-95">
+                <Link href="/auth/signup" className="mt-12 w-full sm:w-fit px-12 py-4 rounded-2xl bg-brand-gradient text-white font-bold hover:opacity-90 transition-all text-center shadow-lg shadow-blue-500/20 active:scale-95">
                   List Your Space
                 </Link>
               </div>
@@ -215,7 +215,7 @@ export default function Home() {
               <h2 className="text-slate-900 mb-1">Browse by Category</h2>
               <p className="text-slate-500 text-sm">Hand-picked spaces for every occasion</p>
             </div>
-            <Link href="/categories" className="text-[#1d1aff] font-bold flex items-center gap-1.5 hover:underline transition-all whitespace-nowrap text-sm">
+            <Link href="/categories" className="text-[#2F2BFF] font-bold flex items-center gap-1.5 hover:underline transition-all whitespace-nowrap text-sm">
               View all
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />

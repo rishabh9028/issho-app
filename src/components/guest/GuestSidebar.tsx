@@ -20,9 +20,9 @@ export default function GuestSidebar({ user, currentPage }: GuestSidebarProps) {
             {/* Desktop Sidebar */}
             <aside className="hidden md:block w-64 flex-shrink-0">
                 <div className="flex flex-col gap-6 sticky top-24">
-                    <div className="rounded-2xl border border-[#1d1aff]/5 bg-white p-5 shadow-sm">
-                        <div className="flex items-center gap-3 border-b border-[#1d1aff]/5 pb-5">
-                            <div className="h-12 w-12 overflow-hidden rounded-full bg-[#1d1aff]/10 border border-[#1d1aff]/10">
+                    <div className="rounded-2xl border border-[#2F2BFF]/5 bg-white p-5 shadow-sm">
+                        <div className="flex items-center gap-3 border-b border-[#2F2BFF]/5 pb-5">
+                            <div className="h-12 w-12 overflow-hidden rounded-full bg-[#2F2BFF]/10 border border-[#2F2BFF]/10">
                                 <img 
                                     className="h-full w-full object-cover" 
                                     alt="User avatar" 
@@ -31,7 +31,7 @@ export default function GuestSidebar({ user, currentPage }: GuestSidebarProps) {
                             </div>
                             <div>
                                 <p className="text-sm font-bold text-slate-900">{user?.name || "Guest"}</p>
-                                <p className="text-[10px] font-black uppercase tracking-wider text-[#1d1aff] bg-[#1d1aff]/5 px-2 py-0.5 rounded-full w-fit mt-1">{user?.role || "Member"}</p>
+                                <p className="text-[10px] font-black uppercase tracking-wider text-[#2F2BFF] bg-[#2F2BFF]/5 px-2 py-0.5 rounded-full w-fit mt-1">{user?.role || "Member"}</p>
                             </div>
                         </div>
                         <nav className="mt-5 flex flex-col gap-1.5">
@@ -39,8 +39,8 @@ export default function GuestSidebar({ user, currentPage }: GuestSidebarProps) {
                                 <Link
                                     key={item.id}
                                     className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-bold transition-all ${currentPage === item.id
-                                        ? "bg-[#1d1aff] text-white shadow-lg shadow-blue-500/20"
-                                        : "text-slate-500 hover:bg-slate-50 hover:text-[#1d1aff]"
+                                        ? "bg-brand-gradient text-white shadow-lg shadow-blue-500/20"
+                                        : "text-slate-500 hover:bg-slate-50 hover:text-[#2F2BFF]"
                                         }`}
                                     href={item.href}
                                 >
@@ -60,10 +60,10 @@ export default function GuestSidebar({ user, currentPage }: GuestSidebarProps) {
                         <Link
                             key={item.id}
                             href={item.href}
-                            className={`flex flex-col items-center gap-1 transition-all ${currentPage === item.id ? "text-[#1d1aff]" : "text-slate-400"
+                            className={`flex flex-col items-center gap-1 transition-all ${currentPage === item.id ? "text-[#2F2BFF]" : "text-slate-400"
                                 }`}
                         >
-                            <div className={`p-2 rounded-xl transition-all ${currentPage === item.id ? "bg-[#1d1aff]/10" : ""}`}>
+                            <div className={`p-2 rounded-xl transition-all ${currentPage === item.id ? "bg-[#2F2BFF]/10" : ""}`}>
                                 <span className={`material-symbols-outlined text-2xl ${currentPage === item.id ? "filled-icon font-black" : ""}`}>
                                     {item.icon}
                                 </span>

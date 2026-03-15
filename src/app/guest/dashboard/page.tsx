@@ -12,6 +12,7 @@ interface Space {
     title: string;
     location: string;
     images: string[];
+    type: string;
 }
 
 interface Booking {
@@ -47,7 +48,7 @@ export default function GuestDashboard() {
                 .select(`
                     *,
                     spaces:space_id (
-                        id, title, location, images
+                        id, title, location, images, type
                     )
                 `)
                 .eq("user_id", user.id)
@@ -104,7 +105,7 @@ export default function GuestDashboard() {
 
     const statusColors: Record<string, string> = {
         confirmed: "bg-green-500",
-        pending: "bg-[#1d1aff]",
+        pending: "bg-brand-gradient",
         cancelled: "bg-red-400",
     };
 
@@ -115,7 +116,7 @@ export default function GuestDashboard() {
         new Date(d).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
 
     return (
-        <div className="w-full bg-[#f8f6f6] min-h-screen py-8 pb-24 md:pb-8">
+        <div className="w-full bg-[#F8FAFF] min-h-screen py-8 pb-24 md:pb-8">
             <main className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
                 <div className="flex flex-col gap-8 md:flex-row">
                     <GuestSidebar user={user} currentPage="dashboard" />
@@ -136,7 +137,7 @@ export default function GuestDashboard() {
                             </div>
                             <Link
                                 href="/"
-                                className="flex items-center gap-2 rounded-xl bg-[#1d1aff] px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-[#1d1aff]/20 hover:scale-[1.02] transition-transform"
+                                className="flex items-center gap-2 rounded-xl bg-brand-gradient px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-[#2F2BFF]/20 hover:scale-[1.02] transition-transform"
                             >
                                 <span className="material-symbols-outlined text-lg text-white">add</span>
                                 Book New Space
@@ -147,7 +148,7 @@ export default function GuestDashboard() {
                         <section>
                             <div className="mb-4 flex items-center justify-between">
                                 <h2 className="text-lg font-bold">Upcoming Bookings</h2>
-                                <Link className="text-sm font-semibold text-[#1d1aff] hover:underline" href="/guest/bookings">
+                                <Link className="text-sm font-semibold text-[#2F2BFF] hover:underline" href="/guest/bookings">
                                     View all
                                 </Link>
                             </div>
@@ -167,19 +168,29 @@ export default function GuestDashboard() {
                             ) : (
                                 <div className="grid gap-4 sm:grid-cols-2">
                                     {upcoming.map((b) => (
-                                        <div key={b.id} className="group overflow-hidden rounded-2xl border border-[#1d1aff]/5 bg-white shadow-sm">
+                                        <div key={b.id} className="group overflow-hidden rounded-2xl border border-[#2F2BFF]/5 bg-white shadow-sm">
                                             <div className="relative h-40 w-full overflow-hidden bg-slate-100">
-                                                {b.spaces?.images?.[0] ? (
-                                                    <img
-                                                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-                                                        alt={b.spaces.title}
-                                                        src={b.spaces.images[0]}
-                                                    />
-                                                ) : (
-                                                    <div className="flex h-full items-center justify-center text-slate-300">
-                                                        <span className="material-symbols-outlined text-5xl">image</span>
-                                                    </div>
-                                                )}
+                                                {(() => {
+                                                    const typeFallbacks: { [key: string]: string } = {
+                                                        villa: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c",
+                                                        studio: "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d",
+                                                        cafe: "https://images.unsplash.com/photo-1554118811-1e0d58224f24",
+                                                        rooftop: "https://images.unsplash.com/photo-1533090161767-e6ffed986c88",
+                                                        default: "https://images.unsplash.com/photo-1497366216548-37526070297c"
+                                                    };
+                                                    const fallback = (typeFallbacks[b.spaces?.type?.toLowerCase() || ''] || typeFallbacks.default) + "?q=80&w=400&auto=format&fit=crop";
+                                                    const displayImg = (b.spaces?.images && b.spaces.images.length > 0 && !b.spaces.images[0].startsWith('blob:')) 
+                                                        ? b.spaces.images[0] 
+                                                        : fallback;
+                                                    return (
+                                                        <img
+                                                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                                            alt={b.spaces?.title || "Space"}
+                                                            src={displayImg}
+                                                            onError={(e) => { (e.target as HTMLImageElement).src = fallback; }}
+                                                        />
+                                                    );
+                                                })()}
                                                 <div className={`absolute right-3 top-3 rounded-full ${statusColors[b.status] || "bg-slate-400"} px-3 py-1 text-[10px] font-bold text-white uppercase`}>
                                                     {b.status}
                                                 </div>
@@ -194,7 +205,7 @@ export default function GuestDashboard() {
                                                         </p>
                                                     </div>
                                                     <div className="text-right">
-                                                        <p className="text-xs font-bold text-[#1d1aff]">
+                                                        <p className="text-xs font-bold text-[#2F2BFF]">
                                                             {formatDate(b.start_time)}
                                                         </p>
                                                         <p className="text-[10px] text-slate-400">
@@ -206,7 +217,7 @@ export default function GuestDashboard() {
                                                     <span className="text-sm font-black text-slate-900">₹{b.total_price.toLocaleString()}</span>
                                                     <Link
                                                         href={`/guest/bookings/${b.id}`}
-                                                        className="rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-[#1d1aff] hover:text-white transition-colors"
+                                                        className="rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-brand-gradient hover:text-white transition-colors"
                                                     >
                                                         Manage
                                                     </Link>
@@ -241,13 +252,27 @@ export default function GuestDashboard() {
                                         <div key={b.id} className="flex items-center justify-between rounded-2xl bg-white p-4 shadow-sm transition-all hover:shadow-md">
                                             <div className="flex items-center gap-4">
                                                 <div className="h-14 w-14 overflow-hidden rounded-xl bg-slate-100 flex-shrink-0">
-                                                    {b.spaces?.images?.[0] ? (
-                                                        <img className="h-full w-full object-cover" alt={b.spaces.title} src={b.spaces.images[0]} />
-                                                    ) : (
-                                                        <div className="flex h-full items-center justify-center text-slate-300">
-                                                            <span className="material-symbols-outlined text-2xl">image</span>
-                                                        </div>
-                                                    )}
+                                                    {(() => {
+                                                        const typeFallbacks: { [key: string]: string } = {
+                                                            villa: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c",
+                                                            studio: "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d",
+                                                            cafe: "https://images.unsplash.com/photo-1554118811-1e0d58224f24",
+                                                            rooftop: "https://images.unsplash.com/photo-1533090161767-e6ffed986c88",
+                                                            default: "https://images.unsplash.com/photo-1497366216548-37526070297c"
+                                                        };
+                                                        const fallback = (typeFallbacks[b.spaces?.type?.toLowerCase() || ''] || typeFallbacks.default) + "?q=80&w=200&auto=format&fit=crop";
+                                                        const displayImg = (b.spaces?.images && b.spaces.images.length > 0 && !b.spaces.images[0].startsWith('blob:')) 
+                                                            ? b.spaces.images[0] 
+                                                            : fallback;
+                                                        return (
+                                                            <img 
+                                                                className="h-full w-full object-cover" 
+                                                                alt={b.spaces?.title || "Space"} 
+                                                                src={displayImg} 
+                                                                onError={(e) => { (e.target as HTMLImageElement).src = fallback; }}
+                                                            />
+                                                        );
+                                                    })()}
                                                 </div>
                                                 <div>
                                                     <h4 className="text-sm font-bold">{b.spaces?.title || "Space"}</h4>
@@ -260,7 +285,7 @@ export default function GuestDashboard() {
                                                 <span className="font-black text-sm text-slate-900 hidden sm:block">₹{b.total_price.toLocaleString()}</span>
                                                 <Link
                                                     href={`/guest/bookings/${b.id}`}
-                                                    className="rounded-lg border border-[#1d1aff]/20 px-4 py-2 text-xs font-bold text-[#1d1aff] hover:bg-[#1d1aff]/5"
+                                                    className="rounded-lg border border-[#2F2BFF]/20 px-4 py-2 text-xs font-bold text-[#2F2BFF] hover:bg-[#2F2BFF]/5"
                                                 >
                                                     View Receipt
                                                 </Link>

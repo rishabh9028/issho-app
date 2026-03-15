@@ -67,15 +67,15 @@ function SearchContent() {
     }, [location, type, sortBy]);
 
     return (
-        <div className="bg-[#f8f6f6] min-h-screen">
+        <div className="bg-[#F8FAFF] min-h-screen">
 
             {/* Search Header Bar */}
             <div className="bg-white border-b border-slate-100 py-5">
                 <div className="container-custom">
                     <div className="flex flex-col sm:flex-row gap-3 items-center">
                         {/* Location Input */}
-                        <div className="flex items-center gap-3 flex-1 px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus-within:border-[#1d1aff] transition-colors">
-                            <svg className="w-5 h-5 text-[#1d1aff] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <div className="flex items-center gap-3 flex-1 px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus-within:border-[#2F2BFF] transition-colors">
+                            <svg className="w-5 h-5 text-[#2F2BFF] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                             </svg>
@@ -92,7 +92,7 @@ function SearchContent() {
                         <select
                             value={sortBy}
                             onChange={(e) => setSortBy(e.target.value)}
-                            className="px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 outline-none focus:border-[#1d1aff] transition-colors cursor-pointer"
+                            className="px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 outline-none focus:border-[#2F2BFF] transition-colors cursor-pointer"
                         >
                             <option value="recommended">Recommended</option>
                             <option value="price_asc">Price: Low to High</option>
@@ -108,7 +108,7 @@ function SearchContent() {
                                 key={t}
                                 onClick={() => setType(t)}
                                 className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${type === t
-                                    ? "bg-slate-900 text-white shadow-sm"
+                                    ? "bg-brand-gradient text-white shadow-lg shadow-[#2F2BFF]/20 border-transparent"
                                     : "bg-white border border-slate-200 text-slate-600 hover:border-slate-900 hover:text-slate-900"
                                     }`}
                             >
@@ -136,20 +136,39 @@ function SearchContent() {
                                 href={`/spaces/${space.id}`}
                                 className="group bg-white rounded-xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300"
                             >
-                                {/* Image */}
+                                    {/* Image */}
                                 <div className="relative overflow-hidden aspect-[4/3]">
-                                    <img
-                                        src={space.images[0]}
-                                        alt={space.title}
-                                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                                    />
+                                    {(() => {
+                                        const typeFallbacks: { [key: string]: string } = {
+                                            villa: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c",
+                                            studio: "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d",
+                                            cafe: "https://images.unsplash.com/photo-1554118811-1e0d58224f24",
+                                            rooftop: "https://images.unsplash.com/photo-1533090161767-e6ffed986c88",
+                                            default: "https://images.unsplash.com/photo-1497366216548-37526070297c"
+                                        };
+                                        const fallback = (typeFallbacks[space.type.toLowerCase()] || typeFallbacks.default) + "?q=80&w=1000&auto=format&fit=crop";
+                                        const displayImg = (space.images && space.images.length > 0 && !space.images[0].startsWith('blob:')) 
+                                            ? space.images[0] 
+                                            : fallback;
+
+                                        return (
+                                            <img
+                                                src={displayImg}
+                                                alt={space.title}
+                                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                                onError={(e) => {
+                                                    (e.target as HTMLImageElement).src = fallback;
+                                                }}
+                                            />
+                                        );
+                                    })()}
                                     <div className="absolute top-3 left-3">
                                         <span className="bg-white text-slate-700 text-xs font-bold px-3 py-1 rounded-full shadow-sm">
                                             {space.type}
                                         </span>
                                     </div>
                                     <div className="absolute top-3 right-3">
-                                        <span className="bg-[#1d1aff] text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm">
+                                        <span className="bg-brand-gradient text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm">
                                             ₹{space.price_per_hour}/hr
                                         </span>
                                     </div>
@@ -157,7 +176,7 @@ function SearchContent() {
 
                                 {/* Card Body */}
                                 <div className="p-4">
-                                    <h3 className="font-semibold text-[#222222] text-sm mb-0.5 leading-tight group-hover:text-slate-600 transition-colors">
+                                    <h3 className="font-semibold text-[#0F172A] text-sm mb-0.5 leading-tight group-hover:text-slate-600 transition-colors">
                                         {space.title}
                                     </h3>
                                     <div className="flex items-center gap-1 text-slate-500 text-[13px] mb-2">
@@ -183,7 +202,7 @@ function SearchContent() {
                                     {/* Amenities */}
                                     <div className="flex flex-wrap gap-1 mt-3">
                                         {space.amenities.slice(0, 3).map((amenity: string) => (
-                                            <span key={amenity} className="text-[11px] font-semibold px-2 py-1 bg-[#1d1aff]/5 text-[#1d1aff] rounded-md">
+                                            <span key={amenity} className="text-[11px] font-semibold px-2 py-1 bg-[#2F2BFF]/5 text-[#2F2BFF] rounded-md">
                                                 {amenity}
                                             </span>
                                         ))}
@@ -199,8 +218,8 @@ function SearchContent() {
                     </div>
                 ) : (
                     <div className="flex flex-col items-center justify-center py-24 text-center bg-white rounded-2xl border border-slate-100">
-                        <div className="w-16 h-16 rounded-full bg-[#1d1aff]/10 flex items-center justify-center mb-4">
-                            <svg className="w-8 h-8 text-[#1d1aff]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <div className="w-16 h-16 rounded-full bg-[#2F2BFF]/10 flex items-center justify-center mb-4">
+                            <svg className="w-8 h-8 text-[#2F2BFF]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                             </svg>
                         </div>
@@ -208,7 +227,7 @@ function SearchContent() {
                         <p className="text-slate-500 max-w-sm font-medium">Try adjusting your filters or searching a different location.</p>
                         <button
                             onClick={() => { setLocation(""); setType("All"); }}
-                            className="mt-6 px-6 py-3 bg-[#1d1aff] text-white font-bold rounded-xl hover:bg-[#1614cc] transition-all text-sm"
+                            className="mt-6 px-6 py-3 bg-brand-gradient text-white font-bold rounded-xl hover:bg-[#1614cc] transition-all text-sm"
                         >
                             Clear filters
                         </button>
@@ -222,9 +241,9 @@ function SearchContent() {
 export default function SearchPage() {
     return (
         <Suspense fallback={
-            <div className="flex items-center justify-center min-h-screen bg-[#f8f6f6]">
+            <div className="flex items-center justify-center min-h-screen bg-[#F8FAFF]">
                 <div className="flex flex-col items-center gap-4">
-                    <div className="w-10 h-10 border-4 border-[#1d1aff]/20 border-t-[#1d1aff] rounded-full animate-spin" />
+                    <div className="w-10 h-10 border-4 border-[#2F2BFF]/20 border-t-[#2F2BFF] rounded-full animate-spin" />
                     <p className="text-slate-500 font-medium text-sm">Finding spaces...</p>
                 </div>
             </div>

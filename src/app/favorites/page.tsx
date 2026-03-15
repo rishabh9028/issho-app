@@ -65,7 +65,7 @@ export default function Favorites() {
     if (!user) return null;
 
     return (
-        <div className="w-full bg-[#f8f6f6] min-h-screen">
+        <div className="w-full bg-[#F8FAFF] min-h-screen">
             <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
                 <div className="flex flex-col gap-8 md:flex-row">
                     <GuestSidebar user={user} currentPage="favorites" />
@@ -79,7 +79,7 @@ export default function Favorites() {
                             </div>
                             <Link
                                 href="/"
-                                className="flex items-center gap-2 rounded-xl bg-[#1d1aff] px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-[#1d1aff]/20 hover:scale-[1.02] transition-transform"
+                                className="flex items-center gap-2 rounded-xl bg-brand-gradient px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-[#2F2BFF]/20 hover:scale-[1.02] transition-transform"
                             >
                                 <span className="material-symbols-outlined text-lg">search</span>
                                 Browse Spaces
@@ -96,8 +96,8 @@ export default function Favorites() {
                         ) : favorites.length === 0 ? (
                             /* Empty State */
                             <div className="flex flex-col items-center justify-center py-28 text-center">
-                                <div className="h-24 w-24 rounded-full bg-[#1d1aff]/5 flex items-center justify-center mb-6">
-                                    <span className="material-symbols-outlined text-5xl text-[#1d1aff]/30">favorite</span>
+                                <div className="h-24 w-24 rounded-full bg-[#2F2BFF]/5 flex items-center justify-center mb-6">
+                                    <span className="material-symbols-outlined text-5xl text-[#2F2BFF]/30">favorite</span>
                                 </div>
                                 <h2 className="text-2xl font-black text-slate-900 mb-2">No favorites yet</h2>
                                 <p className="text-slate-400 font-medium max-w-xs mb-8">
@@ -105,7 +105,7 @@ export default function Favorites() {
                                 </p>
                                 <Link
                                     href="/"
-                                    className="flex items-center gap-2 rounded-2xl bg-[#1d1aff] px-8 py-3.5 text-sm font-black text-white shadow-xl shadow-[#1d1aff]/20 hover:scale-[1.02] transition-transform"
+                                    className="flex items-center gap-2 rounded-2xl bg-brand-gradient px-8 py-3.5 text-sm font-black text-white shadow-xl shadow-[#2F2BFF]/20 hover:scale-[1.02] transition-transform"
                                 >
                                     <span className="material-symbols-outlined text-lg">search</span>
                                     Explore Spaces
@@ -119,21 +119,31 @@ export default function Favorites() {
                                     return (
                                         <div key={fav.id} className="group flex flex-col bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-500">
                                             <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
-                                                {space.images?.[0] ? (
-                                                    <img
-                                                        src={space.images[0]}
-                                                        alt={space.title}
-                                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                                                    />
-                                                ) : (
-                                                    <div className="flex h-full items-center justify-center text-slate-300">
-                                                        <span className="material-symbols-outlined text-5xl">image</span>
-                                                    </div>
-                                                )}
+                                                {(() => {
+                                                    const typeFallbacks: { [key: string]: string } = {
+                                                        villa: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c",
+                                                        studio: "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d",
+                                                        cafe: "https://images.unsplash.com/photo-1554118811-1e0d58224f24",
+                                                        rooftop: "https://images.unsplash.com/photo-1533090161767-e6ffed986c88",
+                                                        default: "https://images.unsplash.com/photo-1497366216548-37526070297c"
+                                                    };
+                                                    const fallback = (typeFallbacks[space.type?.toLowerCase()] || typeFallbacks.default) + "?q=80&w=400&auto=format&fit=crop";
+                                                    const displayImg = (space.images && space.images.length > 0 && !space.images[0].startsWith('blob:')) 
+                                                        ? space.images[0] 
+                                                        : fallback;
+                                                    return (
+                                                        <img
+                                                            src={displayImg}
+                                                            alt={space.title}
+                                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                                                            onError={(e) => { (e.target as HTMLImageElement).src = fallback; }}
+                                                        />
+                                                    );
+                                                })()}
                                                 {/* Unfavorite button */}
                                                 <button
                                                     onClick={() => removeFavorite(fav.id)}
-                                                    className="absolute top-4 right-4 h-10 w-10 flex items-center justify-center rounded-full bg-white/90 backdrop-blur-sm text-[#1d1aff] shadow-lg hover:scale-110 active:scale-90 transition-all"
+                                                    className="absolute top-4 right-4 h-10 w-10 flex items-center justify-center rounded-full bg-white/90 backdrop-blur-sm text-[#2F2BFF] shadow-lg hover:scale-110 active:scale-90 transition-all"
                                                     title="Remove from favorites"
                                                 >
                                                     <span className="material-symbols-outlined font-black" style={{ fontVariationSettings: "'FILL' 1" }}>favorite</span>
@@ -154,9 +164,9 @@ export default function Favorites() {
                                                         </p>
                                                     </div>
                                                     {space.rating > 0 && (
-                                                        <div className="flex items-center gap-1 bg-[#1d1aff]/5 px-2 py-1 rounded-lg">
+                                                        <div className="flex items-center gap-1 bg-[#2F2BFF]/5 px-2 py-1 rounded-lg">
                                                             <span className="material-symbols-outlined text-xs text-yellow-500" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                                                            <span className="text-xs font-black text-[#1d1aff]">{space.rating.toFixed(1)}</span>
+                                                            <span className="text-xs font-black text-[#2F2BFF]">{space.rating.toFixed(1)}</span>
                                                         </div>
                                                     )}
                                                 </div>
@@ -167,7 +177,7 @@ export default function Favorites() {
                                                     </p>
                                                     <Link
                                                         href={`/spaces/${space.id}`}
-                                                        className="px-5 py-2.5 bg-[#1d1aff] text-white text-xs font-black rounded-xl hover:brightness-110 transition-all shadow-md shadow-blue-500/10 active:scale-95"
+                                                        className="px-5 py-2.5 bg-brand-gradient text-white text-xs font-black rounded-xl hover:brightness-110 transition-all shadow-md shadow-blue-500/10 active:scale-95"
                                                     >
                                                         Book Now
                                                     </Link>

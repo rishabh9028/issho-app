@@ -53,7 +53,7 @@ const CATEGORIES = [
 
 export default function CategoriesPage() {
     return (
-        <div className="bg-[#f8f6f6] min-h-screen">
+        <div className="bg-[#F8FAFF] min-h-screen">
             <main className="flex-1 w-full max-w-[1200px] mx-auto px-6 md:px-10 py-12">
 
                 {/* Hero / Intro */}
@@ -101,7 +101,7 @@ export default function CategoriesPage() {
                         </p>
                         <Link
                             href="/contact"
-                            className="flex min-w-[200px] cursor-pointer items-center justify-center rounded-xl h-12 px-8 bg-[#1d1aff] text-white text-base font-bold shadow-lg shadow-[#1d1aff]/30 hover:scale-[1.02] transition-transform"
+                            className="flex min-w-[200px] cursor-pointer items-center justify-center rounded-xl h-12 px-8 bg-brand-gradient text-white text-base font-bold shadow-lg shadow-[#2F2BFF]/30 hover:scale-[1.02] transition-transform"
                         >
                             Contact Concierge
                         </Link>

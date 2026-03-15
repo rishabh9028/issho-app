@@ -57,15 +57,15 @@ export function HeroSearch() {
             <div className="flex flex-col md:flex-row items-center bg-white rounded-2xl md:rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.15)] border border-slate-50 p-1.5 gap-0">
                 {/* Where */}
                 <div className="flex-1 w-full flex items-center gap-2.5 px-6 py-2.5 md:border-r border-slate-100 hover:bg-slate-50 transition-all rounded-t-2xl md:rounded-l-full md:rounded-tr-none cursor-pointer group outline-none">
-                    <MapPin className="w-4 h-4 text-[#1d1aff]" />
+                    <MapPin className="w-4 h-4 text-[#2F2BFF]" />
                     <div className="flex flex-col w-full text-left">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5 group-hover:text-[#1d1aff] transition-colors">Where</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5 group-hover:text-[#2F2BFF] transition-colors">Where</span>
                         <input
                             type="text"
                             value={location}
                             onChange={e => setLocation(e.target.value)}
                             onKeyDown={e => e.key === "Enter" && handleSearch()}
-                            className="bg-transparent border-none outline-none p-0 text-sm font-semibold text-[#222222] placeholder:text-slate-400 w-full focus:ring-0"
+                            className="bg-transparent border-none outline-none p-0 text-sm font-semibold text-[#0F172A] placeholder:text-slate-400 w-full focus:ring-0"
                             placeholder="Search destinations"
                         />
                     </div>
@@ -76,10 +76,10 @@ export function HeroSearch() {
                     onClick={() => { setShowCal(!showCal); setShowGuests(false); }}
                     className={`flex-1 w-full flex items-center gap-2.5 px-6 py-2.5 md:border-r border-slate-100 cursor-pointer transition-all hover:bg-slate-50 group outline-none ${showCal ? 'bg-white ring-1 ring-slate-900 rounded-full z-20' : ''}`}
                 >
-                    <Calendar className={`w-4 h-4 ${showCal ? 'text-[#1d1aff]' : 'text-slate-400 group-hover:text-[#1d1aff]'}`} />
+                    <Calendar className={`w-4 h-4 ${showCal ? 'text-[#2F2BFF]' : 'text-slate-400 group-hover:text-[#2F2BFF]'}`} />
                     <div className="flex flex-col w-full text-left">
-                        <span className={`text-[10px] font-bold uppercase tracking-wider mb-0.5 transition-colors text-left ${showCal ? 'text-[#1d1aff]' : 'text-slate-400 group-hover:text-[#1d1aff]'}`}>Dates</span>
-                        <span className={`text-sm font-semibold transition-colors text-left ${dateLabel ? 'text-[#222222]' : 'text-slate-400'}`}>
+                        <span className={`text-[10px] font-bold uppercase tracking-wider mb-0.5 transition-colors text-left ${showCal ? 'text-[#2F2BFF]' : 'text-slate-400 group-hover:text-[#2F2BFF]'}`}>Dates</span>
+                        <span className={`text-sm font-semibold transition-colors text-left ${dateLabel ? 'text-[#0F172A]' : 'text-slate-400'}`}>
                             {dateLabel || "Add dates"}
                         </span>
                     </div>
@@ -90,14 +90,14 @@ export function HeroSearch() {
                     onClick={() => { setShowGuests(!showGuests); setShowCal(false); }}
                     className={`flex-1 w-full flex items-center gap-2.5 px-6 py-2.5 bg-white hover:bg-slate-50 transition-all cursor-pointer group relative outline-none ${showGuests ? 'ring-1 ring-slate-900 rounded-full z-20' : ''}`}
                 >
-                    <Users className={`w-4 h-4 ${showGuests ? 'text-[#1d1aff]' : 'text-slate-400 group-hover:text-[#1d1aff]'}`} />
+                    <Users className={`w-4 h-4 ${showGuests ? 'text-[#2F2BFF]' : 'text-slate-400 group-hover:text-[#2F2BFF]'}`} />
                     <div className="flex flex-col w-full text-left">
-                        <span className={`text-[10px] font-bold uppercase tracking-wider mb-0.5 transition-colors text-left ${showGuests ? 'text-[#1d1aff]' : 'text-slate-400 group-hover:text-[#1d1aff]'}`}>Guests</span>
+                        <span className={`text-[10px] font-bold uppercase tracking-wider mb-0.5 transition-colors text-left ${showGuests ? 'text-[#2F2BFF]' : 'text-slate-400 group-hover:text-[#2F2BFF]'}`}>Guests</span>
                         <div className="flex items-center justify-between pointer-events-none">
-                            <span className={`text-sm font-semibold transition-colors text-left ${guestLabel !== "Add guests" ? 'text-[#222222]' : 'text-slate-400'}`}>
+                            <span className={`text-sm font-semibold transition-colors text-left ${guestLabel !== "Add guests" ? 'text-[#0F172A]' : 'text-slate-400'}`}>
                                 {guestLabel}
                             </span>
-                            <ChevronDown className={`w-3.4 h-3.4 text-[#1d1aff] transition-transform ${showGuests ? 'rotate-180' : ''}`} />
+                            <ChevronDown className={`w-3.4 h-3.4 text-[#2F2BFF] transition-transform ${showGuests ? 'rotate-180' : ''}`} />
                         </div>
                     </div>
                 </div>
@@ -106,10 +106,10 @@ export function HeroSearch() {
                 <div className="w-full md:w-auto p-1.5">
                     <button
                         onClick={handleSearch}
-                        className="bg-[#1d1aff] hover:bg-[#1614cc] text-white w-full md:w-auto px-6 h-[48px] rounded-full transition-all flex items-center justify-center gap-2 active:scale-95"
+                        className="bg-brand-gradient hover:opacity-90 text-white w-full md:w-auto px-8 h-[48px] rounded-full transition-all flex items-center justify-center gap-2 active:scale-95 shadow-lg shadow-[#2F2BFF]/20"
                     >
                         <Search className="w-4.5 h-4.5 text-white" />
-                        <span className="text-sm font-bold text-white">Search</span>
+                        <span className="text-sm font-bold text-white uppercase tracking-wider">Search</span>
                     </button>
                 </div>
             </div>
