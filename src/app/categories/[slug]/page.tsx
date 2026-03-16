@@ -12,10 +12,12 @@ interface Space {
     price_per_hour: number;
     capacity: number;
     type: string;
+    host_id?: string;
     amenities: string[];
     images: string[];
     rating: number;
     reviews_count: number;
+    isGoldHost?: boolean;
 }
 
 const CATEGORY_META: Record<string, { label: string; count: string; desc: string; icon: string }> = {
@@ -44,13 +46,30 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
             setLoading(true);
             const { data, error } = await supabase
                 .from("spaces")
-                .select("id, title, location, price_per_hour, capacity, type, amenities, images, rating, reviews_count")
+                .select("id, title, location, price_per_hour, capacity, type, host_id, amenities, images, rating, reviews_count")
                 .ilike("type", slug)
-                .limit(40); 
+                .limit(40);
 
-            if (!error && data) {
-                setSpaces(data);
+            if (error || !data) {
+                setLoading(false);
+                return;
             }
+
+            // Separately fetch gold host statuses (same pattern as search page)
+            const hostIds = [...new Set(data.map((s: any) => s.host_id).filter(Boolean))];
+            let goldHostSet = new Set<string>();
+            if (hostIds.length > 0) {
+                const { data: profiles } = await supabase
+                    .from("profiles")
+                    .select("id, is_gold_host")
+                    .in("id", hostIds)
+                    .eq("is_gold_host", true);
+                if (profiles) {
+                    goldHostSet = new Set(profiles.map((p: any) => p.id));
+                }
+            }
+
+            setSpaces(data.map((s: any) => ({ ...s, isGoldHost: goldHostSet.has(s.host_id) })));
             setLoading(false);
         };
 
@@ -135,12 +154,20 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
                                             <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                                         </svg>
                                     </button>
-                                    {/* Badge */}
-                                    {i === 0 ? (
-                                        <div className="absolute top-3 left-3 z-10 bg-[#2F2BFF]/90 backdrop-blur-sm text-white text-xs font-bold px-3 py-1 rounded-full">
-                                            Popular
-                                        </div>
-                                    ) : null}
+                                    {/* Badges */}
+                                    <div className="absolute top-3 left-3 z-10 flex flex-col gap-1.5">
+                                        {item.isGoldHost && (
+                                            <span className="bg-amber-500 text-white text-[9px] font-black px-3 py-1.5 rounded-xl shadow-xl backdrop-blur-md flex items-center gap-1 uppercase tracking-widest border border-amber-400/50">
+                                                <span className="material-symbols-outlined text-[12px]">stars</span>
+                                                Gold Host
+                                            </span>
+                                        )}
+                                        {(item.rating >= 4.5 && item.reviews_count > 5) && (
+                                            <span className="bg-[#2F2BFF]/90 backdrop-blur-sm text-white text-xs font-bold px-3 py-1 rounded-full">
+                                                Popular
+                                            </span>
+                                        )}
+                                    </div>
                                     {(() => {
                                         const typeFallbacks: { [key: string]: string } = {
                                             villa: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c",
