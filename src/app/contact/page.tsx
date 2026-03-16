@@ -6,6 +6,7 @@ import Image from "next/image";
 export default function ContactPage() {
     const [submitting, setSubmitting] = useState(false);
     const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
+    const [formData, setFormData] = useState({ name: "", email: "", message: "" });
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -14,6 +15,7 @@ export default function ContactPage() {
         setTimeout(() => {
             setSubmitting(false);
             setStatus("success");
+            setFormData({ name: "", email: "", message: "" });
             // Clear status after 5 seconds
             setTimeout(() => setStatus("idle"), 5000);
         }, 1500);
@@ -60,6 +62,8 @@ export default function ContactPage() {
                                 <input 
                                     type="text" 
                                     required
+                                    value={formData.name}
+                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                     placeholder="Enter your name"
                                     className="w-full px-6 py-4 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:border-[#2F2BFF] focus:ring-0 text-slate-900 font-bold placeholder:text-slate-300 transition-all"
                                 />
@@ -69,6 +73,8 @@ export default function ContactPage() {
                                 <input 
                                     type="email" 
                                     required
+                                    value={formData.email}
+                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                     placeholder="yourname@email.com"
                                     className="w-full px-6 py-4 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:border-[#2F2BFF] focus:ring-0 text-slate-900 font-bold placeholder:text-slate-300 transition-all"
                                 />
@@ -78,6 +84,8 @@ export default function ContactPage() {
                                 <textarea 
                                     required
                                     rows={4}
+                                    value={formData.message}
+                                    onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                                     placeholder="Tell us what you're looking for..."
                                     className="w-full px-6 py-4 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:border-[#2F2BFF] focus:ring-0 text-slate-900 font-bold placeholder:text-slate-300 transition-all resize-none"
                                 />
