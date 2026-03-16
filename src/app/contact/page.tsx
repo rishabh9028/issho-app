@@ -42,7 +42,7 @@ export default function ContactPage() {
                     </p>
                     <h1 className="text-5xl lg:text-7xl font-black tracking-tight text-slate-900 leading-[1.1] mb-8">
                         Discuss Your <br />
-                        <span className="text-[#2F2BFF]">Space Needs</span>
+                        <span className="text-transparent bg-clip-text bg-brand-gradient">Space Needs</span>
                     </h1>
                     <p className="text-lg font-medium text-slate-500 max-w-lg mb-12">
                         Are you looking for top-quality curated spaces tailored to your needs? Reach out to us and we'll help you find the perfect match.
@@ -50,7 +50,7 @@ export default function ContactPage() {
                     
                     <div className="flex flex-col sm:flex-row lg:flex-col gap-8">
                         <div className="flex items-center gap-6 justify-center lg:justify-start">
-                            <div className="w-16 h-16 rounded-2xl bg-[#2F2BFF] flex items-center justify-center shadow-lg shadow-[#2F2BFF]/20">
+                            <div className="w-16 h-16 rounded-2xl bg-brand-gradient flex items-center justify-center shadow-lg shadow-[#2F2BFF]/20">
                                 <span className="material-symbols-outlined text-white text-3xl">mail</span>
                             </div>
                             <div className="text-left">
@@ -107,7 +107,7 @@ export default function ContactPage() {
                                 className={`w-full h-16 flex items-center justify-between px-8 rounded-full font-black text-lg transition-all transform active:scale-[0.98] ${
                                     status === "success" 
                                     ? "bg-green-500 text-white shadow-lg shadow-green-500/30" 
-                                    : "bg-[#2F2BFF] text-white shadow-xl shadow-[#2F2BFF]/20 hover:bg-[#1e1bc8]"
+                                    : "bg-brand-gradient text-white shadow-xl shadow-[#2F2BFF]/20 hover:opacity-90"
                                 }`}
                             >
                                 {submitting ? (
