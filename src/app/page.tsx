@@ -14,9 +14,9 @@ const HERO_IMAGES = [
 ];
 
 const GUEST_HOW_IMAGES = [
-  "https://images.unsplash.com/photo-1522158634129-4481613993d6?q=80&w=2670&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1543007630-9710e4a00a20?q=80&w=2670&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1517457373958-b7bdd4587205?q=80&w=2669&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1517457373958-b7bdd4587205?q=80&w=2669&auto=format&fit=crop", // Gathering
+  "https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2670&auto=format&fit=crop", // Modern space
+  "https://images.unsplash.com/photo-1556912173-3bb406ef7e77?q=80&w=2670&auto=format&fit=crop", // Interaction
 ];
 
 const HOST_HOW_IMAGES = [
