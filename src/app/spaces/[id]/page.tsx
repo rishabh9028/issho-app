@@ -61,6 +61,7 @@ export default function SpaceDetail() {
     const [dateBookings, setDateBookings] = useState<any[]>([]);
     const [pricingOptions, setPricingOptions] = useState<any[]>([]);
     const [selectedPricing, setSelectedPricing] = useState<string>("non-refundable");
+    const [showGallery, setShowGallery] = useState(false);
 
     const fetchReviews = async () => {
         const { data, error } = await supabase
@@ -470,7 +471,10 @@ export default function SpaceDetail() {
                                         unoptimized
                                         sizes="(max-width: 768px) 100vw, 66vw"
                                     />
-                                    <button className="absolute bottom-4 left-4 flex items-center gap-2 rounded-lg bg-white/90 px-4 py-2 text-sm font-bold text-slate-900 shadow-sm hover:bg-white transition-colors">
+                                    <button 
+                                        onClick={() => setShowGallery(true)}
+                                        className="absolute bottom-4 left-4 flex items-center gap-2 rounded-lg bg-white/90 px-4 py-2 text-sm font-bold text-slate-900 shadow-sm hover:bg-white transition-colors"
+                                    >
                                         <span className="material-symbols-outlined text-sm">grid_view</span> View all photos
                                     </button>
                                 </div>
@@ -957,6 +961,50 @@ export default function SpaceDetail() {
                     >
                         Check Availability
                     </button>
+                </div>
+            )}
+            {/* Photo Gallery Modal */}
+            {showGallery && (
+                <div className="fixed inset-0 z-[100] bg-white overflow-y-auto animate-in fade-in duration-300">
+                    <div className="sticky top-0 bg-white/80 backdrop-blur-md px-6 py-4 flex items-center justify-between border-b border-slate-100 z-10">
+                        <button 
+                            onClick={() => setShowGallery(false)}
+                            className="p-2 rounded-full hover:bg-slate-100 transition-colors"
+                        >
+                            <span className="material-symbols-outlined">close</span>
+                        </button>
+                        <h2 className="text-sm font-black uppercase tracking-widest text-slate-900">All Photos</h2>
+                        <div className="w-10"></div> {/* Spacer for centering */}
+                    </div>
+                    
+                    <div className="max-w-4xl mx-auto px-6 py-10 space-y-8">
+                        {(() => {
+                            const typeFallbacks: { [key: string]: string } = {
+                                villa: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c",
+                                studio: "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d",
+                                cafe: "https://images.unsplash.com/photo-1554118811-1e0d58224f24",
+                                rooftop: "https://images.unsplash.com/photo-1533090161767-e6ffed986c88",
+                                default: "https://images.unsplash.com/photo-1497366216548-37526070297c"
+                            };
+                            const fallback = (typeFallbacks[space.type.toLowerCase()] || typeFallbacks.default) + "?q=80&w=1000&auto=format&fit=crop";
+                            
+                            const allImages = space.images && space.images.length > 0 
+                                ? space.images.filter(img => !img.startsWith('blob:')) 
+                                : [fallback];
+
+                            return allImages.map((img, idx) => (
+                                <div key={idx} className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-slate-100">
+                                    <Image
+                                        src={img}
+                                        alt={`${space.title} photo ${idx + 1}`}
+                                        fill
+                                        className="object-cover"
+                                        unoptimized
+                                    />
+                                </div>
+                            ));
+                        })()}
+                    </div>
                 </div>
             )}
         </div>
