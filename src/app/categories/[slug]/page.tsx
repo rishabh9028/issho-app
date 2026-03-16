@@ -7,7 +7,7 @@ import { useEffect, useState, use } from "react";
 interface Space {
     id: string;
     title: string;
-    description: string;
+    description?: string;
     location: string;
     price_per_hour: number;
     capacity: number;
@@ -44,8 +44,9 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
             setLoading(true);
             const { data, error } = await supabase
                 .from("spaces")
-                .select("*")
-                .ilike("type", slug); 
+                .select("id, title, location, price_per_hour, capacity, type, amenities, images, rating, reviews_count")
+                .ilike("type", slug)
+                .limit(40); 
 
             if (!error && data) {
                 setSpaces(data);
