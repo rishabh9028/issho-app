@@ -60,10 +60,7 @@ function SearchContent() {
             setLoading(true);
             let query = supabase
                 .from("spaces")
-                .select(`
-                    *,
-                    profiles:host_id (is_gold_host)
-                `);
+                .select("*");
 
             if (location) {
                 query = query.ilike("location", `%${location}%`);
@@ -113,15 +110,41 @@ function SearchContent() {
             if (error) {
                 console.error("Search query error:", error);
                 setSpaces([]);
-            } else if (data) {
-                // Sort gold hosts to top client-side (avoids foreign table ordering issues)
-                const sorted = [...data].sort((a, b) => {
-                    const aGold = (a as any).profiles?.is_gold_host ? 1 : 0;
-                    const bGold = (b as any).profiles?.is_gold_host ? 1 : 0;
-                    return bGold - aGold;
-                });
-                setSpaces(sorted);
+                setLoading(false);
+                return;
             }
+
+            if (!data || data.length === 0) {
+                setSpaces([]);
+                setLoading(false);
+                return;
+            }
+
+            // Separately fetch gold host statuses to avoid FK join errors
+            const hostIds = [...new Set(data.map((s: any) => s.host_id).filter(Boolean))];
+            let goldHostSet = new Set<string>();
+            if (hostIds.length > 0) {
+                const { data: profiles } = await supabase
+                    .from("profiles")
+                    .select("id, is_gold_host")
+                    .in("id", hostIds)
+                    .eq("is_gold_host", true);
+                if (profiles) {
+                    goldHostSet = new Set(profiles.map((p: any) => p.id));
+                }
+            }
+
+            // Merge gold host status and sort gold hosts to top
+            const enriched = data.map((s: any) => ({
+                ...s,
+                profiles: { is_gold_host: goldHostSet.has(s.host_id) }
+            }));
+            const sorted = [...enriched].sort((a, b) => {
+                const aGold = a.profiles?.is_gold_host ? 1 : 0;
+                const bGold = b.profiles?.is_gold_host ? 1 : 0;
+                return bGold - aGold;
+            });
+            setSpaces(sorted);
             setLoading(false);
         };
 
