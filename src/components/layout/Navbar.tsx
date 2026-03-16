@@ -47,7 +47,7 @@ export function Navbar() {
 
                 {/* Right: Actions */}
                 <div className="flex items-center gap-3">
-                    {user ? (
+                    {user && !pathname.startsWith('/auth') ? (
                         <div className="flex items-center gap-2">
                             {user.role === "host" ? (
                                 pathname.startsWith("/host") ? (
@@ -140,7 +140,7 @@ export function Navbar() {
                     >
                         Contact
                     </Link>
-                    {!user ? (
+                    {!user || pathname.startsWith('/auth') ? (
                         <>
                             <Link 
                                 href="/auth/login" 
