@@ -4,7 +4,7 @@ import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useState } from "react";
-import { signup } from "@/app/actions/auth";
+import { signup } from "@/actions/auth";
 
 export default function SignupPage() {
     const router = useRouter();
