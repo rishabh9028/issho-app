@@ -8,6 +8,7 @@ import { ChevronLeft, ChevronRight, Upload, X, Star, MapPin, Clock, Users, Shiel
 import AddressAutocomplete from "@/components/ui/AddressAutocomplete";
 import dynamic from "next/dynamic";
 import { supabase } from "@/lib/supabase";
+import { calculatePricing } from "@/lib/pricing";
 
 const LocationMap = dynamic(() => import("@/components/ui/LocationMap"), {
     ssr: false,
@@ -523,24 +524,43 @@ export default function NewSpaceFlow() {
                                         </div>
                                     </div>
                                 </div>
-                                <div className="w-full lg:w-80 bg-slate-50 rounded-3xl p-8 border border-slate-100">
-                                    <h4 className="text-base font-black text-slate-900 mb-6">Fee Breakdown</h4>
-                                    <div className="space-y-4">
-                                        <div className="flex justify-between text-sm font-bold text-slate-500">
-                                            <span>Your hourly rate</span>
-                                            <span className="text-slate-900">₹{formData.price}</span>
+                                {(() => {
+                                    const base = parseFloat(formData.price) || 0;
+                                    const pricing = calculatePricing(base);
+                                    return (
+                                        <div className="w-full lg:w-80 bg-slate-50 rounded-3xl p-8 border border-slate-100">
+                                            <h4 className="text-base font-black text-slate-900 mb-6">Smart Pricing Breakdown</h4>
+                                            <div className="space-y-3">
+                                                <div className="flex justify-between text-sm font-bold text-slate-500">
+                                                    <span>Your base rate</span>
+                                                    <span className="text-slate-900">₹{base.toFixed(2)}/hr</span>
+                                                </div>
+                                                <div className="flex justify-between text-sm font-bold text-slate-500">
+                                                    <span>GST collected (5%)</span>
+                                                    <span className="text-slate-900">+₹{pricing.hostGstAmount.toFixed(2)}</span>
+                                                </div>
+                                                <div className="flex justify-between text-sm font-bold text-slate-500">
+                                                    <span>Platform commission (10%)</span>
+                                                    <span className="text-rose-400">-₹{pricing.platformCommissionFromHost.toFixed(2)}</span>
+                                                </div>
+                                                <div className="flex justify-between text-sm font-bold text-slate-500">
+                                                    <span>GST on commission (18%)</span>
+                                                    <span className="text-rose-400">-₹{pricing.platformGstOnCommission.toFixed(2)}</span>
+                                                </div>
+                                                <div className="h-px bg-slate-200 my-1"></div>
+                                                <div className="flex justify-between items-end">
+                                                    <span className="text-base font-black text-slate-900">You'll earn</span>
+                                                    <span className="text-3xl font-black text-[#2F2BFF]">₹{pricing.hostPayoutAmount.toFixed(2)}</span>
+                                                </div>
+                                                <div className="h-px bg-slate-200 my-1"></div>
+                                                <div className="flex justify-between text-sm font-bold text-slate-400">
+                                                    <span>Guest pays (incl. our fee)</span>
+                                                    <span>₹{pricing.totalGuestPrice.toFixed(2)}/hr</span>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div className="flex justify-between text-sm font-bold text-slate-500">
-                                            <span>Service fee (3%)</span>
-                                            <span className="text-rose-400">-₹{(parseFloat(formData.price || "0") * 0.03).toFixed(2)}</span>
-                                        </div>
-                                        <div className="h-px bg-slate-200 my-4"></div>
-                                        <div className="flex justify-between items-end">
-                                            <span className="text-base font-black text-slate-900">You'll earn</span>
-                                            <span className="text-3xl font-black text-[#2F2BFF]">₹{(parseFloat(formData.price || "0") * 0.97).toFixed(2)}</span>
-                                        </div>
-                                    </div>
-                                </div>
+                                    );
+                                })()}
                             </div>
                         </div>
                     </div>

@@ -70,7 +70,7 @@ function SearchContent() {
             }
 
             if (type !== "All") {
-                query = query.eq("type", type);
+                query = query.ilike("type", type);
             }
 
             if (petFriendlyOnly) {
@@ -97,9 +97,6 @@ function SearchContent() {
                 query = query.gte("rating", minRating);
             }
 
-            // Always prioritize Gold Hosts first
-            query = query.order('is_gold_host', { foreignTable: 'profiles', ascending: false });
-
             // Secondary Sorting
             if (sortBy === "price_asc") {
                 query = query.order("price_per_hour", { ascending: true });
@@ -113,8 +110,17 @@ function SearchContent() {
 
             const { data, error } = await query;
 
-            if (!error && data) {
-                setSpaces(data);
+            if (error) {
+                console.error("Search query error:", error);
+                setSpaces([]);
+            } else if (data) {
+                // Sort gold hosts to top client-side (avoids foreign table ordering issues)
+                const sorted = [...data].sort((a, b) => {
+                    const aGold = (a as any).profiles?.is_gold_host ? 1 : 0;
+                    const bGold = (b as any).profiles?.is_gold_host ? 1 : 0;
+                    return bGold - aGold;
+                });
+                setSpaces(sorted);
             }
             setLoading(false);
         };
