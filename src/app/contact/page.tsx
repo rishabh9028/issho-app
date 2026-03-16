@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { sendContactEmail } from "@/app/actions/contact";
+import { sendContactEmail } from "@/actions/contact";
 
 export default function ContactPage() {
     const [submitting, setSubmitting] = useState(false);
