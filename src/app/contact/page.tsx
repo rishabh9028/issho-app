@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { sendContactEmail } from "@/app/actions/contact";
 
 export default function ContactPage() {
     const [submitting, setSubmitting] = useState(false);
@@ -11,14 +12,23 @@ export default function ContactPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setSubmitting(true);
-        // Simulate email submission
-        setTimeout(() => {
+        
+        try {
+            const result = await sendContactEmail(formData);
+            if (result.success) {
+                setStatus("success");
+                setFormData({ name: "", email: "", message: "" });
+                // Clear status after 5 seconds
+                setTimeout(() => setStatus("idle"), 5000);
+            } else {
+                setStatus("error");
+            }
+        } catch (error) {
+            console.error("Failed to send email:", error);
+            setStatus("error");
+        } finally {
             setSubmitting(false);
-            setStatus("success");
-            setFormData({ name: "", email: "", message: "" });
-            // Clear status after 5 seconds
-            setTimeout(() => setStatus("idle"), 5000);
-        }, 1500);
+        }
     };
 
     return (
