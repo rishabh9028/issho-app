@@ -11,7 +11,7 @@ export default function GuestSidebar({ user, currentPage }: GuestSidebarProps) {
     const menuItems = [
         { id: "dashboard", label: "Dashboard", icon: "grid_view", href: "/guest/dashboard" },
         { id: "bookings", label: "My Bookings", icon: "calendar_today", href: "/guest/bookings" },
-        { id: "favorites", label: "Favorites", icon: "favorite", href: "/favorites" },
+        { id: "favorites", label: "Favorites", icon: "favorite", href: "/guest/favorites" },
         { id: "settings", label: "Settings", icon: "settings", href: "/settings" },
     ];
 

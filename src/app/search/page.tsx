@@ -7,6 +7,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { X, SlidersHorizontal, ChevronDown, Check, Star } from "lucide-react";
 import AddressAutocomplete from "@/components/ui/AddressAutocomplete";
+import FavoriteButton from "@/components/ui/FavoriteButton";
 import { cn } from "@/lib/utils";
 
 const TYPES = ["All", "Studio", "Rooftop", "Villa", "Cafe", "Event Space", "Warehouse", "Gallery", "Garden", "Co-working"];
@@ -466,7 +467,8 @@ function SearchContent() {
                                                     />
                                                 );
                                             })()}
-                                            <div className="absolute top-5 right-5 flex flex-col items-end gap-2">
+                                            <div className="absolute top-5 right-5 flex flex-col items-end gap-2 z-20">
+                                                <FavoriteButton spaceId={space.id} />
                                                 <span className="bg-brand-gradient text-white text-xs font-black px-4 py-2 rounded-2xl shadow-xl backdrop-blur-md">
                                                     ₹{space.price_per_hour}/hr
                                                 </span>

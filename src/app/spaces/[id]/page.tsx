@@ -8,6 +8,7 @@ import Image from "next/image";
 import { supabase } from "@/lib/supabase";
 import dynamic from "next/dynamic";
 import { calculatePricing, PricingBreakdown } from "@/lib/pricing";
+import FavoriteButton from "@/components/ui/FavoriteButton";
 
 const LocationMap = dynamic(() => import("@/components/ui/LocationMap"), {
     ssr: false,
@@ -55,9 +56,6 @@ export default function SpaceDetail() {
 
 
     const [reviews, setReviews] = useState<any[]>([]);
-    const [reviewRating, setReviewRating] = useState(5);
-    const [reviewComment, setReviewComment] = useState("");
-    const [submittingReview, setSubmittingReview] = useState(false);
     const [dateBookings, setDateBookings] = useState<any[]>([]);
     const [pricingOptions, setPricingOptions] = useState<any[]>([]);
     const [selectedPricing, setSelectedPricing] = useState<string>("non-refundable");
@@ -393,31 +391,7 @@ export default function SpaceDetail() {
         }
     };
 
-    const handleReviewSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!user) {
-            router.push("/auth/login");
-            return;
-        }
 
-        setSubmittingReview(true);
-        const { error } = await supabase
-            .from("reviews")
-            .insert([
-                {
-                    space_id: spaceId,
-                    user_id: user.id,
-                    rating: reviewRating,
-                    comment: reviewComment
-                }
-            ]);
-
-        if (!error) {
-            setReviewComment("");
-            setReviewRating(5);
-        }
-        setSubmittingReview(false);
-    };
 
     if (loading) {
         return (
@@ -501,9 +475,12 @@ export default function SpaceDetail() {
                         <div className="mb-8">
                             <div className="flex items-center justify-between mb-2">
                                 <h1 className="text-3xl md:text-4xl font-black tracking-tight text-slate-900">{space.title}</h1>
-                                <button className="p-2 rounded-full hover:bg-[#2F2BFF]/10 border border-slate-200 transition-colors">
-                                    <span className="material-symbols-outlined">share</span>
-                                </button>
+                                <div className="flex items-center gap-2">
+                                    <FavoriteButton spaceId={space.id} className="w-10 h-10 border border-slate-200 shadow-none hover:bg-[#2F2BFF]/10 text-slate-500 hover:text-slate-900 bg-white" />
+                                    <button className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[#2F2BFF]/10 border border-slate-200 transition-colors bg-white">
+                                        <span className="material-symbols-outlined text-slate-500 hover:text-slate-900">share</span>
+                                    </button>
+                                </div>
                             </div>
                             <div className="flex flex-wrap items-center gap-4 text-sm font-medium text-slate-600">
                                 <span className="flex items-center gap-1">
@@ -623,42 +600,7 @@ export default function SpaceDetail() {
                                 <h3 className="text-2xl font-black text-slate-900 tracking-tight">{Number(space.rating).toFixed(1)} · {space.reviews_count} reviews</h3>
                             </div>
 
-                            {/* Review Form */}
-                            {user && (
-                                <div className="mb-12 bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
-                                    <h4 className="text-lg font-bold mb-4">Leave a review</h4>
-                                    <form onSubmit={handleReviewSubmit}>
-                                        <div className="mb-4">
-                                            <div className="flex gap-2 mb-2">
-                                                {[1, 2, 3, 4, 5].map((star) => (
-                                                    <button
-                                                        key={star}
-                                                        type="button"
-                                                        onClick={() => setReviewRating(star)}
-                                                        className={`material-symbols-outlined text-2xl transition-colors ${reviewRating >= star ? "text-amber-500 fill-1" : "text-slate-300"}`}
-                                                    >
-                                                        star
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        </div>
-                                        <textarea
-                                            value={reviewComment}
-                                            onChange={(e) => setReviewComment(e.target.value)}
-                                            placeholder="Tell us about your experience..."
-                                            className="w-full rounded-xl border-slate-200 focus:ring-[#2F2BFF] focus:border-[#2F2BFF] min-h-[100px] mb-4 text-sm font-medium"
-                                            required
-                                        ></textarea>
-                                        <button
-                                            type="submit"
-                                            disabled={submittingReview}
-                                            className="bg-slate-900 text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-brand-gradient transition-colors disabled:opacity-50"
-                                        >
-                                            {submittingReview ? "Submitting..." : "Submit Review"}
-                                        </button>
-                                    </form>
-                                </div>
-                            )}
+
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                 {reviews.length > 0 ? (
@@ -942,27 +884,7 @@ export default function SpaceDetail() {
                 </div>
             </main>
 
-            {/* Mobile Sticky Booking Bar */}
-            {!bookingSuccess && (
-                <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-6 py-4 z-50 flex items-center justify-between shadow-[0_-10px_30px_rgba(0,0,0,0.05)]">
-                    <div className="flex flex-col">
-                        <div className="flex items-baseline gap-1">
-                            <span className="text-xl font-black text-[#2F2BFF]">₹{space.price_per_hour.toLocaleString()}</span>
-                            <span className="text-slate-500 text-xs font-bold">/ hour</span>
-                        </div>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{checkInDate}</p>
-                    </div>
-                    <button 
-                        onClick={() => {
-                            const widget = document.querySelector('aside');
-                            widget?.scrollIntoView({ behavior: 'smooth' });
-                        }}
-                        className="bg-brand-gradient text-white px-8 py-3.5 rounded-xl font-black text-sm shadow-lg shadow-[#2F2BFF]/20 active:scale-95 transition-all"
-                    >
-                        Check Availability
-                    </button>
-                </div>
-            )}
+
             {/* Photo Gallery Modal */}
             {showGallery && (
                 <div className="fixed inset-0 z-[100] bg-white overflow-y-auto animate-in fade-in duration-300">

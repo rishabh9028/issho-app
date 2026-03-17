@@ -114,19 +114,6 @@ export default function LoginPage() {
                     </button>
                 </form>
 
-                {/* Divider */}
-                <div className="flex items-center gap-4 my-8">
-                    <div className="flex-1 h-px bg-slate-100" />
-                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-300">or continue with</span>
-                    <div className="flex-1 h-px bg-slate-100" />
-                </div>
-
-                {/* Google */}
-                <button className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 transition-all text-[10px] font-black uppercase tracking-widest text-slate-600">
-                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-4 h-4" alt="Google" />
-                    Google Account
-                </button>
-
                 {/* Footer */}
                 <p className="mt-10 text-center text-sm text-slate-400 font-medium">
                     New to Isshō?{" "}

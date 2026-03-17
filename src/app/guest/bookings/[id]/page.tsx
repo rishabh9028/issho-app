@@ -33,6 +33,11 @@ export default function BookingDetailsPage() {
 
     const [booking, setBooking] = useState<Booking | null>(null);
     const [loading, setLoading] = useState(true);
+    const [reviewRating, setReviewRating] = useState(5);
+    const [reviewComment, setReviewComment] = useState("");
+    const [submittingReview, setSubmittingReview] = useState(false);
+    const [alreadyReviewed, setAlreadyReviewed] = useState(false);
+    const [reviewLoading, setReviewLoading] = useState(true);
 
     useEffect(() => {
         if (!user) {
@@ -63,8 +68,18 @@ export default function BookingDetailsPage() {
 
             if (!error && data) {
                 setBooking(data as any);
+                
+                // Check if already reviewed
+                const { data: reviewData } = await supabase
+                    .from("reviews")
+                    .select("id")
+                    .eq("booking_id", id)
+                    .single();
+                
+                if (reviewData) setAlreadyReviewed(true);
             }
             setLoading(false);
+            setReviewLoading(false);
         };
 
         fetchBooking();
@@ -133,6 +148,36 @@ export default function BookingDetailsPage() {
             alert("Booking cancelled successfully.");
         } catch (error: any) {
             alert("Error cancelling booking: " + error.message);
+        }
+    };
+
+    const handleReviewSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!user || !booking) return;
+
+        setSubmittingReview(true);
+        try {
+            const { error } = await supabase
+                .from("reviews")
+                .insert([
+                    {
+                        space_id: booking.space_id,
+                        user_id: user.id,
+                        booking_id: booking.id,
+                        rating: reviewRating,
+                        comment: reviewComment
+                    }
+                ]);
+
+            if (error) throw error;
+            
+            setAlreadyReviewed(true);
+            alert("Thank you for your review!");
+        } catch (error: any) {
+            console.error("Error submitting review:", error);
+            alert("Failed to submit review: " + error.message);
+        } finally {
+            setSubmittingReview(false);
         }
     };
 
@@ -251,6 +296,74 @@ export default function BookingDetailsPage() {
                                         </div>
                                     </div>
                                 </section>
+
+                                {/* Review Section */}
+                                {booking.status === 'confirmed' && new Date(booking.end_time) < new Date() && !alreadyReviewed && !reviewLoading && (
+                                    <section className="bg-white rounded-[40px] p-10 border border-slate-100 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                        <div className="flex items-center gap-3 mb-6">
+                                            <div className="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-500">
+                                                <span className="material-symbols-outlined text-2xl font-black">rate_review</span>
+                                            </div>
+                                            <div>
+                                                <h3 className="text-xl font-black text-slate-900">How was your stay?</h3>
+                                                <p className="text-sm font-medium text-slate-500">Share your experience with the community.</p>
+                                            </div>
+                                        </div>
+
+                                        <form onSubmit={handleReviewSubmit} className="space-y-6">
+                                            <div>
+                                                <label className="block text-[10px] font-black uppercase text-slate-400 tracking-widest mb-3">Your Rating</label>
+                                                <div className="flex gap-2">
+                                                    {[1, 2, 3, 4, 5].map((star) => (
+                                                        <button
+                                                            key={star}
+                                                            type="button"
+                                                            onClick={() => setReviewRating(star)}
+                                                            className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${
+                                                                reviewRating >= star 
+                                                                    ? "bg-amber-500 text-white shadow-lg shadow-amber-200" 
+                                                                    : "bg-slate-50 text-slate-300 hover:bg-slate-100"
+                                                            }`}
+                                                        >
+                                                            <span className={`material-symbols-outlined text-2xl ${reviewRating >= star ? 'fill-1' : ''}`}>star</span>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-[10px] font-black uppercase text-slate-400 tracking-widest mb-3">Your Experience</label>
+                                                <textarea
+                                                    value={reviewComment}
+                                                    onChange={(e) => setReviewComment(e.target.value)}
+                                                    placeholder="Tell us what you liked (or didn't like) about the space..."
+                                                    className="w-full rounded-[20px] border-slate-200 focus:ring-[#2F2BFF] focus:border-[#2F2BFF] min-h-[120px] text-sm font-medium p-4 transition-all"
+                                                    required
+                                                ></textarea>
+                                            </div>
+
+                                            <button
+                                                type="submit"
+                                                disabled={submittingReview}
+                                                className="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-sm hover:bg-brand-gradient shadow-lg shadow-slate-200 transition-all disabled:opacity-50 active:scale-95"
+                                            >
+                                                {submittingReview ? "Submitting..." : "Submit Review"}
+                                            </button>
+                                        </form>
+                                    </section>
+                                )}
+
+                                {alreadyReviewed && (
+                                    <section className="bg-emerald-50 rounded-[40px] p-10 border border-emerald-100 shadow-sm flex items-center gap-6">
+                                        <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-emerald-500 shadow-sm border border-emerald-50">
+                                            <span className="material-symbols-outlined text-2xl font-black">verified</span>
+                                        </div>
+                                        <div>
+                                            <h3 className="text-xl font-black text-slate-900">Review Submitted</h3>
+                                            <p className="text-sm font-medium text-slate-600">Thank you for sharing your thoughts! Your review is now live on the property page.</p>
+                                        </div>
+                                    </section>
+                                )}
                             </div>
 
                             {/* Right Content */}
