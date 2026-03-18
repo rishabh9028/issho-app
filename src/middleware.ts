@@ -4,10 +4,17 @@ import { updateSession } from '@/lib/supabase/middleware'
 export async function middleware(request: NextRequest) {
   const response = await updateSession(request)
   
-  // Add direct CSP header to satisfy the 'unsafe-eval' requirement if Vercel is being strict
+  // Comprehensive CSP to allow Supabase, Google Fonts, and Realtime WebSockets
   response.headers.set(
     'Content-Security-Policy',
-    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.supabase.co https://*.google.com; connect-src 'self' https://*.supabase.co; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com;"
+    "default-src 'self'; " +
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.supabase.co https://*.google.com https://*.googleapis.com; " +
+    "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.google-analytics.com; " +
+    "img-src 'self' data: https: blob:; " +
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+    "font-src 'self' https://fonts.gstatic.com; " +
+    "frame-src 'self' https://*.supabase.co; " +
+    "worker-src 'self' blob:;"
   )
 
   return response
