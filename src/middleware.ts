@@ -9,7 +9,7 @@ export async function middleware(request: NextRequest) {
     'Content-Security-Policy',
     "default-src 'self'; " +
     "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.supabase.co https://*.google.com https://*.googleapis.com; " +
-    "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.google-analytics.com; " +
+    "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.google-analytics.com https://photon.komoot.io; " +
     "img-src 'self' data: https: blob:; " +
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
     "font-src 'self' https://fonts.gstatic.com; " +
