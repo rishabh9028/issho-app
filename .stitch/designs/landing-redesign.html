@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Isshō - Find Your Perfect Space</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#5048e5",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#121121",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .filled { font-variation-settings: 'FILL' 1; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 antialiased">
+<!-- Sticky Navigation -->
+<nav class="sticky top-0 z-50 w-full bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-primary/10">
+<div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+<div class="flex items-center gap-2 text-primary">
+<span class="material-symbols-outlined text-3xl font-bold">storm</span>
+<span class="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100">Isshō</span>
+</div>
+<div class="hidden md:flex items-center gap-8 text-sm font-semibold">
+<a class="hover:text-primary transition-colors" href="#">Find Spaces</a>
+<a class="hover:text-primary transition-colors" href="#">Host</a>
+<a class="hover:text-primary transition-colors" href="#">About</a>
+</div>
+<div class="flex items-center gap-3">
+<button class="px-5 py-2.5 text-sm font-bold text-slate-900 dark:text-slate-100 hover:bg-primary/5 rounded-lg transition-all">Log In</button>
+<button class="px-6 py-2.5 bg-primary text-white text-sm font-bold rounded-xl shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all">Sign Up</button>
+</div>
+</div>
+</nav>
+<!-- Hero Section -->
+<header class="relative w-full h-[85vh] min-h-[600px] overflow-hidden px-6 pt-4">
+<div class="relative w-full h-full rounded-3xl overflow-hidden shadow-2xl">
+<div class="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60 z-10"></div>
+<img class="absolute inset-0 w-full h-full object-cover" data-alt="Modern luxury villa with infinity pool at dusk" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAtDdSPLzFy3PNU-Ihxg50rfrClvXJ4BVmRn9ZH2PdbT-Ggviko-E6AjKb0yeerHlHOLQcZPyNijsi_Q8d2vY3O6z8Zadv2RlDAlKVoMtBvvr2RhTDggPpPx38Kb5-Md4M1jweGIdAHB1_mlHSsDy2Oepl92hMlqYqYO2SkiuBFFd-OFtW-kXkycuWCjrFgTK-M511Za4LL9Yec6l6NgMn-NDuJFR1GVmAHa5O4wm9HB7L6bCW5flIQgOvyXu2LV-283qAzhxsXDA"/>
+<div class="relative z-20 flex flex-col items-center justify-center h-full text-center px-4">
+<h1 class="text-5xl md:text-7xl font-black text-white mb-6 max-w-4xl leading-[1.1] tracking-tight">
+                    Find the perfect space for your next gathering
+                </h1>
+<p class="text-lg md:text-xl text-white/90 font-medium mb-12 max-w-2xl">
+                    Discover unique villas, studios, and rooftops for unforgettable events.
+                </p>
+<!-- Floating Search Bar -->
+<div class="w-full max-w-5xl bg-white dark:bg-slate-900 p-3 rounded-2xl md:rounded-full shadow-2xl flex flex-col md:flex-row items-center gap-2 border border-white/20">
+<div class="flex-1 w-full grid grid-cols-1 md:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-slate-100 dark:divide-slate-800">
+<div class="px-6 py-3 flex flex-col items-start group">
+<span class="text-[10px] uppercase tracking-widest font-bold text-slate-400 group-hover:text-primary transition-colors">Location</span>
+<input class="w-full border-none p-0 bg-transparent focus:ring-0 text-sm font-medium placeholder-slate-400" placeholder="Where are you going?" type="text"/>
+</div>
+<div class="px-6 py-3 flex flex-col items-start group">
+<span class="text-[10px] uppercase tracking-widest font-bold text-slate-400 group-hover:text-primary transition-colors">Date</span>
+<input class="w-full border-none p-0 bg-transparent focus:ring-0 text-sm font-medium placeholder-slate-400" placeholder="Add dates" type="text"/>
+</div>
+<div class="px-6 py-3 flex flex-col items-start group">
+<span class="text-[10px] uppercase tracking-widest font-bold text-slate-400 group-hover:text-primary transition-colors">Time</span>
+<input class="w-full border-none p-0 bg-transparent focus:ring-0 text-sm font-medium placeholder-slate-400" placeholder="Set time" type="text"/>
+</div>
+<div class="px-6 py-3 flex flex-col items-start group">
+<span class="text-[10px] uppercase tracking-widest font-bold text-slate-400 group-hover:text-primary transition-colors">Guests</span>
+<input class="w-full border-none p-0 bg-transparent focus:ring-0 text-sm font-medium placeholder-slate-400" placeholder="Add guests" type="text"/>
+</div>
+</div>
+<button class="w-full md:w-16 h-14 bg-primary text-white rounded-xl md:rounded-full flex items-center justify-center shadow-lg shadow-primary/30 hover:bg-primary/90 transition-all">
+<span class="material-symbols-outlined text-2xl">search</span>
+</button>
+</div>
+</div>
+</div>
+</header>
+<main class="max-w-7xl mx-auto px-6 py-20">
+<!-- Categories Grid -->
+<section class="mb-24">
+<h2 class="text-3xl font-bold mb-10 tracking-tight">Explore by Category</h2>
+<div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
+<!-- Category Item -->
+<div class="group cursor-pointer flex flex-col items-center gap-4">
+<div class="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden border-2 border-transparent group-hover:border-primary transition-all p-1">
+<div class="w-full h-full rounded-full overflow-hidden relative">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="Modern luxury white villa" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDgIxIp4hMrf5-4uxZ8ZbuaHxY0a0E_KslKo3pI2z245fcRo79CphuxnM7U0Bgrq1Coy2MGCUTA33Zy__Ozegm7CZuC8klzhDwsHygfwftDV5mTNRNHsXSqgOa5V8n9YrLHGkxjij6vlXfKzIlcxJ7-8cXJET9OVbjBRhDYUXVgu-pZ9xGtTd0zJTOxP3wB4ayj412XioK8I2zyuxp0Mds-9OewUvfZG4zStdrLoeQZ9y9T4pR2dejGqT7wH7emX9PD9Njlx0sjWw"/>
+<div class="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+</div>
+</div>
+<span class="font-bold text-sm tracking-wide">Villas</span>
+</div>
+<!-- Category Item -->
+<div class="group cursor-pointer flex flex-col items-center gap-4">
+<div class="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden border-2 border-transparent group-hover:border-primary transition-all p-1">
+<div class="w-full h-full rounded-full overflow-hidden relative">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="Professional music recording studio" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDBdCP-wIlIhuPnz0GWMlFFT_qWH-49pCvPwpmQWycmh0ShTCz0Lu-7zlnQSDBiG8xfVzGlg8ZpjSiDZEcigHpolVs39279QWTcIGktkO_vnFx7-bg1lwmJJDnmPLaLT8lXGknvLuxHw97-GkOZgKXVwookxI24hvt-DSVn9UYwUKJTgGrGhnYoQF9O9T6uGbKdOYhgJAhDCt3HRRPaq2erqOm9_v6K0aCMuqXy4HTJyqx-NPoAQQbgCAmOt2I25vFQ-n6wN75OPw"/>
+<div class="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+</div>
+</div>
+<span class="font-bold text-sm tracking-wide">Studios</span>
+</div>
+<!-- Category Item -->
+<div class="group cursor-pointer flex flex-col items-center gap-4">
+<div class="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden border-2 border-transparent group-hover:border-primary transition-all p-1">
+<div class="w-full h-full rounded-full overflow-hidden relative">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="Cozy modern aesthetic cafe" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBy0xFIudANlTq6M8M8iJdds_0CnIeq9R8Xi-6R7a4H8ZkRK5xxkqho-Q1P5i02O0LL97iIPWU9-_jqi2KRiqd-Xr3Qrdd2cKOGNWFAfY3RSC2FVdjd2tnXtMhwo06Cchj-iiI6fep3v3l4oUhwM_omcJjvi6s1zzufjB3yElmEUP-AfofhgHBS-VVPVdxOeZ6Gy2a2awCClmaasVaVWrl3sKl6s1C_BSo5WVCAXVEcer_XO7jYl0USXp2Sh0Gjv_qyY62XHV12VA"/>
+<div class="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+</div>
+</div>
+<span class="font-bold text-sm tracking-wide">Cafes</span>
+</div>
+<!-- Category Item -->
+<div class="group cursor-pointer flex flex-col items-center gap-4">
+<div class="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden border-2 border-transparent group-hover:border-primary transition-all p-1">
+<div class="w-full h-full rounded-full overflow-hidden relative">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="Rooftop bar with city lights" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBF3VnmXhJ8XeSgAvQ6pG-ijdTjRZDgIBjWUTZVjFk5fnJzTAuXqD2JH3fQPfRpKfLB_Y8jspdYFNfDlhGmtgI-9xjtVAElJ_j8Nx8QOpDep4sQFFGslGE_PcXsD0AIfjdaDBZDj3R8zgcUe_nfDKPzECJWvuDMGjTByEZFx0ZA90fetnssoAG_h3h-pPeYzWJ9HEK-SAsPvVtGcygmxlJ9uGt0ZPyOC7mWPG5aQmaJZyyXhvT2BP2cFljk3D6KY3AtKNpeaEHnjg"/>
+<div class="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+</div>
+</div>
+<span class="font-bold text-sm tracking-wide">Rooftops</span>
+</div>
+<!-- Category Item -->
+<div class="group cursor-pointer flex flex-col items-center gap-4">
+<div class="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden border-2 border-transparent group-hover:border-primary transition-all p-1">
+<div class="w-full h-full rounded-full overflow-hidden relative">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="Large empty industrial event space" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA4z2n0dZH0WSxJSO_PgNaRPHqk3C-W_98qmIHg5fq6H9GIx3QDjXhS_wyRfrsO2afwHXELNDKAKN-HtYPzL8mVQlDJZVH86g8wwIdgTTBKf0zPdlA7Ez_JqFL_phxcm9R8f2I-vjMpWwga8kEYvgNayCwTblcC8OT-9rrZsqVxpMwSXW4DdLaf8xjUtnjqQHaf418xtnU9_H73QeowY16tiDs97UoMtR9-l22jhGS6LMv_DzGYhsrV9sLhSJnYVifQpP2sWTHnlA"/>
+<div class="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+</div>
+</div>
+<span class="font-bold text-sm tracking-wide">Event Halls</span>
+</div>
+<!-- Category Item -->
+<div class="group cursor-pointer flex flex-col items-center gap-4">
+<div class="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden border-2 border-transparent group-hover:border-primary transition-all p-1">
+<div class="w-full h-full rounded-full overflow-hidden relative">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="Clean minimal yoga and wellness studio" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDB-eNxD-q_PNAOaQprdSfzW-DU2pA_ZsOKFVTTm3YGpWbhpxGNnNAOVLX8WbnaU53uIGLzz_MuDjoxHSoW6W7D8I5lAoBlSNIo4WeXYko2QWz0ZDStE0VZiKaT4SWgQFdeRJoucU7rZ4btlgdnJF3NF2Rdvgka1Ki1Xj1h6BXP1GYYNgjzMPIiUb9fGDuU4wOm_NgSNKa7xtvdJnJc4JknptW1oqmdE2iRgqM5ebE3oE7zFMNKGX8m1x6GEN_Y1x-_6WICYL88Gg"/>
+<div class="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+</div>
+</div>
+<span class="font-bold text-sm tracking-wide">Wellness</span>
+</div>
+</div>
+</section>
+<!-- Featured Spaces -->
+<section class="mb-24">
+<div class="flex items-center justify-between mb-10">
+<h2 class="text-3xl font-bold tracking-tight">Featured Spaces</h2>
+<a class="text-primary font-bold hover:underline flex items-center gap-1" href="#">
+                    View All <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</a>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-12">
+<!-- Property Card 1 -->
+<div class="group cursor-pointer">
+<div class="relative aspect-square rounded-2xl overflow-hidden mb-4 shadow-sm group-hover:shadow-xl transition-all">
+<button class="absolute top-4 right-4 z-20 text-white/90 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined filled">favorite</span>
+</button>
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Minimalist modern apartment with balcony" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDw7cqIJBG8MrKmY5kFMVyVz9uDqBLIE1UR1QGRypAK-2MB_2Cx1bu60HWGKzBWcoNQxAmY6fK2AFvEsW7mlMjjMFJ2ylXxcWNZ8nQcqc54UrE0aJB3Vo7OZFYm8XzT7b4uLjwF4GjhsTY-exJbopc3XwgUfdi9J6-YerWI7Whghml-d9NBtt5y4xhCVcb_4-YZACTUD4rCTkvXu8LYapMfXeEf7GEvVvCNn1_sga11isK4IElWjfBPSsfsaRLA84hzYsJnrkc8RA"/>
+<div class="absolute bottom-3 left-3 bg-white/90 dark:bg-slate-900/90 backdrop-blur px-2 py-1 rounded-lg text-[10px] font-extrabold uppercase tracking-widest text-primary">Guest Favorite</div>
+</div>
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-bold text-slate-900 dark:text-slate-100">Zen Loft with Skyline View</h3>
+<p class="text-sm text-slate-500 dark:text-slate-400">Tokyo, Shibuya</p>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-sm filled text-primary">star</span>
+<span class="text-sm font-bold">4.92</span>
+</div>
+</div>
+<p class="mt-2 text-sm">
+<span class="font-bold text-base">$85</span> <span class="text-slate-500 dark:text-slate-400">/ hour</span>
+</p>
+</div>
+<!-- Property Card 2 -->
+<div class="group cursor-pointer">
+<div class="relative aspect-square rounded-2xl overflow-hidden mb-4 shadow-sm group-hover:shadow-xl transition-all">
+<button class="absolute top-4 right-4 z-20 text-white/50 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined">favorite</span>
+</button>
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Luxurious wooden cabin in the forest" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCJ2ugibXIaXtJ3gr0M-w6DyPQBO7UeS6jAOxcZ_Be3GT-zZ38b0MXtEjZug_nBgGJ-IenZiOGHt2hwquC-sehGEAdglhnWoPREyhh2MSdmPR3e3loildAmVIcP0Ikmm1R1nfUkW9BQ1WCeMYw8VGAt9EQafvpNJRhl_eEdNPjNu9PRXTBknNXWtc-CAbKAZqVs_2U_dGWgIWBOC_XdIaVlOERbdqh_nu4Hl__LPt8T1giSQ-Lc01GEKdLJDohGySMsRTBfzJ3LGw"/>
+</div>
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-bold text-slate-900 dark:text-slate-100">Modern Forest Cabin</h3>
+<p class="text-sm text-slate-500 dark:text-slate-400">Hakone, Kanagawa</p>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-sm filled text-primary">star</span>
+<span class="text-sm font-bold">4.85</span>
+</div>
+</div>
+<p class="mt-2 text-sm">
+<span class="font-bold text-base">$120</span> <span class="text-slate-500 dark:text-slate-400">/ hour</span>
+</p>
+</div>
+<!-- Property Card 3 -->
+<div class="group cursor-pointer">
+<div class="relative aspect-square rounded-2xl overflow-hidden mb-4 shadow-sm group-hover:shadow-xl transition-all">
+<button class="absolute top-4 right-4 z-20 text-white/90 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined filled">favorite</span>
+</button>
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="High-end private home cinema" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCDp7rJjwBdS2QtwIo2cUcjWCbt-isDzznz_8WK59ZY4N9EVrB9AaC5Ldi-3EKw2NAXRYKg_9X1_vyD34ceksaxFkDPaLEg1Sm2lGhCcMCS2sYB0iT5LsqpqCERPYgT6zs_U00MMgosduKMylynBrGnET5FAgFPDJcP8_rCg1dJOES_izkc89XCMOS3pzAb-i0iLoblrsPFRdxLHiSnhMMJubS_IjoSeYtoN0D4xU6ix41s-wvjvsQUqBAAZtHaV9UDk2Z0pJrhMg"/>
+</div>
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-bold text-slate-900 dark:text-slate-100">Boutique Art Studio</h3>
+<p class="text-sm text-slate-500 dark:text-slate-400">Kyoto, Gion</p>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-sm filled text-primary">star</span>
+<span class="text-sm font-bold">5.0</span>
+</div>
+</div>
+<p class="mt-2 text-sm">
+<span class="font-bold text-base">$65</span> <span class="text-slate-500 dark:text-slate-400">/ hour</span>
+</p>
+</div>
+<!-- Property Card 4 -->
+<div class="group cursor-pointer">
+<div class="relative aspect-square rounded-2xl overflow-hidden mb-4 shadow-sm group-hover:shadow-xl transition-all">
+<button class="absolute top-4 right-4 z-20 text-white/50 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined">favorite</span>
+</button>
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Modern penthouse with city view" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDeCf23FI79JdyeJvGrXC4hQtgw1WVRvPwqQUvJ8BoMF_we_djOVnBIDUMZdutBdDa6xJvLIMTNP1c79n1dn0lb_CRHpvIHEZXO2hLbjRwRL637w-tL5ZySKnNABOA9I36o8iyzX8ecWFAj2nCpatggavjpsUinU5PKtV7ACnvgUXBRF730Awtb5ELeU--rv_tT-Pf3tkvFsWLUd9ra8x8BY7HRxEE9GJvZxeizPNYdmhgMQUC2TvPvgzDFU2J9k7iK0Gq_p-dFGA"/>
+</div>
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-bold text-slate-900 dark:text-slate-100">Infinity Pool Rooftop</h3>
+<p class="text-sm text-slate-500 dark:text-slate-400">Osaka, Namba</p>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-sm filled text-primary">star</span>
+<span class="text-sm font-bold">4.78</span>
+</div>
+</div>
+<p class="mt-2 text-sm">
+<span class="font-bold text-base">$250</span> <span class="text-slate-500 dark:text-slate-400">/ hour</span>
+</p>
+</div>
+</div>
+</section>
+<!-- How It Works Section -->
+<section class="bg-primary/5 rounded-[2.5rem] p-12 md:p-20">
+<div class="text-center max-w-3xl mx-auto mb-16">
+<h2 class="text-4xl font-black mb-4 tracking-tight">How Isshō Works</h2>
+<p class="text-slate-600 dark:text-slate-400 text-lg">Your journey to the perfect event space is just three simple steps away.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-12 relative">
+<!-- Step 1 -->
+<div class="flex flex-col items-center text-center">
+<div class="w-20 h-20 bg-primary text-white rounded-2xl flex items-center justify-center mb-8 shadow-xl shadow-primary/20">
+<span class="material-symbols-outlined text-4xl">search_insights</span>
+</div>
+<h3 class="text-xl font-bold mb-4">Discover</h3>
+<p class="text-slate-500 dark:text-slate-400">Browse through thousands of unique spaces tailored to your event's specific needs.</p>
+</div>
+<!-- Step 2 -->
+<div class="flex flex-col items-center text-center">
+<div class="w-20 h-20 bg-primary text-white rounded-2xl flex items-center justify-center mb-8 shadow-xl shadow-primary/20">
+<span class="material-symbols-outlined text-4xl">event_available</span>
+</div>
+<h3 class="text-xl font-bold mb-4">Book Instantly</h3>
+<p class="text-slate-500 dark:text-slate-400">Check availability in real-time and secure your space with our seamless booking process.</p>
+</div>
+<!-- Step 3 -->
+<div class="flex flex-col items-center text-center">
+<div class="w-20 h-20 bg-primary text-white rounded-2xl flex items-center justify-center mb-8 shadow-xl shadow-primary/20">
+<span class="material-symbols-outlined text-4xl">celebration</span>
+</div>
+<h3 class="text-xl font-bold mb-4">Gather</h3>
+<p class="text-slate-500 dark:text-slate-400">Arrive at your destination and enjoy an unforgettable experience with your guests.</p>
+</div>
+</div>
+</section>
+</main>
+<!-- CTA Section -->
+<section class="max-w-7xl mx-auto px-6 mb-24">
+<div class="relative rounded-[2.5rem] overflow-hidden bg-background-dark text-white p-12 md:p-20 text-center flex flex-col items-center">
+<div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(circle at 20% 50%, #5048e5 0%, transparent 50%), radial-gradient(circle at 80% 80%, #5048e5 0%, transparent 50%);"></div>
+<h2 class="text-4xl md:text-5xl font-black mb-6 relative z-10">Have an extra space?</h2>
+<p class="text-xl text-slate-400 mb-10 relative z-10 max-w-xl">Join our community of hosts and start earning by sharing your unique space with others.</p>
+<button class="relative z-10 px-8 py-4 bg-primary text-white font-bold rounded-2xl shadow-2xl shadow-primary/40 hover:scale-105 active:scale-95 transition-all text-lg">Become a Host</button>
+</div>
+</section>
+<!-- Footer -->
+<footer class="bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 pt-20 pb-10">
+<div class="max-w-7xl mx-auto px-6">
+<div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-10 mb-20">
+<div class="col-span-2 lg:col-span-2">
+<div class="flex items-center gap-2 text-primary mb-6">
+<span class="material-symbols-outlined text-3xl font-bold">storm</span>
+<span class="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100">Isshō</span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 max-w-sm mb-8">
+                        The world's leading marketplace to find and book unique spaces for any gathering, from intimate workshops to grand celebrations.
+                    </p>
+<div class="flex gap-4">
+<a class="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center hover:bg-primary hover:text-white transition-all text-slate-600 dark:text-slate-300" href="#">
+<span class="material-symbols-outlined text-xl">share</span>
+</a>
+<a class="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center hover:bg-primary hover:text-white transition-all text-slate-600 dark:text-slate-300" href="#">
+<span class="material-symbols-outlined text-xl">camera</span>
+</a>
+<a class="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center hover:bg-primary hover:text-white transition-all text-slate-600 dark:text-slate-300" href="#">
+<span class="material-symbols-outlined text-xl">alternate_email</span>
+</a>
+</div>
+</div>
+<div>
+<h4 class="font-bold mb-6">Company</h4>
+<ul class="space-y-4 text-slate-500 dark:text-slate-400 text-sm">
+<li><a class="hover:text-primary transition-colors" href="#">About Us</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Careers</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Press</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Blog</a></li>
+</ul>
+</div>
+<div>
+<h4 class="font-bold mb-6">Support</h4>
+<ul class="space-y-4 text-slate-500 dark:text-slate-400 text-sm">
+<li><a class="hover:text-primary transition-colors" href="#">Help Center</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Safety</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Cancellation</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Contact</a></li>
+</ul>
+</div>
+<div>
+<h4 class="font-bold mb-6">Hosting</h4>
+<ul class="space-y-4 text-slate-500 dark:text-slate-400 text-sm">
+<li><a class="hover:text-primary transition-colors" href="#">Why Host</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Host Guidelines</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Insurance</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Host Resources</a></li>
+</ul>
+</div>
+</div>
+<div class="border-t border-slate-200 dark:border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-medium text-slate-500">
+<p>© 2024 Isshō Inc. All rights reserved.</p>
+<div class="flex gap-8">
+<a class="hover:text-slate-900 dark:hover:text-slate-100" href="#">Privacy Policy</a>
+<a class="hover:text-slate-900 dark:hover:text-slate-100" href="#">Terms of Service</a>
+<a class="hover:text-slate-900 dark:hover:text-slate-100" href="#">Cookie Policy</a>
+</div>
+</div>
+</div>
+</footer>
+</body></html>

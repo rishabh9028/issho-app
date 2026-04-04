@@ -122,8 +122,9 @@ export default function HostDashboard() {
     const getGuestAvatar = (booking: Booking) => {
         const profile = Array.isArray(booking.profiles) ? booking.profiles[0] : booking.profiles;
         if (profile?.avatar_url) return profile.avatar_url;
-        // Fallback to stylized DiceBear avatar
-        return `https://api.dicebear.com/7.x/avataaars/svg?seed=${booking.user_id}&backgroundColor=b6e3f4,c0aede,d1d4f9`;
+        // Match the same fallback logic as Navbar for consistency
+        const seed = profile?.full_name || booking.user_id;
+        return `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}&backgroundColor=b6e3f4,c0aede,d1d4f9`;
     };
 
     const getGuestName = (booking: Booking) => {
@@ -141,7 +142,7 @@ export default function HostDashboard() {
 
     const pendingRequests = bookings.filter(b => b.status === "pending");
     const activeBookings = bookings.filter(b => b.status === "confirmed");
-    const completedBookings = bookings.filter(b => b.status === "completed");
+    const completedBookings = bookings.filter(b => b.status === "completed" || b.status === "cancelled");
     const totalEarnings = bookings
         .filter(b => b.status === "confirmed" || b.status === "completed")
         .reduce((sum, b) => sum + b.total_price, 0);
@@ -329,6 +330,7 @@ export default function HostDashboard() {
                                                     <tr>
                                                         <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Guest</th>
                                                         <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Space</th>
+                                                        <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Status</th>
                                                         <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Ended On</th>
                                                         <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Earnings</th>
                                                     </tr>
@@ -346,10 +348,17 @@ export default function HostDashboard() {
                                                                 <td className="px-8 py-5">
                                                                     <span className="font-bold text-slate-600">{b.spaces?.title}</span>
                                                                 </td>
+                                                                <td className="px-8 py-5">
+                                                                    <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider text-white ${b.status === 'completed' ? 'bg-blue-500' : 'bg-slate-400'}`}>
+                                                                        {b.status}
+                                                                    </span>
+                                                                </td>
                                                                 <td className="px-8 py-5 text-slate-400 font-bold">
                                                                     {new Date(b.end_time).toLocaleDateString()}
                                                                 </td>
-                                                                <td className="px-8 py-5 text-right font-black text-emerald-600">₹{b.total_price.toLocaleString()}</td>
+                                                                <td className={`px-8 py-5 text-right font-black ${b.status === 'cancelled' ? 'text-slate-400' : 'text-emerald-600'}`}>
+                                                                    {b.status === 'cancelled' ? '—' : `₹${b.total_price.toLocaleString()}`}
+                                                                </td>
                                                             </tr>
                                                         ))
                                                     ) : (

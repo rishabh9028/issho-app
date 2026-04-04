@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import GuestSidebar from "@/components/guest/GuestSidebar";
+import { cn } from "@/lib/utils";
 
 interface Space {
     id: string;
@@ -20,7 +21,7 @@ interface Booking {
     space_id: string;
     start_time: string;
     end_time: string;
-    status: "pending" | "confirmed" | "cancelled";
+    status: "pending" | "confirmed" | "cancelled" | "completed";
     total_price: number;
     spaces?: Space;
 }
@@ -90,15 +91,15 @@ export default function GuestDashboard() {
         (b) => new Date(b.end_time) >= now && b.status !== "cancelled"
     );
     const past = bookings.filter(
-        (b) => new Date(b.end_time) < now && b.status !== "cancelled"
+        (b) => new Date(b.end_time) < now || b.status === "cancelled"
     );
 
     // Stats
     const totalSpent = past
-        .filter((b) => b.status === "confirmed")
+        .filter((b) => b.status === "confirmed" || b.status === "completed")
         .reduce((sum, b) => sum + b.total_price, 0);
     const totalHours = past
-        .filter((b) => b.status === "confirmed")
+        .filter((b) => b.status === "confirmed" || b.status === "completed")
         .reduce((sum, b) => {
             const hours = (new Date(b.end_time).getTime() - new Date(b.start_time).getTime()) / (1000 * 60 * 60);
             return sum + hours;
@@ -106,6 +107,7 @@ export default function GuestDashboard() {
 
     const statusColors: Record<string, string> = {
         confirmed: "bg-green-500",
+        completed: "bg-blue-500",
         pending: "bg-brand-gradient",
         cancelled: "bg-red-400",
     };
@@ -277,9 +279,17 @@ export default function GuestDashboard() {
                                                 </div>
                                                 <div>
                                                     <h4 className="text-sm font-bold">{b.spaces?.title || "Space"}</h4>
-                                                    <p className="text-xs text-slate-500">
-                                                        {formatDate(b.start_time)} – {formatDate(b.end_time)} • {b.spaces?.location}
-                                                    </p>
+                                                    <div className="flex items-center gap-2 mt-1">
+                                                        <p className="text-[10px] text-slate-500 font-medium">
+                                                            {formatDate(b.start_time)} – {formatDate(b.end_time)} • {b.spaces?.location}
+                                                        </p>
+                                                        <span className={cn(
+                                                            "px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider text-white",
+                                                            statusColors[b.status] || "bg-slate-400"
+                                                        )}>
+                                                            {b.status}
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-3">

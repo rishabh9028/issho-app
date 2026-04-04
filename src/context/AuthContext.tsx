@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, ReactNode, useEffect } from "react";
+import { createContext, useContext, useState, ReactNode, useEffect, useMemo } from "react";
 import { supabase } from "@/lib/supabase";
 
 export type Role = "guest" | "host" | "admin";
@@ -44,85 +44,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        let profileSubscription: any = null;
-
-        // First: get initial session synchronously — this avoids the FOUC on page load
+        // Get initial session
         supabase.auth.getSession().then(({ data: { session } }) => {
             const derived = userFromSession(session);
             setUser(derived);
             setLoading(false);
 
             if (derived) {
-                fetchAndSubscribeProfile(derived.id);
+                fetchProfile(derived.id);
             }
         });
 
-        function fetchAndSubscribeProfile(userId: string) {
-            // Fetch profile data (non-blocking: runs after page is shown)
-            supabase
+        async function fetchProfile(userId: string) {
+            const { data, error } = await supabase
                 .from("profiles")
                 .select("role, full_name, avatar_url, is_gold_host, gold_host_expires_at")
                 .eq("id", userId)
-                .single()
-                .then(({ data, error }) => {
-                    if (error) {
-                        console.warn("Could not fetch full profile details (likely pending migrations):", error.message);
-                        // Fallback: try fetching basic fields if Gold columns fail
-                        if (error.message?.includes("is_gold_host") || error.message?.includes("gold_host_expires_at")) {
-                            supabase
-                                .from("profiles")
-                                .select("role, full_name, avatar_url")
-                                .eq("id", userId)
-                                .single()
-                                .then(({ data: basicData }) => {
-                                    if (basicData) {
-                                        setUser(prev => prev ? {
-                                            ...prev,
-                                            role: basicData.role || prev.role,
-                                            name: basicData.full_name || prev.name,
-                                            avatar: basicData.avatar_url || prev.avatar,
-                                        } : null);
-                                    }
-                                });
-                        }
-                    }
-                    if (data) {
-                        setUser(prev => prev ? {
-                            ...prev,
-                            role: data.role || prev.role,
-                            name: data.full_name || prev.name,
-                            avatar: data.avatar_url || prev.avatar,
-                            is_gold_host: data.is_gold_host ?? prev.is_gold_host,
-                            gold_host_expires_at: data.gold_host_expires_at || prev.gold_host_expires_at,
-                        } : null);
-                    }
-                });
+                .single();
 
-            // Real-time listener for profile changes
-            if (!profileSubscription) {
-                profileSubscription = supabase
-                    .channel(`profile_sync_${userId}`)
-                    .on(
-                        'postgres_changes',
-                        {
-                            event: 'UPDATE',
-                            schema: 'public',
-                            table: 'profiles',
-                            filter: `id=eq.${userId}`
-                        },
-                        (payload) => {
-                            const next = payload.new;
-                            setUser(prev => prev ? {
-                                ...prev,
-                                role: next.role || prev.role,
-                                name: next.full_name || prev.name,
-                                avatar: next.avatar_url || prev.avatar,
-                                is_gold_host: next.is_gold_host ?? prev.is_gold_host,
-                                gold_host_expires_at: next.gold_host_expires_at || prev.gold_host_expires_at,
-                            } : null);
-                        }
-                    )
-                    .subscribe();
+            if (error) {
+                console.warn("Could not fetch full profile details:", error.message);
+                return;
+            }
+
+            if (data) {
+                setUser(prev => prev ? {
+                    ...prev,
+                    role: data.role || prev.role,
+                    name: data.full_name || prev.name,
+                    avatar: data.avatar_url || prev.avatar,
+                    is_gold_host: data.is_gold_host ?? prev.is_gold_host,
+                    gold_host_expires_at: data.gold_host_expires_at || prev.gold_host_expires_at,
+                } : null);
             }
         }
 
@@ -134,21 +87,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 setLoading(false);
 
                 if (derived) {
-                    fetchAndSubscribeProfile(derived.id);
-                } else {
-                    if (profileSubscription) {
-                        supabase.removeChannel(profileSubscription);
-                        profileSubscription = null;
-                    }
+                    fetchProfile(derived.id);
                 }
             }
         );
 
         return () => {
             authSubscription?.unsubscribe();
-            if (profileSubscription) {
-                supabase.removeChannel(profileSubscription);
-            }
         };
     }, []);
 
@@ -160,10 +105,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         window.location.href = '/';
     };
 
-    // IMPORTANT: We no longer gate all children behind a fullscreen loading screen.
-    // Instead, children render immediately. Auth-required pages can check `loading` themselves.
+    const value = useMemo(() => ({ user, loading, signOut }), [user, loading]);
+
     return (
-        <AuthContext.Provider value={{ user, loading, signOut }}>
+        <AuthContext.Provider value={value}>
             {children}
         </AuthContext.Provider>
     );
