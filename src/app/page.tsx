@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { HeroSearch } from "@/components/ui/HeroSearch";
 import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 const HERO_IMAGES = [
   "https://images.unsplash.com/photo-1513151233558-d860c5398176?q=80&w=2670&auto=format&fit=crop", // Birthdays
@@ -55,30 +56,35 @@ export default function Home() {
         <div className="container-custom">
           <div className="relative min-h-[400px] rounded-[40px] overflow-hidden group shadow-2xl">
             {/* Background Carousel */}
-            {HERO_IMAGES.map((img, index) => (
-              <div
-                key={img}
-                className="absolute inset-0 transition-opacity duration-1000 ease-in-out"
-                style={{
-                  opacity: index === currentImageIndex ? 1 : 0,
-                  zIndex: index === currentImageIndex ? 1 : 0,
-                }}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentImageIndex}
+                initial={{ opacity: 0, scale: 1.1 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 1.5, ease: "easeOut" }}
+                className="absolute inset-0"
               >
                 <div className="absolute inset-0 bg-black/60 z-10" />
                 <Image
-                  src={img}
+                  src={HERO_IMAGES[currentImageIndex]}
                   alt="Hero Background"
                   fill
-                  priority={index === 0}
+                  priority
                   className="object-cover"
                   sizes="100vw"
                 />
-              </div>
-            ))}
+              </motion.div>
+            </AnimatePresence>
             
             {/* Content Overlay */}
             <div className="relative z-10 flex flex-col items-center justify-center gap-6 px-6 py-8 text-center min-h-[380px]">
-              <div className="max-w-[800px] flex flex-col gap-6 mb-2 text-center animate-in fade-in slide-in-from-bottom-8 duration-1000">
+              <motion.div 
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.2 }}
+                className="max-w-[800px] flex flex-col gap-6 mb-2 text-center"
+              >
                 <h1 className="text-white text-5xl md:text-7xl font-black tracking-tight leading-[1.1]">
                   Private Spaces <br />
                   <span className="text-white/90">for every gathering</span>
@@ -86,7 +92,12 @@ export default function Home() {
                 <p className="text-white text-lg md:text-xl font-medium opacity-90 max-w-2xl mx-auto leading-relaxed">
                   List or Book beautiful homes and venues by the hour for birthdays, celebrations, meetups, events, experiences and special moments.
                 </p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.5 }}
+                  className="flex flex-col sm:flex-row gap-4 justify-center mt-8"
+                >
                   <Link 
                     href="/search" 
                     className="px-8 py-4 bg-brand-gradient text-white font-bold rounded-2xl hover:opacity-90 transition-all shadow-lg shadow-[#2F2BFF]/25 active:scale-95 text-base"
@@ -99,15 +110,20 @@ export default function Home() {
                   >
                     List your Spaces
                   </Link>
-                </div>
-              </div>
+                </motion.div>
+              </motion.div>
             </div>
           </div>
 
           {/* Search Widget - Below and Separated */}
-          <div className="relative z-30 mt-4 px-4 md:px-0 flex justify-center animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-300">
+          <motion.div 
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.8 }}
+            className="relative z-30 mt-4 px-4 md:px-0 flex justify-center"
+          >
             <HeroSearch />
-          </div>
+          </motion.div>
         </div>
       </section>
 
@@ -121,26 +137,35 @@ export default function Home() {
 
           <div className="flex flex-col gap-16">
             {/* For Guests Section - 50/50 Split */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
+            <motion.div 
+              initial={{ opacity: 0, x: -50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+              className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch"
+            >
               {/* Image Block */}
               <div className="relative w-full overflow-hidden rounded-3xl shadow-2xl h-[350px] lg:h-auto lg:min-h-full">
-                {GUEST_HOW_IMAGES.map((img, idx) => (
-                  <div
-                    key={img}
-                    className="absolute inset-0 transition-opacity duration-1000"
-                    style={{ opacity: guestImgIndex === idx ? 1 : 0 }}
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={guestImgIndex}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 1 }}
+                    className="absolute inset-0"
                   >
                     <Image
-                      src={img}
-                      alt={`Guest Guide ${idx + 1}`}
+                      src={GUEST_HOW_IMAGES[guestImgIndex]}
+                      alt={`Guest Guide ${guestImgIndex + 1}`}
                       fill
-                      priority={idx === 0}
+                      priority
                       unoptimized
                       className="object-cover"
                       sizes="(max-width: 768px) 100vw, 50vw"
                     />
-                  </div>
-                ))}
+                  </motion.div>
+                </AnimatePresence>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent pointer-events-none" />
               </div>
 
@@ -159,12 +184,19 @@ export default function Home() {
                       { num: "1", title: "Discover", desc: "Browse vetted spaces nearby." },
                       { num: "2", title: "Book", desc: "Instant booking with secure pay." },
                       { num: "3", title: "Enjoy", desc: "Enjoy your curated environment." },
-                    ].map((step) => (
-                      <div key={step.num} className="flex flex-col gap-3">
+                    ].map((step, idx) => (
+                      <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.5, delay: 0.2 + (idx * 0.1) }}
+                        key={step.num} 
+                        className="flex flex-col gap-3"
+                      >
                         <span className="w-10 h-10 rounded-full bg-[#2F2BFF]/10 text-[#2F2BFF] flex items-center justify-center font-bold">{step.num}</span>
                         <p className="font-bold text-slate-800 text-sm">{step.title}</p>
                         <p className="text-slate-500 text-xs leading-relaxed">{step.desc}</p>
-                      </div>
+                      </motion.div>
                     ))}
                   </div>
                 </div>
@@ -172,10 +204,16 @@ export default function Home() {
                   Start Exploring
                 </Link>
               </div>
-            </div>
+            </motion.div>
 
             {/* For Hosts Section - 50/50 Split */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
+            <motion.div 
+              initial={{ opacity: 0, x: 50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+              className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch"
+            >
               {/* Content Block (Left on Desktop) */}
               <div className="bg-white p-10 md:p-14 rounded-[32px] shadow-xl border border-slate-100 flex flex-col justify-between h-full order-2 lg:order-1">
                 <div>
@@ -191,12 +229,19 @@ export default function Home() {
                       { num: "1", title: "List Free", desc: "Set your rate in minutes." },
                       { num: "2", title: "Manage", desc: "Intuitive host dashboard." },
                       { num: "3", title: "Earn", desc: "Get paid directly for each booking." },
-                    ].map((step) => (
-                      <div key={step.num} className="flex flex-col gap-3">
+                    ].map((step, idx) => (
+                      <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.5, delay: 0.2 + (idx * 0.1) }}
+                        key={step.num} 
+                        className="flex flex-col gap-3"
+                      >
                         <span className="w-10 h-10 rounded-full bg-brand-gradient text-white flex items-center justify-center font-bold">{step.num}</span>
                         <p className="font-bold text-slate-800 text-sm">{step.title}</p>
                         <p className="text-slate-500 text-xs leading-relaxed">{step.desc}</p>
-                      </div>
+                      </motion.div>
                     ))}
                   </div>
                 </div>
@@ -207,28 +252,29 @@ export default function Home() {
 
               {/* Image Block (Right on Desktop) */}
               <div className="relative w-full overflow-hidden rounded-3xl shadow-2xl h-[350px] lg:h-auto lg:min-h-full order-1 lg:order-2">
-                {HOST_HOW_IMAGES.map((img, idx) => (
-                  <div
-                    key={img}
-                    className="absolute inset-0 transition-opacity duration-1000 ease-in-out"
-                    style={{
-                      opacity: idx === hostImgIndex ? 1 : 0,
-                    }}
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={hostImgIndex}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 1 }}
+                    className="absolute inset-0"
                   >
                     <Image
-                      src={img}
-                      alt={`Host Guide ${idx + 1}`}
+                      src={HOST_HOW_IMAGES[hostImgIndex]}
+                      alt={`Host Guide ${hostImgIndex + 1}`}
                       fill
-                      priority={idx === 0}
+                      priority
                       unoptimized
                       className="object-cover"
                       sizes="(max-width: 768px) 100vw, 50vw"
                     />
-                  </div>
-                ))}
+                  </motion.div>
+                </AnimatePresence>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent pointer-events-none" />
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
@@ -253,22 +299,30 @@ export default function Home() {
               { label: "Villas", desc: "Perfect for off-sites and shoots", img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=2670&auto=format&fit=crop", slug: "villa" },
               { label: "Studios", desc: "Creative hubs for creators", img: "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?q=80&w=2670&auto=format&fit=crop", slug: "studio" },
               { label: "Cafes", desc: "Unique venues for small events", img: "https://images.unsplash.com/photo-1556912173-3bb406ef7e77?q=80&w=2670&auto=format&fit=crop", slug: "cafe" },
-            ].map((cat) => (
-              <Link href={`/categories/${cat.slug}`} key={cat.label} className="group relative overflow-hidden rounded-2xl aspect-[4/5] cursor-pointer block">
-                <Image
-                  src={cat.img}
-                  alt={cat.label}
-                  fill
-                  unoptimized
-                  className="object-cover transition-transform duration-500 group-hover:scale-110"
-                  sizes="(max-width: 768px) 100vw, 33vw"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
-                <div className="absolute bottom-6 left-6 text-white z-10 pointer-events-none">
-                  <h3 className="text-white text-2xl font-bold mb-1">{cat.label}</h3>
-                  <p className="text-slate-300 text-sm">{cat.desc}</p>
-                </div>
-              </Link>
+            ].map((cat, idx) => (
+              <motion.div
+                key={cat.label}
+                initial={{ opacity: 0, scale: 0.95 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: idx * 0.1 }}
+              >
+                <Link href={`/categories/${cat.slug}`} className="group relative overflow-hidden rounded-2xl aspect-[4/5] cursor-pointer block">
+                  <Image
+                    src={cat.img}
+                    alt={cat.label}
+                    fill
+                    unoptimized
+                    className="object-cover transition-transform duration-700 group-hover:scale-110"
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
+                  <div className="absolute bottom-6 left-6 text-white z-10 pointer-events-none">
+                    <h3 className="text-white text-2xl font-bold mb-1">{cat.label}</h3>
+                    <p className="text-slate-300 text-sm">{cat.desc}</p>
+                  </div>
+                </Link>
+              </motion.div>
             ))}
           </div>
         </div>
